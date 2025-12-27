@@ -1,3 +1,4 @@
+import { index as markdownIndex } from '@/actions/App/Http/Controllers/MarkdownController';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,7 +34,14 @@ import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    BookOpen,
+    FileText,
+    Folder,
+    LayoutGrid,
+    Menu,
+    Search,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -54,6 +62,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             title: __('Dashboard'),
             href: dashboard(),
             icon: LayoutGrid,
+        },
+        {
+            title: __('Markdown'),
+            href: markdownIndex(),
+            icon: FileText,
         },
     ];
 
