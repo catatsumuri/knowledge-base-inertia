@@ -48,6 +48,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'lang' => $this->frontendTranslations(),
+            'imageUrl' => session('imageUrl'),
         ];
     }
 
