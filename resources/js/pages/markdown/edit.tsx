@@ -5,8 +5,7 @@ import {
     update,
     uploadImage,
 } from '@/actions/App/Http/Controllers/MarkdownController';
-import { CodeBlock } from '@/components/code-block';
-import { MarkdownImage } from '@/components/markdown-image';
+import { MarkdownViewer } from '@/components/markdown-viewer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,14 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
-import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
-import { remarkZennDirective } from '@/lib/remark-zenn-directive';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkDirective from 'remark-directive';
-import remarkGfm from 'remark-gfm';
 
 interface MarkdownDocument {
     id: number;
@@ -242,20 +236,7 @@ export default function Edit({
 
                                     <TabsContent value="preview">
                                         <div className="prose prose-sm min-h-[500px] max-w-none rounded-md border p-4 prose-neutral dark:prose-invert">
-                                            <ReactMarkdown
-                                                remarkPlugins={[
-                                                    remarkGfm,
-                                                    remarkDirective,
-                                                    remarkZennDirective,
-                                                    remarkImageSize,
-                                                ]}
-                                                components={{
-                                                    code: CodeBlock,
-                                                    img: MarkdownImage,
-                                                }}
-                                            >
-                                                {preprocessImageSize(content)}
-                                            </ReactMarkdown>
+                                            <MarkdownViewer content={content} />
                                         </div>
                                     </TabsContent>
                                 </Tabs>

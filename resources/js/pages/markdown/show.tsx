@@ -1,16 +1,10 @@
 import { edit, show } from '@/actions/App/Http/Controllers/MarkdownController';
-import { CodeBlock } from '@/components/code-block';
-import { MarkdownImage } from '@/components/markdown-image';
+import { MarkdownViewer } from '@/components/markdown-viewer';
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
-import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
-import { remarkZennDirective } from '@/lib/remark-zenn-directive';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import ReactMarkdown from 'react-markdown';
-import remarkDirective from 'remark-directive';
-import remarkGfm from 'remark-gfm';
 
 interface MarkdownDocument {
     id: number;
@@ -61,20 +55,7 @@ export default function Show({ document }: { document: MarkdownDocument }) {
 
                 <div className="prose prose-sm max-w-none rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert">
                     {document.content ? (
-                        <ReactMarkdown
-                            remarkPlugins={[
-                                remarkGfm,
-                                remarkDirective,
-                                remarkZennDirective,
-                                remarkImageSize,
-                            ]}
-                            components={{
-                                code: CodeBlock,
-                                img: MarkdownImage,
-                            }}
-                        >
-                            {preprocessImageSize(document.content)}
-                        </ReactMarkdown>
+                        <MarkdownViewer content={document.content} />
                     ) : (
                         <p className="text-muted-foreground">
                             {__('No content yet.')}

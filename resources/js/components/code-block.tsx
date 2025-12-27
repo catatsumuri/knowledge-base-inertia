@@ -115,7 +115,7 @@ export function CodeBlock({
             const prismLanguage = Prism?.languages?.[language] || null;
 
             return (
-                <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700">
+                <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
                     <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
                         <span>{filename || language}</span>
                         <div className="flex gap-2">
@@ -144,7 +144,7 @@ export function CodeBlock({
                         </div>
                     </div>
                     <div className={wrap ? '' : 'overflow-x-auto'}>
-                        <pre className="!my-0 !bg-[#282c34] font-mono text-sm">
+                        <pre className="!my-0 font-mono text-sm">
                             <code>
                                 {lines.map((line, index) => {
                                     let bgColor = 'transparent';
@@ -216,7 +216,7 @@ export function CodeBlock({
 
         // 通常のシンタックスハイライト
         return (
-            <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700">
+            <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
                 <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
                     <span>{filename || language}</span>
                     <div className="flex gap-2">
