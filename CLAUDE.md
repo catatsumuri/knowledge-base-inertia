@@ -1,3 +1,7 @@
+- 全て日本語で応答してください
+- ./resources/js/components/ui/* 以下はShadCN/UIが格納されているので自作しないようにしてください。必要に応じてnpx addすること
+- アイコンは同梱のLucideアイコンを利用してください
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
