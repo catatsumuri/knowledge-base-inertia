@@ -106,5 +106,21 @@
     "login using a recovery code": "リカバリーコードでログインする",
     "login using an authentication code": "認証コードでログインする",
     "or you can": "または次の方法があります",
-    "or, enter the code manually": "またはコードを手動で入力してください"
+    "or, enter the code manually": "またはコードを手動で入力してください",
+    "Markdown": "マークダウン",
+    "Edit": "編集",
+    "No content yet.": "まだコンテンツがありません。",
+    "Last updated by": "最終更新者",
+    "Create new document": "新しいドキュメントを作成",
+    "Edit document": "ドキュメントを編集",
+    "Slug": "スラッグ",
+    "Title": "タイトル",
+    "Content": "コンテンツ",
+    "Saving...": "保存中...",
+    "Document title": "ドキュメントのタイトル",
+    "Create": "作成",
+    "Preview": "プレビュー",
+    "Write your markdown content here...": "ここにMarkdownコンテンツを記述してください...",
+    "Tip: Drag & drop or paste images to upload": "ヒント: 画像をドラッグ&ドロップまたは貼り付けてアップロードできます",
+    "Top page": "トップページ"
 }
