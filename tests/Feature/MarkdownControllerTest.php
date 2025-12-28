@@ -16,7 +16,7 @@ test('indexドキュメントが存在する場合はリダイレクトする', 
 
     $response = $this->actingAs($user)->get('/markdown');
 
-    $response->assertRedirect(route('markdown.show', $document));
+    $response->assertRedirect(route('markdown.show', $document->slug));
 });
 
 test('ドキュメントが存在しない場合は編集ページを表示する', function () {
@@ -59,7 +59,7 @@ test('最初のドキュメントはindexスラッグとトップページタイ
     ]);
 
     $document = MarkdownDocument::where('slug', 'index')->first();
-    $response->assertRedirect(route('markdown.show', $document));
+    $response->assertRedirect(route('markdown.show', $document->slug));
 });
 
 test('2つ目以降のドキュメントは指定されたスラッグとタイトルで作成される', function () {
@@ -88,7 +88,7 @@ test('2つ目以降のドキュメントは指定されたスラッグとタイ�
     ]);
 
     $document = MarkdownDocument::where('slug', 'test-document')->first();
-    $response->assertRedirect(route('markdown.show', $document));
+    $response->assertRedirect(route('markdown.show', $document->slug));
 });
 
 test('ドキュメントを表示する', function () {
@@ -98,13 +98,113 @@ test('ドキュメントを表示する', function () {
         'updated_by' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->get(route('markdown.show', $document));
+    $response = $this->actingAs($user)->get(route('markdown.show', $document->slug));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('markdown/show')
         ->has('document')
     );
+});
+
+test('存在しないドキュメントにアクセスした場合は編集ページを表示する', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('markdown.show', 'non-existent-page'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('markdown/edit')
+        ->where('document', null)
+        ->where('isIndexDocument', false)
+        ->where('slug', 'non-existent-page')
+    );
+});
+
+test('ネストしたパスのドキュメントを作成できる', function () {
+    $user = User::factory()->create();
+
+    // 最初のドキュメントとしてindexを作成
+    MarkdownDocument::factory()->create([
+        'slug' => 'index',
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
+    ]);
+
+    $data = [
+        'slug' => 'category/subcategory/page',
+        'title' => 'Nested Page',
+        'content' => '# Nested content',
+    ];
+
+    $response = $this->actingAs($user)->post('/markdown', $data);
+
+    $this->assertDatabaseHas('markdown_documents', [
+        'slug' => 'category/subcategory/page',
+        'title' => 'Nested Page',
+        'content' => '# Nested content',
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
+    ]);
+
+    $response->assertRedirect(route('markdown.show', 'category/subcategory/page'));
+});
+
+test('ネストしたパスのドキュメントを表示できる', function () {
+    $user = User::factory()->create();
+    $document = MarkdownDocument::factory()->create([
+        'slug' => 'parent/child',
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('markdown.show', 'parent/child'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('markdown/show')
+        ->has('document')
+        ->where('document.slug', 'parent/child')
+    );
+});
+
+test('存在しないネストしたパスにアクセスした場合は編集ページを表示する', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('markdown.show', 'link2/child'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('markdown/edit')
+        ->where('document', null)
+        ->where('isIndexDocument', false)
+        ->where('slug', 'link2/child')
+    );
+});
+
+test('ネストしたパスのドキュメントを更新できる', function () {
+    $user = User::factory()->create();
+    $document = MarkdownDocument::factory()->create([
+        'slug' => 'section/article',
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
+    ]);
+
+    $data = [
+        'title' => 'Updated Nested Title',
+        'content' => 'Updated nested content',
+    ];
+
+    $response = $this->actingAs($user)->patch(route('markdown.update', 'section/article'), $data);
+
+    $this->assertDatabaseHas('markdown_documents', [
+        'slug' => 'section/article',
+        'title' => 'Updated Nested Title',
+        'content' => 'Updated nested content',
+        'updated_by' => $user->id,
+    ]);
+
+    $response->assertRedirect(route('markdown.show', 'section/article'));
 });
 
 test('ドキュメント編集ページを表示する', function () {
@@ -114,7 +214,7 @@ test('ドキュメント編集ページを表示する', function () {
         'updated_by' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->get(route('markdown.edit', $document));
+    $response = $this->actingAs($user)->get(route('markdown.edit', $document->slug));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page->component('markdown/edit'));
@@ -132,7 +232,7 @@ test('ドキュメントを更新する', function () {
         'content' => 'Updated content',
     ];
 
-    $response = $this->actingAs($user)->patch(route('markdown.update', $document), $data);
+    $response = $this->actingAs($user)->patch(route('markdown.update', $document->slug), $data);
 
     $this->assertDatabaseHas('markdown_documents', [
         'id' => $document->id,
@@ -141,7 +241,7 @@ test('ドキュメントを更新する', function () {
         'updated_by' => $user->id,
     ]);
 
-    $response->assertRedirect(route('markdown.show', $document));
+    $response->assertRedirect(route('markdown.show', $document->slug));
 });
 
 test('ゲストはマークダウンルートにアクセスできない', function () {
@@ -150,9 +250,9 @@ test('ゲストはマークダウンルートにアクセスできない', funct
     $this->get('/markdown')->assertRedirect(route('login'));
     $this->get('/markdown/create')->assertRedirect(route('login'));
     $this->post('/markdown', [])->assertRedirect(route('login'));
-    $this->get(route('markdown.show', $document))->assertRedirect(route('login'));
-    $this->get(route('markdown.edit', $document))->assertRedirect(route('login'));
-    $this->patch(route('markdown.update', $document), [])->assertRedirect(route('login'));
+    $this->get(route('markdown.show', $document->slug))->assertRedirect(route('login'));
+    $this->get(route('markdown.edit', $document->slug))->assertRedirect(route('login'));
+    $this->patch(route('markdown.update', $document->slug), [])->assertRedirect(route('login'));
 });
 
 test('画像をアップロードしてURLを返す', function () {

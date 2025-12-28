@@ -31,9 +31,11 @@ interface MarkdownDocument {
 export default function Edit({
     document,
     isIndexDocument = false,
+    slug,
 }: {
     document: MarkdownDocument | null;
     isIndexDocument?: boolean;
+    slug?: string;
 }) {
     const { __ } = useLang();
     const [content, setContent] = useState(document?.content ?? '');
@@ -111,31 +113,64 @@ export default function Edit({
         }
     };
 
-    const breadcrumbs: BreadcrumbItem[] = document
-        ? [
-              {
-                  title: __('Markdown'),
-                  href: show(document).url,
-              },
-              {
-                  title: document.title,
-                  href: show(document).url,
-              },
-              {
-                  title: __('Edit'),
-                  href: edit(document).url,
-              },
-          ]
-        : [
-              {
-                  title: __('Markdown'),
-                  href: '/markdown',
-              },
-              {
-                  title: __('Create'),
-                  href: '/markdown/create',
-              },
-          ];
+    // ネストしたパスの場合、階層的なbreadcrumbsを生成
+    const generateBreadcrumbs = (): BreadcrumbItem[] => {
+        const breadcrumbs: BreadcrumbItem[] = [
+            {
+                title: __('Markdown'),
+                href: '/markdown',
+            },
+        ];
+
+        // 新規作成ページ（存在しないページへのアクセス）
+        if (!document && slug) {
+            const slugParts = slug.split('/');
+            let currentPath = '';
+
+            slugParts.forEach((part) => {
+                currentPath += (currentPath ? '/' : '') + part;
+
+                breadcrumbs.push({
+                    title: part.charAt(0).toUpperCase() + part.slice(1),
+                    href: show(currentPath).url,
+                });
+            });
+
+            return breadcrumbs;
+        }
+
+        // 通常の新規作成ページ
+        if (!document) {
+            breadcrumbs.push({
+                title: __('Create'),
+                href: '/markdown/create',
+            });
+            return breadcrumbs;
+        }
+
+        // 既存ドキュメントの編集
+        const slugParts = document.slug.split('/');
+        let currentPath = '';
+
+        slugParts.forEach((part, index) => {
+            currentPath += (currentPath ? '/' : '') + part;
+            const isLast = index === slugParts.length - 1;
+
+            breadcrumbs.push({
+                title: isLast ? document.title : part.charAt(0).toUpperCase() + part.slice(1),
+                href: show(currentPath).url,
+            });
+        });
+
+        breadcrumbs.push({
+            title: __('Edit'),
+            href: edit(document.slug).url,
+        });
+
+        return breadcrumbs;
+    };
+
+    const breadcrumbs = generateBreadcrumbs();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -147,7 +182,7 @@ export default function Edit({
                 </h1>
 
                 <Form
-                    {...(document ? update.form(document) : store.form())}
+                    {...(document ? update(document.slug) : store())}
                     className="space-y-6"
                 >
                     {({ processing, errors }) => (
@@ -160,7 +195,7 @@ export default function Edit({
                                         name="slug"
                                         required
                                         placeholder="my-document"
-                                        defaultValue={document?.slug ?? ''}
+                                        defaultValue={slug ?? document?.slug ?? ''}
                                     />
                                     {errors.slug && (
                                         <p className="text-sm text-red-600">

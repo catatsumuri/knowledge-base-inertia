@@ -30,16 +30,32 @@ interface MarkdownDocument {
 export default function Show({ document }: { document: MarkdownDocument }) {
     const { __ } = useLang();
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: __('Markdown'),
-            href: show(document).url,
-        },
-        {
-            title: document.title,
-            href: show(document).url,
-        },
-    ];
+    // ネストしたパスの場合、階層的なbreadcrumbsを生成
+    const generateBreadcrumbs = (): BreadcrumbItem[] => {
+        const breadcrumbs: BreadcrumbItem[] = [
+            {
+                title: __('Markdown'),
+                href: '/markdown',
+            },
+        ];
+
+        const slugParts = document.slug.split('/');
+        let currentPath = '';
+
+        slugParts.forEach((part, index) => {
+            currentPath += (currentPath ? '/' : '') + part;
+            const isLast = index === slugParts.length - 1;
+
+            breadcrumbs.push({
+                title: isLast ? document.title : part.charAt(0).toUpperCase() + part.slice(1),
+                href: show(currentPath).url,
+            });
+        });
+
+        return breadcrumbs;
+    };
+
+    const breadcrumbs = generateBreadcrumbs();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -49,7 +65,7 @@ export default function Show({ document }: { document: MarkdownDocument }) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{document.title}</h1>
                     <Button asChild>
-                        <Link href={edit(document).url}>{__('Edit')}</Link>
+                        <Link href={edit(document.slug).url}>{__('Edit')}</Link>
                     </Button>
                 </div>
 

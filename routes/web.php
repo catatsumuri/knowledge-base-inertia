@@ -19,9 +19,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('markdown/create', [\App\Http\Controllers\MarkdownController::class, 'create'])->name('markdown.create');
     Route::post('markdown', [\App\Http\Controllers\MarkdownController::class, 'store'])->name('markdown.store');
     Route::post('markdown/upload-image', [\App\Http\Controllers\MarkdownController::class, 'uploadImage'])->name('markdown.upload-image');
-    Route::get('markdown/{document}', [\App\Http\Controllers\MarkdownController::class, 'show'])->name('markdown.show');
-    Route::get('markdown/{document}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->name('markdown.edit');
-    Route::patch('markdown/{document}', [\App\Http\Controllers\MarkdownController::class, 'update'])->name('markdown.update');
+    Route::get('markdown/{slug}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->where('slug', '.*')->name('markdown.edit');
+    Route::patch('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'update'])->where('slug', '.*')->name('markdown.update');
+    Route::get('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'show'])->where('slug', '.*')->name('markdown.show');
 });
 
 require __DIR__.'/settings.php';

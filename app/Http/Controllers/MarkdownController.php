@@ -61,14 +61,24 @@ class MarkdownController extends Controller
             'updated_by' => $request->user()->id,
         ]);
 
-        return to_route('markdown.show', $document);
+        return to_route('markdown.show', $document->slug);
     }
 
     /**
-     * Display the specified markdown document.
+     * Display the specified markdown document or show create form if not exists.
      */
-    public function show(MarkdownDocument $document): Response
+    public function show(string $slug): Response
     {
+        $document = MarkdownDocument::query()->where('slug', $slug)->first();
+
+        if (! $document) {
+            return Inertia::render('markdown/edit', [
+                'document' => null,
+                'isIndexDocument' => false,
+                'slug' => $slug,
+            ]);
+        }
+
         $document->load(['createdBy', 'updatedBy']);
 
         return Inertia::render('markdown/show', [
@@ -79,8 +89,10 @@ class MarkdownController extends Controller
     /**
      * Show the form for editing the specified markdown document.
      */
-    public function edit(MarkdownDocument $document): Response
+    public function edit(string $slug): Response
     {
+        $document = MarkdownDocument::query()->where('slug', $slug)->firstOrFail();
+
         return Inertia::render('markdown/edit', [
             'document' => $document,
         ]);
@@ -89,14 +101,16 @@ class MarkdownController extends Controller
     /**
      * Update the specified markdown document in storage.
      */
-    public function update(MarkdownRequest $request, MarkdownDocument $document): RedirectResponse
+    public function update(MarkdownRequest $request, string $slug): RedirectResponse
     {
+        $document = MarkdownDocument::query()->where('slug', $slug)->firstOrFail();
+
         $document->update([
             ...$request->validated(),
             'updated_by' => $request->user()->id,
         ]);
 
-        return to_route('markdown.show', $document);
+        return to_route('markdown.show', $document->slug);
     }
 
     /**
