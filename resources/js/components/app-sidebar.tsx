@@ -1,4 +1,5 @@
 import { index as markdownIndex } from '@/actions/App/Http/Controllers/MarkdownController';
+import { index as sitemapIndex } from '@/actions/App/Http/Controllers/SitemapController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -15,7 +16,7 @@ import { useLang } from '@/hooks/useLang';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, FileText, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, FileText, Folder, LayoutGrid, Network } from 'lucide-react';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
@@ -30,6 +31,11 @@ export function AppSidebar() {
             title: __('Markdown'),
             href: markdownIndex(),
             icon: FileText,
+        },
+        {
+            title: __('Sitemap'),
+            href: sitemapIndex(),
+            icon: Network,
         },
     ];
 

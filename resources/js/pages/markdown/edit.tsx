@@ -182,7 +182,7 @@ export default function Edit({
                 </h1>
 
                 <Form
-                    {...(document ? update(document.slug) : store())}
+                    action={document ? update(document.slug) : store()}
                     className="space-y-6"
                 >
                     {({ processing, errors }) => (

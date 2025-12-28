@@ -4,6 +4,7 @@ import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
 import { preprocessZennSyntax } from '@/lib/remark-zenn-syntax';
+import { Link } from '@inertiajs/react';
 import { AlertCircle, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -12,6 +13,32 @@ import remarkGfm from 'remark-gfm';
 
 interface MarkdownViewerProps {
     content: string;
+}
+
+// Markdown内のリンクをInertia Linkに変換するコンポーネント
+function MarkdownLink({ href, children, ...props }: React.ComponentPropsWithoutRef<'a'>) {
+    // 外部リンク（http://またはhttps://で始まる）かどうかを判定
+    const isExternalLink = href && href.match(/^https?:\/\//);
+
+    if (isExternalLink) {
+        return (
+            <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                {children}
+            </a>
+        );
+    }
+
+    // 内部リンクの場合、相対パスは/markdown/を基準にする
+    let internalHref = href || '';
+    if (internalHref && !internalHref.startsWith('/')) {
+        internalHref = `/markdown/${internalHref}`;
+    }
+
+    return (
+        <Link href={internalHref} {...props}>
+            {children}
+        </Link>
+    );
 }
 
 // Zenn式messageボックスのカスタムコンポーネント
@@ -52,6 +79,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 code: CodeBlock,
                 img: MarkdownImage,
                 aside: MessageBox,
+                a: MarkdownLink,
             }}
         >
             {processedContent}

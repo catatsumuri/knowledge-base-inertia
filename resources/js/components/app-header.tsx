@@ -1,4 +1,5 @@
 import { index as markdownIndex } from '@/actions/App/Http/Controllers/MarkdownController';
+import { index as sitemapIndex } from '@/actions/App/Http/Controllers/SitemapController';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -40,6 +41,7 @@ import {
     Folder,
     LayoutGrid,
     Menu,
+    Network,
     Search,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -67,6 +69,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             title: __('Markdown'),
             href: markdownIndex(),
             icon: FileText,
+        },
+        {
+            title: __('Sitemap'),
+            href: sitemapIndex(),
+            icon: Network,
         },
     ];
 
