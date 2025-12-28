@@ -18,7 +18,14 @@ interface CodeBlockProps {
     inline?: boolean;
     className?: string;
     children?: React.ReactNode;
-    node?: any;
+    node?: {
+        data?: {
+            meta?: string;
+        };
+        properties?: {
+            metastring?: string;
+        };
+    };
 }
 
 export function CodeBlock({
@@ -48,7 +55,7 @@ export function CodeBlock({
     if (meta) {
         const metaParts = meta.split(/\s+/);
         if (metaParts.length > 0) {
-            const [langPart, ...rest] = metaParts;
+            const langPart = metaParts[0];
             if (langPart.includes(':')) {
                 const [lang, file] = langPart.split(':');
                 language = lang;
@@ -174,7 +181,7 @@ export function CodeBlock({
                                                 prismLanguage,
                                                 language,
                                             );
-                                        } catch (e) {
+                                        } catch {
                                             // ハイライト失敗時はプレーンテキスト
                                             highlightedHTML = codeContent;
                                         }

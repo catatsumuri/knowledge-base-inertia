@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 
-interface MarkdownImageProps extends ComponentPropsWithoutRef<'img'> {}
+type MarkdownImageProps = ComponentPropsWithoutRef<'img'>;
 
 /**
  * Zenn式のMarkdown画像コンポーネント

@@ -12,13 +12,14 @@ import { Link } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
+    const { __ } = useLang();
+
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
         return null;
     }
 
     const currentPath = window.location.pathname;
-    const { __ } = useLang();
     const sidebarNavItems: NavItem[] = [
         {
             title: __('Profile'),

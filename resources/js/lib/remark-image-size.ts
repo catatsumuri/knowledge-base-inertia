@@ -1,4 +1,4 @@
-import type { Root } from 'mdast';
+import type { Image, Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 
 /**
@@ -13,7 +13,7 @@ import { visit } from 'unist-util-visit';
  */
 export function remarkImageSize() {
     return (tree: Root) => {
-        visit(tree, 'image', (node: any) => {
+        visit(tree, 'image', (node: Image) => {
             if (!node.url) {
                 return;
             }

@@ -15,7 +15,7 @@ interface MarkdownViewerProps {
 }
 
 // Zenn式messageボックスのカスタムコンポーネント
-function MessageBox({ children, className, ...props }: any) {
+function MessageBox({ children, className, ...props }: React.ComponentPropsWithoutRef<'aside'>) {
     const isMessage = className?.includes('message');
     const isAlert = className?.includes('alert');
 

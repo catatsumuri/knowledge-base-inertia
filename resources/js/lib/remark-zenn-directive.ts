@@ -1,5 +1,17 @@
-import type { Root } from 'mdast';
+import type { Paragraph, Root } from 'mdast';
+import type { Node } from 'unist';
 import { visit } from 'unist-util-visit';
+
+interface ContainerDirectiveNode extends Node {
+    type: 'containerDirective';
+    name: string;
+    attributes?: Record<string, string | undefined>;
+    children: Node[];
+    data?: {
+        hName?: string;
+        hProperties?: Record<string, unknown>;
+    };
+}
 
 /**
  * Zenn式のディレクティブ構文をサポートするremarkプラグイン
@@ -13,31 +25,33 @@ import { visit } from 'unist-util-visit';
  */
 export function remarkZennDirective() {
     return (tree: Root) => {
-        visit(tree, (node: any) => {
+        visit(tree, (node: Node) => {
             if (node.type !== 'containerDirective') {
                 return;
             }
 
+            const directiveNode = node as ContainerDirectiveNode;
+
             // message ディレクティブ
-            if (node.name === 'message') {
+            if (directiveNode.name === 'message') {
                 // :::message{.alert} または :::message{alert} のようなattributesをチェック
-                const attributes = node.attributes || {};
+                const attributes = directiveNode.attributes || {};
                 const className = attributes.className || attributes.class || '';
                 const isAlert = className.includes('alert') || attributes.alert !== undefined;
 
                 const messageType = isAlert ? 'alert' : 'message';
 
                 // HTMLに変換
-                const data = node.data || (node.data = {});
+                const data = directiveNode.data || (directiveNode.data = {});
                 data.hName = 'aside';
                 data.hProperties = {
                     className: `msg ${messageType}`,
                 };
 
                 // 子要素内のcode要素をpre要素でラップ
-                if (node.children) {
-                    const newChildren: any[] = [];
-                    for (const child of node.children) {
+                if (directiveNode.children) {
+                    const newChildren: Node[] = [];
+                    for (const child of directiveNode.children) {
                         if (child.type === 'code') {
                             // paragraphノードをpre要素に変換し、その中にcode要素を配置
                             newChildren.push({
@@ -46,30 +60,30 @@ export function remarkZennDirective() {
                                     hName: 'pre',
                                 },
                                 children: [child],
-                            });
+                            } as Paragraph);
                         } else {
                             newChildren.push(child);
                         }
                     }
-                    node.children = newChildren;
+                    directiveNode.children = newChildren;
                 }
             }
 
             // details ディレクティブ
-            if (node.name === 'details') {
+            if (directiveNode.name === 'details') {
                 // ラベル（タイトル）を取得
                 // remark-directiveでは :::details タイトル の "タイトル" 部分は
                 // 解析されず、最初の段落として扱われる可能性があります。
                 // そのため、最初の段落をsummaryとして使用します。
                 let summary = '詳細';
-                const originalChildren = [...node.children];
+                const originalChildren = [...directiveNode.children];
 
                 // 最初の子要素がparagraphの場合、それをsummaryとして使用
                 if (
                     originalChildren.length > 0 &&
                     originalChildren[0].type === 'paragraph'
                 ) {
-                    const firstParagraph: any = originalChildren.shift();
+                    const firstParagraph = originalChildren.shift() as Paragraph;
                     // テキストを抽出
                     if (
                         firstParagraph.children &&
@@ -82,12 +96,12 @@ export function remarkZennDirective() {
                     }
                 }
 
-                const data = node.data || (node.data = {});
+                const data = directiveNode.data || (directiveNode.data = {});
                 data.hName = 'details';
                 data.hProperties = {};
 
                 // summary と details-content を設定
-                node.children = [
+                directiveNode.children = [
                     {
                         type: 'html',
                         value: `<summary>${summary}</summary>`,
@@ -99,7 +113,7 @@ export function remarkZennDirective() {
                             hProperties: { className: 'details-content' },
                         },
                         children: originalChildren,
-                    },
+                    } as Paragraph,
                 ];
             }
         });

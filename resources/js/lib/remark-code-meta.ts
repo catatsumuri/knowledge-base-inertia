@@ -1,4 +1,4 @@
-import type { Root } from 'mdast';
+import type { Code, Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 
 /**
@@ -9,7 +9,7 @@ import { visit } from 'unist-util-visit';
  */
 export function remarkCodeMeta() {
     return (tree: Root) => {
-        visit(tree, 'code', (node: any) => {
+        visit(tree, 'code', (node: Code) => {
             // メタ情報が存在する場合のみ処理
             if (node.meta) {
                 const data = node.data || (node.data = {});
