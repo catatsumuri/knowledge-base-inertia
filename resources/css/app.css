@@ -190,6 +190,11 @@ aside.msg .msg-content > code {
     white-space: pre-wrap;
 }
 
+aside.msg .msg-content > code::before,
+aside.msg .msg-content > code::after {
+    content: none;
+}
+
 /* Zenn式detailsのスタイル */
 details {
     @apply my-4 rounded-lg border border-gray-300 dark:border-gray-700;
