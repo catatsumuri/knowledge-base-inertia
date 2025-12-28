@@ -20,8 +20,11 @@ export function remarkZennDirective() {
 
             // message ディレクティブ
             if (node.name === 'message') {
-                // :::message alert のように alert がラベルとして指定されている場合
-                const isAlert = node.attributes?.alert !== undefined;
+                // :::message{.alert} または :::message{alert} のようなattributesをチェック
+                const attributes = node.attributes || {};
+                const className = attributes.className || attributes.class || '';
+                const isAlert = className.includes('alert') || attributes.alert !== undefined;
+
                 const messageType = isAlert ? 'alert' : 'message';
 
                 // HTMLに変換

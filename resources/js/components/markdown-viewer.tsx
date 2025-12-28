@@ -3,6 +3,7 @@ import { MarkdownImage } from '@/components/markdown-image';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
+import { preprocessZennSyntax } from '@/lib/remark-zenn-syntax';
 import { AlertCircle, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -33,6 +34,9 @@ function MessageBox({ children, className, ...props }: any) {
 }
 
 export function MarkdownViewer({ content }: MarkdownViewerProps) {
+    // Zenn式構文を標準remark-directive構文に変換してから画像サイズを処理
+    const processedContent = preprocessImageSize(preprocessZennSyntax(content));
+
     return (
         <ReactMarkdown
             remarkPlugins={[
@@ -50,7 +54,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 aside: MessageBox,
             }}
         >
-            {preprocessImageSize(content)}
+            {processedContent}
         </ReactMarkdown>
     );
 }
