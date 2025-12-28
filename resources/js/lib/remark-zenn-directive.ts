@@ -34,12 +34,8 @@ export function remarkZennDirective() {
                     className: `msg ${messageType}`,
                 };
 
-                // シンボルとコンテンツラッパーを追加
+                // コンテンツラッパーを追加（アイコンはReactコンポーネントで追加）
                 node.children = [
-                    {
-                        type: 'html',
-                        value: '<span class="msg-symbol">!</span>',
-                    },
                     {
                         type: 'paragraph',
                         data: {

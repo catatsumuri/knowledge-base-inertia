@@ -143,3 +143,45 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Zenn式messageボックスのスタイル */
+aside.msg {
+    @apply my-4 flex items-start gap-3 rounded-lg border p-4;
+}
+
+aside.msg.message {
+    @apply border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950;
+}
+
+aside.msg.alert {
+    @apply border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950;
+}
+
+aside.msg .msg-symbol {
+    @apply flex-shrink-0 text-blue-600 dark:text-blue-400;
+}
+
+aside.msg.alert .msg-symbol {
+    @apply text-yellow-600 dark:text-yellow-400;
+}
+
+aside.msg .msg-content {
+    @apply flex-1;
+}
+
+aside.msg .msg-content p {
+    @apply m-0;
+}
+
+/* Zenn式detailsのスタイル */
+details {
+    @apply my-4 rounded-lg border border-gray-300 dark:border-gray-700;
+}
+
+details summary {
+    @apply cursor-pointer p-4 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800;
+}
+
+details .details-content {
+    @apply p-4 pt-0;
+}
