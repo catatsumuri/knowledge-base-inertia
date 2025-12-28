@@ -27,7 +27,7 @@ function MessageBox({ children, className, ...props }: any) {
     return (
         <aside className={className} {...props}>
             <Icon className="msg-symbol" size={20} />
-            {children}
+            <div className="msg-content">{children}</div>
         </aside>
     );
 }

@@ -24,9 +24,6 @@ export function remarkZennDirective() {
                 const isAlert = node.attributes?.alert !== undefined;
                 const messageType = isAlert ? 'alert' : 'message';
 
-                // 既存の子要素を保存
-                const originalChildren = node.children;
-
                 // HTMLに変換
                 const data = node.data || (node.data = {});
                 data.hName = 'aside';
@@ -34,17 +31,25 @@ export function remarkZennDirective() {
                     className: `msg ${messageType}`,
                 };
 
-                // コンテンツラッパーを追加（アイコンはReactコンポーネントで追加）
-                node.children = [
-                    {
-                        type: 'paragraph',
-                        data: {
-                            hName: 'div',
-                            hProperties: { className: 'msg-content' },
-                        },
-                        children: originalChildren,
-                    },
-                ];
+                // 子要素内のcode要素をpre要素でラップ
+                if (node.children) {
+                    const newChildren: any[] = [];
+                    for (const child of node.children) {
+                        if (child.type === 'code') {
+                            // paragraphノードをpre要素に変換し、その中にcode要素を配置
+                            newChildren.push({
+                                type: 'paragraph',
+                                data: {
+                                    hName: 'pre',
+                                },
+                                children: [child],
+                            });
+                        } else {
+                            newChildren.push(child);
+                        }
+                    }
+                    node.children = newChildren;
+                }
             }
 
             // details ディレクティブ

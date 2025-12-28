@@ -169,8 +169,25 @@ aside.msg .msg-content {
     @apply flex-1;
 }
 
-aside.msg .msg-content p {
-    @apply m-0;
+aside.msg .msg-content > p:first-child {
+    @apply mt-0;
+}
+
+aside.msg .msg-content > p:last-child {
+    @apply mb-0;
+}
+
+aside.msg .msg-content > *:first-child {
+    @apply mt-0;
+}
+
+aside.msg .msg-content > *:last-child {
+    @apply mb-0;
+}
+
+aside.msg .msg-content > code {
+    @apply my-4 block rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 font-mono text-sm text-gray-300;
+    white-space: pre-wrap;
 }
 
 /* Zenn式detailsのスタイル */
