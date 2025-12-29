@@ -1,10 +1,22 @@
-import { edit, show } from '@/actions/App/Http/Controllers/MarkdownController';
+import { destroy, edit, show } from '@/actions/App/Http/Controllers/MarkdownController';
 import { MarkdownViewer } from '@/components/markdown-viewer';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface MarkdownDocument {
     id: number;
@@ -29,6 +41,7 @@ interface MarkdownDocument {
 
 export default function Show({ document }: { document: MarkdownDocument }) {
     const { __ } = useLang();
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     // ネストしたパスの場合、階層的なbreadcrumbsを生成
     const generateBreadcrumbs = (): BreadcrumbItem[] => {
@@ -64,9 +77,50 @@ export default function Show({ document }: { document: MarkdownDocument }) {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{document.title}</h1>
-                    <Button asChild>
-                        <Link href={edit(document.slug).url}>{__('Edit')}</Link>
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button asChild>
+                            <Link href={edit(document.slug).url}>
+                                <Pencil className="h-4 w-4" />
+                                {__('Edit')}
+                            </Link>
+                        </Button>
+
+                        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                    {__('Delete')}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>{__('Delete Document')}</DialogTitle>
+                                    <DialogDescription>
+                                        <span className="block font-semibold text-foreground">
+                                            {__('Are you sure you want to delete {title}?', { title: document.title })}
+                                        </span>
+                                        <span className="mt-2 block text-muted-foreground">
+                                            {__('This action cannot be undone.')}
+                                        </span>
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <Form {...destroy.form(document.slug)} onSuccess={() => setIsDeleteDialogOpen(false)}>
+                                    {({ processing }) => (
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="outline" disabled={processing}>
+                                                    {__('Cancel')}
+                                                </Button>
+                                            </DialogClose>
+                                            <Button type="submit" variant="destructive" disabled={processing}>
+                                                {processing ? __('Deleting...') : __('Delete')}
+                                            </Button>
+                                        </DialogFooter>
+                                    )}
+                                </Form>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </div>
 
                 <div className="prose prose-sm max-w-none rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert">

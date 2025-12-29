@@ -114,6 +114,18 @@ class MarkdownController extends Controller
     }
 
     /**
+     * Remove the specified markdown document from storage.
+     */
+    public function destroy(string $slug): RedirectResponse
+    {
+        $document = MarkdownDocument::query()->where('slug', $slug)->firstOrFail();
+
+        $document->delete();
+
+        return to_route('markdown.index');
+    }
+
+    /**
      * Upload an image for markdown content.
      */
     public function uploadImage(MarkdownImageUploadRequest $request): RedirectResponse

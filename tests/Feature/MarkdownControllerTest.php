@@ -311,3 +311,48 @@ test('画像アップロードには認証が必要', function () {
 
     $response->assertRedirect(route('login'));
 });
+
+test('ドキュメントを削除できる', function () {
+    $user = User::factory()->create();
+    $document = MarkdownDocument::factory()->create([
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
+    ]);
+
+    $response = $this->actingAs($user)->delete(route('markdown.destroy', $document->slug));
+
+    $this->assertDatabaseMissing('markdown_documents', [
+        'id' => $document->id,
+    ]);
+
+    $response->assertRedirect(route('markdown.index'));
+});
+
+test('ネストしたパスのドキュメントを削除できる', function () {
+    $user = User::factory()->create();
+    $document = MarkdownDocument::factory()->create([
+        'slug' => 'parent/child',
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
+    ]);
+
+    $response = $this->actingAs($user)->delete(route('markdown.destroy', 'parent/child'));
+
+    $this->assertDatabaseMissing('markdown_documents', [
+        'id' => $document->id,
+    ]);
+
+    $response->assertRedirect(route('markdown.index'));
+});
+
+test('ゲストはドキュメントを削除できない', function () {
+    $document = MarkdownDocument::factory()->create();
+
+    $response = $this->delete(route('markdown.destroy', $document->slug));
+
+    $this->assertDatabaseHas('markdown_documents', [
+        'id' => $document->id,
+    ]);
+
+    $response->assertRedirect(route('login'));
+});
