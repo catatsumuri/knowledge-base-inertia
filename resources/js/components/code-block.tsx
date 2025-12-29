@@ -115,8 +115,8 @@ export function CodeBlock({
         setWrap(!wrap);
     };
 
-    if (!inline && language) {
-        if (isDiff) {
+    if (!inline) {
+        if (isDiff && language) {
             // diff記法の場合
             const lines = content.split('\n');
             const prismLanguage = Prism?.languages?.[language] || null;
@@ -221,43 +221,68 @@ export function CodeBlock({
             );
         }
 
-        // 通常のシンタックスハイライト
+        // 通常のシンタックスハイライト（言語指定あり）
+        if (language) {
+            return (
+                <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
+                    <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
+                        <span>{filename || language}</span>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={toggleWrap}
+                                className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                                title={wrap ? '横スクロール' : '折り返し'}
+                            >
+                                {wrap ? (
+                                    <MoveHorizontal size={16} />
+                                ) : (
+                                    <WrapText size={16} />
+                                )}
+                            </button>
+                            <button
+                                onClick={handleCopy}
+                                className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                                title="コードをコピー"
+                            >
+                                {copied ? <Check size={16} /> : <Copy size={16} />}
+                            </button>
+                        </div>
+                    </div>
+                    <SyntaxHighlighter
+                        style={oneDark}
+                        language={language}
+                        PreTag="div"
+                        className="!mt-0 !rounded-t-none"
+                        wrapLines={wrap}
+                        wrapLongLines={wrap}
+                        {...props}
+                    >
+                        {content}
+                    </SyntaxHighlighter>
+                </div>
+            );
+        }
+
+        // 言語指定なしのコードブロック
         return (
             <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
                 <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
-                    <span>{filename || language}</span>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={toggleWrap}
-                            className="rounded p-1.5 transition-colors hover:bg-gray-700"
-                            title={wrap ? '横スクロール' : '折り返し'}
-                        >
-                            {wrap ? (
-                                <MoveHorizontal size={16} />
-                            ) : (
-                                <WrapText size={16} />
-                            )}
-                        </button>
-                        <button
-                            onClick={handleCopy}
-                            className="rounded p-1.5 transition-colors hover:bg-gray-700"
-                            title="コードをコピー"
-                        >
-                            {copied ? <Check size={16} /> : <Copy size={16} />}
-                        </button>
-                    </div>
+                    <span>code</span>
+                    <button
+                        onClick={handleCopy}
+                        className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                        title="コードをコピー"
+                    >
+                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                    </button>
                 </div>
-                <SyntaxHighlighter
-                    style={oneDark}
-                    language={language}
-                    PreTag="div"
-                    className="!mt-0 !rounded-t-none"
-                    wrapLines={wrap}
-                    wrapLongLines={wrap}
-                    {...props}
-                >
-                    {content}
-                </SyntaxHighlighter>
+                <div className={wrap ? '' : 'overflow-x-auto'}>
+                    <pre className="!my-0 bg-[#282c34] px-4 py-3 font-mono text-sm text-gray-300">
+                        <code className={wrap ? 'break-all whitespace-pre-wrap' : ''}>
+                            {content}
+                        </code>
+                    </pre>
+                </div>
             </div>
         );
     }

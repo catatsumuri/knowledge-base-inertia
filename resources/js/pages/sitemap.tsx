@@ -33,23 +33,26 @@ function TreeNodeComponent({ node, level = 0 }: { node: TreeNode; level?: number
                 style={{ paddingLeft: `${level * 1.5 + 0.5}rem` }}
             >
                 <File className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                <div className="flex min-w-0 flex-1 items-baseline gap-3">
-                    <Link
-                        href={show(node.slug).url}
-                        className="font-medium text-foreground hover:underline"
-                    >
-                        {node.title}
-                    </Link>
-                    <div className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
-                        {node.updated_at && (
-                            <span>{new Date(node.updated_at).toLocaleDateString('ja-JP')}</span>
-                        )}
-                        {node.updated_by && (
-                            <span className="text-xs">
-                                {__('Last updated by')}: {node.updated_by.name}
-                            </span>
-                        )}
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <div className="flex items-baseline gap-3">
+                        <Link
+                            href={show(node.slug).url}
+                            className="font-medium text-foreground hover:underline"
+                        >
+                            {node.title}
+                        </Link>
+                        <div className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
+                            {node.updated_at && (
+                                <span>{new Date(node.updated_at).toLocaleDateString('ja-JP')}</span>
+                            )}
+                            {node.updated_by && (
+                                <span className="text-xs">
+                                    {__('Last updated by')}: {node.updated_by.name}
+                                </span>
+                            )}
+                        </div>
                     </div>
+                    <div className="text-xs text-muted-foreground/70">/{node.slug}</div>
                 </div>
             </div>
         );

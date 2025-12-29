@@ -52,7 +52,7 @@ export default function Show({ document }: { document: MarkdownDocument }) {
             },
         ];
 
-        const slugParts = document.slug.split('/');
+        const slugParts = document.slug.split('/').filter((part) => part !== '');
         let currentPath = '';
 
         slugParts.forEach((part, index) => {

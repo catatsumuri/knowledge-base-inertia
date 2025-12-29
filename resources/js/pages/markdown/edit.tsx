@@ -124,7 +124,7 @@ export default function Edit({
 
         // 新規作成ページ（存在しないページへのアクセス）
         if (!document && slug) {
-            const slugParts = slug.split('/');
+            const slugParts = slug.split('/').filter((part) => part !== '');
             let currentPath = '';
 
             slugParts.forEach((part) => {
@@ -149,7 +149,7 @@ export default function Edit({
         }
 
         // 既存ドキュメントの編集
-        const slugParts = document.slug.split('/');
+        const slugParts = document.slug.split('/').filter((part) => part !== '');
         let currentPath = '';
 
         slugParts.forEach((part, index) => {
