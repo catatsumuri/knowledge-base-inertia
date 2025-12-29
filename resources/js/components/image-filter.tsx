@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
 import { useEffect, useRef, useState } from 'react';
 
-export type FilterType = 'normal' | 'grayscale' | 'sepia' | 'vintage' | 'brighten' | 'contrast' | 'cool' | 'warm';
+export type FilterType = 'normal' | 'grayscale' | 'sepia' | 'vintage' | 'brighten' | 'contrast' | 'cool' | 'warm' | 'vignette' | 'grain' | 'drama';
 
 interface ImageFilterProps {
     open: boolean;
@@ -20,12 +21,16 @@ const filters: { name: string; type: FilterType }[] = [
     { name: 'コントラスト', type: 'contrast' },
     { name: 'クール', type: 'cool' },
     { name: 'ウォーム', type: 'warm' },
+    { name: 'ビネット', type: 'vignette' },
+    { name: 'グレイン', type: 'grain' },
+    { name: 'ドラマ', type: 'drama' },
 ];
 
 export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [selectedFilter, setSelectedFilter] = useState<FilterType>('normal');
     const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
+    const [intensity, setIntensity] = useState(100);
 
     useEffect(() => {
         if (open && image) {
@@ -41,11 +46,11 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
 
     useEffect(() => {
         if (originalImage && canvasRef.current) {
-            applyFilter(selectedFilter);
+            applyFilter(selectedFilter, intensity);
         }
-    }, [selectedFilter, originalImage]);
+    }, [selectedFilter, originalImage, intensity]);
 
-    const applyFilter = (filterType: FilterType) => {
+    const applyFilter = (filterType: FilterType, filterIntensity: number) => {
         const canvas = canvasRef.current;
         if (!canvas || !originalImage) return;
 
@@ -56,12 +61,19 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
         canvas.width = originalImage.width;
         canvas.height = originalImage.height;
 
+        // 高品質な画像スケーリング設定
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
         // 画像を描画
         ctx.drawImage(originalImage, 0, 0);
 
         // ピクセルデータを取得
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
+
+        // オリジナルのピクセルデータを保存（強度調整用）
+        const originalData = new Uint8ClampedArray(data);
 
         // フィルター適用
         switch (filterType) {
@@ -125,10 +137,89 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                 }
                 break;
 
+            case 'vignette': {
+                // ビネット効果：中心から周辺を暗くする
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+
+                for (let y = 0; y < canvas.height; y++) {
+                    for (let x = 0; x < canvas.width; x++) {
+                        const i = (y * canvas.width + x) * 4;
+                        const dx = x - centerX;
+                        const dy = y - centerY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const vignette = 1 - Math.pow(distance / maxDistance, 2) * 0.7;
+
+                        data[i] = Math.max(0, data[i] * vignette);
+                        data[i + 1] = Math.max(0, data[i + 1] * vignette);
+                        data[i + 2] = Math.max(0, data[i + 2] * vignette);
+                    }
+                }
+                break;
+            }
+
+            case 'grain': {
+                // グレイン効果：フィルム粒子を追加
+                for (let i = 0; i < data.length; i += 4) {
+                    const noise = (Math.random() - 0.5) * 40;
+                    data[i] = Math.min(255, Math.max(0, data[i] + noise));
+                    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+                    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+                }
+                break;
+            }
+
+            case 'drama': {
+                // ドラマ効果：ビネット + 高コントラスト + 彩度アップ
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+                const contrastFactor = 1.8;
+
+                for (let y = 0; y < canvas.height; y++) {
+                    for (let x = 0; x < canvas.width; x++) {
+                        const i = (y * canvas.width + x) * 4;
+                        const dx = x - centerX;
+                        const dy = y - centerY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const vignette = 1 - Math.pow(distance / maxDistance, 2) * 0.5;
+
+                        // コントラスト
+                        let r = Math.min(255, Math.max(0, contrastFactor * (data[i] - 128) + 128));
+                        let g = Math.min(255, Math.max(0, contrastFactor * (data[i + 1] - 128) + 128));
+                        let b = Math.min(255, Math.max(0, contrastFactor * (data[i + 2] - 128) + 128));
+
+                        // 彩度アップ
+                        const gray = r * 0.299 + g * 0.587 + b * 0.114;
+                        const saturation = 1.3;
+                        r = Math.min(255, gray + (r - gray) * saturation);
+                        g = Math.min(255, gray + (g - gray) * saturation);
+                        b = Math.min(255, gray + (b - gray) * saturation);
+
+                        // ビネット適用
+                        data[i] = Math.max(0, r * vignette);
+                        data[i + 1] = Math.max(0, g * vignette);
+                        data[i + 2] = Math.max(0, b * vignette);
+                    }
+                }
+                break;
+            }
+
             case 'normal':
             default:
                 // オリジナルのまま
                 break;
+        }
+
+        // フィルター強度を適用（元の画像とブレンド）
+        if (filterType !== 'normal' && filterIntensity < 100) {
+            const ratio = filterIntensity / 100;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = originalData[i] * (1 - ratio) + data[i] * ratio;
+                data[i + 1] = originalData[i + 1] * (1 - ratio) + data[i + 1] * ratio;
+                data[i + 2] = originalData[i + 2] * (1 - ratio) + data[i + 2] * ratio;
+            }
         }
 
         if (filterType !== 'normal') {
@@ -140,13 +231,18 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        canvas.toBlob((blob) => {
-            if (blob) {
-                const filteredFile = new File([blob], image.name, { type: image.type });
-                onApply(filteredFile);
-                onClose();
-            }
-        }, image.type);
+        canvas.toBlob(
+            (blob) => {
+                if (blob) {
+                    const filteredFile = new File([blob], image.name, { type: image.type });
+                    onApply(filteredFile);
+                    onClose();
+                }
+            },
+            image.type,
+            // JPEGの場合は品質を0.95に設定（0.0-1.0、デフォルトは0.92）
+            image.type === 'image/jpeg' ? 0.95 : undefined
+        );
     };
 
     return (
@@ -163,7 +259,7 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                     </div>
 
                     {/* フィルター選択 */}
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                         {filters.map((filter) => (
                             <Button
                                 key={filter.type}
@@ -175,6 +271,24 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                             </Button>
                         ))}
                     </div>
+
+                    {/* フィルター強度 */}
+                    {selectedFilter !== 'normal' && (
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">フィルター強度</label>
+                                <span className="text-sm text-muted-foreground">{intensity}%</span>
+                            </div>
+                            <Slider
+                                value={[intensity]}
+                                onValueChange={(value) => setIntensity(value[0])}
+                                min={0}
+                                max={100}
+                                step={1}
+                                className="w-full"
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <DialogFooter>

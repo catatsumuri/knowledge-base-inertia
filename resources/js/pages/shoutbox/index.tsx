@@ -1,4 +1,5 @@
 import { store, destroy } from '@/actions/App/Http/Controllers/ShoutboxController';
+import { ImageCropper } from '@/components/image-cropper';
 import { ImageFilter } from '@/components/image-filter';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -37,8 +38,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [cropDialogOpen, setCropDialogOpen] = useState(false);
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
-    const [currentFilteringImage, setCurrentFilteringImage] = useState<File | null>(null);
+    const [currentProcessingImage, setCurrentProcessingImage] = useState<File | null>(null);
     const [currentFilteringIndex, setCurrentFilteringIndex] = useState<number | null>(null);
 
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -70,11 +72,11 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
             return;
         }
 
-        // 最初の画像にフィルターを適用
+        // 最初の画像にトリミング→フィルターを適用
         if (files.length > 0) {
-            setCurrentFilteringImage(files[0]);
+            setCurrentProcessingImage(files[0]);
             setCurrentFilteringIndex(data.images.length);
-            setFilterDialogOpen(true);
+            setCropDialogOpen(true);
 
             // 残りの画像は一時保存
             if (files.length > 1) {
@@ -97,6 +99,25 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         }
     };
 
+    const handleCropComplete = (croppedImage: File) => {
+        // トリミング完了後、フィルター画面へ
+        setCropDialogOpen(false);
+        setCurrentProcessingImage(croppedImage);
+        setFilterDialogOpen(true);
+    };
+
+    const handleCropSkip = () => {
+        // トリミングをスキップしてフィルター画面へ（元の画像のまま）
+        setCropDialogOpen(false);
+        setFilterDialogOpen(true);
+    };
+
+    const handleCropCancel = () => {
+        setCropDialogOpen(false);
+        setCurrentProcessingImage(null);
+        setCurrentFilteringIndex(null);
+    };
+
     const handleFilterApply = (filteredImage: File) => {
         // フィルター適用後の画像を追加
         setData('images', [...data.images, filteredImage]);
@@ -110,13 +131,13 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
 
         // ダイアログを閉じる
         setFilterDialogOpen(false);
-        setCurrentFilteringImage(null);
+        setCurrentProcessingImage(null);
         setCurrentFilteringIndex(null);
     };
 
     const handleFilterCancel = () => {
         setFilterDialogOpen(false);
-        setCurrentFilteringImage(null);
+        setCurrentProcessingImage(null);
         setCurrentFilteringIndex(null);
     };
 
@@ -326,12 +347,23 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                     </DialogContent>
                 </Dialog>
 
+                {/* 画像トリミング */}
+                {currentProcessingImage && cropDialogOpen && (
+                    <ImageCropper
+                        open={cropDialogOpen}
+                        onClose={handleCropCancel}
+                        image={currentProcessingImage}
+                        onCropComplete={handleCropComplete}
+                        onSkip={handleCropSkip}
+                    />
+                )}
+
                 {/* 画像フィルター */}
-                {currentFilteringImage && (
+                {currentProcessingImage && filterDialogOpen && (
                     <ImageFilter
                         open={filterDialogOpen}
                         onClose={handleFilterCancel}
-                        image={currentFilteringImage}
+                        image={currentProcessingImage}
                         onApply={handleFilterApply}
                     />
                 )}
