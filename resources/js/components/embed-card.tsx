@@ -4,6 +4,7 @@
  */
 import { extractYoutubeVideoParameters } from '@/lib/url-matcher';
 import { ExternalLink, Github } from 'lucide-react';
+import React from 'react';
 import { Tweet } from 'react-tweet';
 
 interface EmbedCardProps {
@@ -95,6 +96,14 @@ function YoutubeEmbed({ url }: { url: string }) {
  * 一般的なリンクカード
  */
 function LinkCard({ url }: { url: string }) {
+    const [metadata, setMetadata] = React.useState<{
+        title?: string;
+        description?: string;
+        image?: string;
+    } | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState(false);
+
     // URLからドメイン名を抽出
     const domain = (() => {
         try {
@@ -104,18 +113,95 @@ function LinkCard({ url }: { url: string }) {
         }
     })();
 
+    React.useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const response = await fetch(`/api/ogp?url=${encodeURIComponent(url)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setMetadata(data);
+                } else {
+                    setError(true);
+                }
+            } catch {
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMetadata();
+    }, [url]);
+
+    // ローディング中
+    if (loading) {
+        return (
+            <div className="my-4 overflow-hidden rounded-lg border border-border bg-card">
+                <div className="flex items-start gap-3 p-4">
+                    <ExternalLink className="mt-1 size-5 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                        <div className="h-4 w-3/4 animate-pulse rounded bg-muted"></div>
+                        <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-muted"></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // エラーまたはメタデータ取得失敗時はシンプルな表示
+    if (error || !metadata) {
+        return (
+            <div className="my-4 overflow-hidden rounded-lg border border-border bg-card">
+                <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-3 p-4 transition-colors hover:bg-muted"
+                >
+                    <ExternalLink className="mt-1 size-5 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium text-foreground">{url}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">{domain}</div>
+                    </div>
+                </a>
+            </div>
+        );
+    }
+
+    // OGPメタデータを含むリッチなカード表示
     return (
-        <div className="my-4 overflow-hidden rounded-lg border border-border bg-card">
+        <div className="not-prose my-3">
             <a
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-3 p-4 transition-colors hover:bg-muted"
+                className="flex items-center gap-3 rounded-md border border-border bg-card p-3 transition-all hover:border-foreground/20 hover:bg-muted"
             >
-                <ExternalLink className="mt-1 size-5 shrink-0 text-muted-foreground" />
+                {metadata.image && (
+                    <div className="shrink-0">
+                        <img
+                            src={metadata.image}
+                            alt=""
+                            className="size-16 rounded object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                            }}
+                        />
+                    </div>
+                )}
                 <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-foreground">{url}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{domain}</div>
+                    <div className="line-clamp-1 text-sm font-semibold text-foreground">
+                        {metadata.title || url}
+                    </div>
+                    {metadata.description && (
+                        <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                            {metadata.description}
+                        </div>
+                    )}
+                    <div className="mt-1 text-[10px] text-muted-foreground/70">
+                        {domain}
+                    </div>
                 </div>
             </a>
         </div>
