@@ -207,3 +207,9 @@ details summary {
 details .details-content {
     @apply p-4 pt-0;
 }
+
+/* Tailwind Typographyの引用符を無効化 */
+.prose blockquote p::before,
+.prose blockquote p::after {
+    content: none;
+}

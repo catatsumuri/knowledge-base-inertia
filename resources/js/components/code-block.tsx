@@ -40,6 +40,9 @@ export function CodeBlock({
 
     const content = String(children).replace(/\n$/, '');
 
+    // インラインコードの判定: 言語指定がなく、改行を含まない場合
+    const isInline = inline !== false && !className && !content.includes('\n');
+
     // メタ情報から言語とファイル名を取得
     // 例: "diff php:routes/web.php" → language="php", filename="routes/web.php", isDiff=true
     //     "php:routes/web.php" → language="php", filename="routes/web.php", isDiff=false
@@ -115,8 +118,20 @@ export function CodeBlock({
         setWrap(!wrap);
     };
 
-    if (!inline) {
-        if (isDiff && language) {
+    // インラインコード（`` `text` ``）の場合は早期リターン
+    if (isInline) {
+        return (
+            <code
+                className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-pink-600 before:content-none after:content-none dark:bg-gray-800 dark:text-pink-400"
+                {...props}
+            >
+                {children}
+            </code>
+        );
+    }
+
+    // 以下、コードブロックの処理
+    if (isDiff && language) {
             // diff記法の場合
             const lines = content.split('\n');
             const prismLanguage = Prism?.languages?.[language] || null;
@@ -285,12 +300,4 @@ export function CodeBlock({
                 </div>
             </div>
         );
-    }
-
-    // インラインコード
-    return (
-        <code className={className} {...props}>
-            {children}
-        </code>
-    );
 }

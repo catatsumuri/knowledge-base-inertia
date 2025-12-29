@@ -24,12 +24,10 @@ class MarkdownController extends Controller
             return to_route('markdown.show', $indexDocument);
         }
 
-        // 最初のドキュメント作成かどうかをチェック
-        $isFirstDocument = MarkdownDocument::query()->count() === 0;
-
+        // indexドキュメントが存在しない場合はトップページ作成フォーム
         return Inertia::render('markdown/edit', [
             'document' => null,
-            'isIndexDocument' => $isFirstDocument,
+            'isIndexDocument' => true,
         ]);
     }
 
@@ -49,13 +47,13 @@ class MarkdownController extends Controller
      */
     public function store(MarkdownRequest $request): RedirectResponse
     {
-        $isFirstDocument = MarkdownDocument::query()->count() === 0;
+        $indexExists = MarkdownDocument::query()->where('slug', 'index')->exists();
 
         $data = $request->validated();
 
-        if ($isFirstDocument) {
+        // indexドキュメントが存在せず、slugがindexの場合のみ強制
+        if (! $indexExists && ($data['slug'] ?? null) === 'index') {
             $data['slug'] = 'index';
-            $data['title'] = __('Top page');
         }
 
         $document = MarkdownDocument::query()->create([

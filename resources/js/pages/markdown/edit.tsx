@@ -187,7 +187,7 @@ export default function Edit({
                 >
                     {({ processing, errors }) => (
                         <>
-                            {!document && !isIndexDocument && (
+                            {!document && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="slug">{__('Slug')}</Label>
                                     <Input
@@ -195,7 +195,17 @@ export default function Edit({
                                         name="slug"
                                         required
                                         placeholder="my-document"
-                                        defaultValue={slug ?? document?.slug ?? ''}
+                                        defaultValue={
+                                            slug ??
+                                            document?.slug ??
+                                            (isIndexDocument ? 'index' : '')
+                                        }
+                                        readOnly={isIndexDocument}
+                                        className={
+                                            isIndexDocument
+                                                ? 'cursor-not-allowed bg-muted'
+                                                : ''
+                                        }
                                     />
                                     {errors.slug && (
                                         <p className="text-sm text-red-600">
@@ -205,7 +215,7 @@ export default function Edit({
                                 </div>
                             )}
 
-                            {!isIndexDocument && (
+                            {!document && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="title">{__('Title')}</Label>
                                     <Input
@@ -213,7 +223,10 @@ export default function Edit({
                                         name="title"
                                         required
                                         placeholder={__('Document title')}
-                                        defaultValue={document?.title ?? ''}
+                                        defaultValue={
+                                            document?.title ??
+                                            (isIndexDocument ? __('Top page') : '')
+                                        }
                                     />
                                     {errors.title && (
                                         <p className="text-sm text-red-600">
