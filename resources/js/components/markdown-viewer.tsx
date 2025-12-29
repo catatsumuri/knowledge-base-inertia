@@ -1,7 +1,9 @@
 import { CodeBlock } from '@/components/code-block';
+import { EmbedCard } from '@/components/embed-card';
 import { MarkdownImage } from '@/components/markdown-image';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
+import { remarkLinkifyToCard } from '@/lib/remark-linkify-to-card';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
 import { preprocessZennSyntax } from '@/lib/remark-zenn-syntax';
 import { Link } from '@inertiajs/react';
@@ -60,6 +62,18 @@ function MessageBox({ children, className, ...props }: React.ComponentPropsWitho
     );
 }
 
+// 埋め込みカードコンポーネント
+function EmbedCardWrapper({ ...props }: React.ComponentPropsWithoutRef<'div'>) {
+    const embedType = props['data-embed-type'] as 'github' | 'tweet' | 'youtube' | 'card';
+    const embedUrl = props['data-embed-url'] as string;
+
+    if (!embedType || !embedUrl) {
+        return <div {...props} />;
+    }
+
+    return <EmbedCard type={embedType} url={embedUrl} />;
+}
+
 export function MarkdownViewer({ content }: MarkdownViewerProps) {
     // Zenn式構文を標準remark-directive構文に変換してから画像サイズを処理
     const processedContent = preprocessImageSize(preprocessZennSyntax(content));
@@ -72,6 +86,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 remarkZennDirective,
                 remarkImageSize,
                 remarkCodeMeta,
+                remarkLinkifyToCard,
             ]}
             rehypePlugins={[rehypeRaw]}
             components={{
@@ -80,6 +95,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 img: MarkdownImage,
                 aside: MessageBox,
                 a: MarkdownLink,
+                div: EmbedCardWrapper,
             }}
         >
             {processedContent}

@@ -24,9 +24,12 @@ class MarkdownController extends Controller
             return to_route('markdown.show', $indexDocument);
         }
 
+        // 最初のドキュメント作成かどうかをチェック
+        $isFirstDocument = MarkdownDocument::query()->count() === 0;
+
         return Inertia::render('markdown/edit', [
             'document' => null,
-            'isIndexDocument' => true,
+            'isIndexDocument' => $isFirstDocument,
         ]);
     }
 
