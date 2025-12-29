@@ -12,6 +12,7 @@ import { AlertCircle, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
+import remarkBreaks from 'remark-breaks';
 import remarkDirective from 'remark-directive';
 import remarkGfm from 'remark-gfm';
 
@@ -98,6 +99,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
         <ReactMarkdown
             remarkPlugins={[
                 remarkGfm,
+                remarkBreaks,
                 remarkDirective,
                 remarkZennDirective,
                 remarkImageSize,
