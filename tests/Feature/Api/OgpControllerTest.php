@@ -11,7 +11,7 @@ class OgpControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_OGPデータを取得できる(): void
+    public function test_og_pデータを取得できる(): void
     {
         $user = User::factory()->create();
 
@@ -22,7 +22,7 @@ class OgpControllerTest extends TestCase
         $this->assertContains($response->status(), [200, 404]);
     }
 
-    public function test_無効なURLでエラーが返される(): void
+    public function test_無効な_ur_lでエラーが返される(): void
     {
         $user = User::factory()->create();
 
@@ -33,7 +33,7 @@ class OgpControllerTest extends TestCase
             ->assertJson(['error' => 'Invalid URL']);
     }
 
-    public function test_URLパラメータが必須(): void
+    public function test_ur_lパラメータが必須(): void
     {
         $user = User::factory()->create();
 
