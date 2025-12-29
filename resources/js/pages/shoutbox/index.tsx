@@ -1,4 +1,5 @@
 import { store, destroy } from '@/actions/App/Http/Controllers/ShoutboxController';
+import { ImageFilter } from '@/components/image-filter';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -36,6 +37,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+    const [currentFilteringImage, setCurrentFilteringImage] = useState<File | null>(null);
+    const [currentFilteringIndex, setCurrentFilteringIndex] = useState<number | null>(null);
 
     const { data, setData, post, processing, reset, errors } = useForm({
         content: '',
@@ -66,16 +70,54 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
             return;
         }
 
-        setData('images', [...data.images, ...files]);
+        // 最初の画像にフィルターを適用
+        if (files.length > 0) {
+            setCurrentFilteringImage(files[0]);
+            setCurrentFilteringIndex(data.images.length);
+            setFilterDialogOpen(true);
+
+            // 残りの画像は一時保存
+            if (files.length > 1) {
+                // 2枚目以降は後で処理
+                const remainingFiles = files.slice(1);
+                remainingFiles.forEach((file) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setPreviewImages((prev) => [...prev, reader.result as string]);
+                    };
+                    reader.readAsDataURL(file);
+                    setData('images', [...data.images, file]);
+                });
+            }
+        }
+
+        // inputをリセット
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const handleFilterApply = (filteredImage: File) => {
+        // フィルター適用後の画像を追加
+        setData('images', [...data.images, filteredImage]);
 
         // プレビュー生成
-        files.forEach((file) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewImages((prev) => [...prev, reader.result as string]);
-            };
-            reader.readAsDataURL(file);
-        });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreviewImages((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(filteredImage);
+
+        // ダイアログを閉じる
+        setFilterDialogOpen(false);
+        setCurrentFilteringImage(null);
+        setCurrentFilteringIndex(null);
+    };
+
+    const handleFilterCancel = () => {
+        setFilterDialogOpen(false);
+        setCurrentFilteringImage(null);
+        setCurrentFilteringIndex(null);
     };
 
     const removeImage = (index: number) => {
@@ -283,6 +325,16 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                         </div>
                     </DialogContent>
                 </Dialog>
+
+                {/* 画像フィルター */}
+                {currentFilteringImage && (
+                    <ImageFilter
+                        open={filterDialogOpen}
+                        onClose={handleFilterCancel}
+                        image={currentFilteringImage}
+                        onApply={handleFilterApply}
+                    />
+                )}
             </div>
         </AppLayout>
     );
