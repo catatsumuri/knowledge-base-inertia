@@ -1,5 +1,6 @@
 import { CodeBlock } from '@/components/code-block';
 import { EmbedCard } from '@/components/embed-card';
+import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
@@ -10,6 +11,7 @@ import { Link } from '@inertiajs/react';
 import { AlertCircle, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import rehypeSlug from 'rehype-slug';
 import remarkDirective from 'remark-directive';
 import remarkGfm from 'remark-gfm';
 
@@ -88,7 +90,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 remarkCodeMeta,
                 remarkLinkifyToCard,
             ]}
-            rehypePlugins={[rehypeRaw]}
+            rehypePlugins={[rehypeRaw, rehypeSlug]}
             components={{
                 pre: ({ children }) => <>{children}</>,
                 code: CodeBlock,
@@ -96,6 +98,12 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 aside: MessageBox,
                 a: MarkdownLink,
                 div: EmbedCardWrapper,
+                h1: (props) => <MarkdownHeading level={1} {...props} />,
+                h2: (props) => <MarkdownHeading level={2} {...props} />,
+                h3: (props) => <MarkdownHeading level={3} {...props} />,
+                h4: (props) => <MarkdownHeading level={4} {...props} />,
+                h5: (props) => <MarkdownHeading level={5} {...props} />,
+                h6: (props) => <MarkdownHeading level={6} {...props} />,
             }}
         >
             {processedContent}
