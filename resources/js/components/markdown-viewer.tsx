@@ -21,6 +21,20 @@ interface MarkdownViewerProps {
 
 // Markdown内のリンクをInertia Linkに変換するコンポーネント
 function MarkdownLink({ href, children, ...props }: React.ComponentPropsWithoutRef<'a'>) {
+    // 脚注リンク（/markdown/#で始まる）をフラグメントのみに変換
+    if (href && href.startsWith('/markdown/#')) {
+        return (
+            <a href={href.replace('/markdown/', '')} {...props}>
+                {children}
+            </a>
+        );
+    }
+
+    // フラグメントのみのリンク（#で始まる）はそのまま
+    if (href && href.startsWith('#')) {
+        return <a href={href} {...props}>{children}</a>;
+    }
+
     // 外部リンク（http://またはhttps://で始まる）かどうかを判定
     const isExternalLink = href && href.match(/^https?:\/\//);
 

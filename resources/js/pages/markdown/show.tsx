@@ -1,5 +1,6 @@
 import { destroy, edit, show } from '@/actions/App/Http/Controllers/MarkdownController';
 import { MarkdownViewer } from '@/components/markdown-viewer';
+import { Toc } from '@/components/toc';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -12,11 +13,12 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { useLang } from '@/hooks/useLang';
+import { parseToc, type TocNode } from '@/lib/parse-toc';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head, Link } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface MarkdownDocument {
     id: number;
@@ -42,6 +44,15 @@ interface MarkdownDocument {
 export default function Show({ document }: { document: MarkdownDocument }) {
     const { __ } = useLang();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [toc, setToc] = useState<TocNode[]>([]);
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (contentRef.current && document.content) {
+            const tocNodes = parseToc(contentRef.current);
+            setToc(tocNodes);
+        }
+    }, [document.content]);
 
     // ネストしたパスの場合、階層的なbreadcrumbsを生成
     const generateBreadcrumbs = (): BreadcrumbItem[] => {
@@ -123,13 +134,26 @@ export default function Show({ document }: { document: MarkdownDocument }) {
                     </div>
                 </div>
 
-                <div className="prose prose-sm max-w-none rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert">
-                    {document.content ? (
-                        <MarkdownViewer content={document.content} />
-                    ) : (
-                        <p className="text-muted-foreground">
-                            {__('No content yet.')}
-                        </p>
+                <div className="flex gap-8 px-4">
+                    <div
+                        ref={contentRef}
+                        className="prose prose-sm min-w-0 max-w-[900px] flex-1 rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert"
+                    >
+                        {document.content ? (
+                            <MarkdownViewer content={document.content} />
+                        ) : (
+                            <p className="text-muted-foreground">
+                                {__('No content yet.')}
+                            </p>
+                        )}
+                    </div>
+
+                    {toc.length > 0 && (
+                        <aside className="w-60 shrink-0">
+                            <div className="sticky top-4">
+                                <Toc toc={toc} />
+                            </div>
+                        </aside>
                     )}
                 </div>
 
