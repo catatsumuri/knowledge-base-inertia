@@ -85,7 +85,7 @@ export default function Show({ document }: { document: MarkdownDocument }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={document.title} />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{document.title}</h1>
                     <div className="flex gap-2">
@@ -150,7 +150,7 @@ export default function Show({ document }: { document: MarkdownDocument }) {
 
                     {toc.length > 0 && (
                         <aside className="w-60 shrink-0">
-                            <div className="sticky top-4">
+                            <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto">
                                 <Toc toc={toc} />
                             </div>
                         </aside>

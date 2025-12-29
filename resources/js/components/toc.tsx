@@ -20,6 +20,14 @@ function TocList({ toc, depth = 1, maxDepth }: TocListProps) {
                     <li key={node.id}>
                         <a
                             href={`#${node.id}`}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                const element = document.getElementById(node.id);
+                                if (element) {
+                                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    window.history.pushState(null, '', `#${node.id}`);
+                                }
+                            }}
                             className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                             {node.text}
