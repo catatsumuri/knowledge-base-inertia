@@ -25,10 +25,17 @@ class ShoutboxController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'content' => ['required', 'string', 'max:1000'],
+            'content' => ['nullable', 'string', 'max:1000'],
             'images' => ['nullable', 'array', 'max:4'],
             'images.*' => ['image', 'max:5120'], // 5MB max
         ]);
+
+        // コンテンツまたは画像のいずれかが必要
+        if (empty($validated['content']) && ! $request->hasFile('images')) {
+            return redirect()->back()->withErrors([
+                'content' => 'コンテンツまたは画像のいずれかを入力してください。',
+            ]);
+        }
 
         $imagePaths = [];
 
@@ -43,6 +50,31 @@ class ShoutboxController extends Controller
             'user_id' => $request->user()->id,
             'content' => $validated['content'],
             'images' => empty($imagePaths) ? null : $imagePaths,
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function update(Request $request, Shout $shout): RedirectResponse
+    {
+        // 投稿者のみ編集可能
+        if ($shout->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'content' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        // コンテンツまたは画像のいずれかが必要
+        if (empty($validated['content']) && empty($shout->images)) {
+            return redirect()->back()->withErrors([
+                'content' => 'コンテンツまたは画像のいずれかを入力してください。',
+            ]);
+        }
+
+        $shout->update([
+            'content' => $validated['content'],
         ]);
 
         return redirect()->back();

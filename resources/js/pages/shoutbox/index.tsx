@@ -1,4 +1,4 @@
-import { store, destroy } from '@/actions/App/Http/Controllers/ShoutboxController';
+import { store, destroy, update } from '@/actions/App/Http/Controllers/ShoutboxController';
 import { ImageCropper } from '@/components/image-cropper';
 import { ImageFilter } from '@/components/image-filter';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +13,7 @@ import { type BreadcrumbItem, type PaginatedData, type User } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Image as ImageIcon, Send, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Image as ImageIcon, Save, Send, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface Shout {
@@ -42,6 +42,8 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
     const [currentProcessingImage, setCurrentProcessingImage] = useState<File | null>(null);
     const [currentFilteringIndex, setCurrentFilteringIndex] = useState<number | null>(null);
+    const [editingShoutId, setEditingShoutId] = useState<number | null>(null);
+    const [editContent, setEditContent] = useState('');
 
     const { data, setData, post, processing, reset, errors } = useForm({
         content: '',
@@ -149,6 +151,29 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         setPreviewImages((prev) => prev.filter((_, i) => i !== index));
     };
 
+    const handleEdit = (shout: Shout) => {
+        setEditingShoutId(shout.id);
+        setEditContent(shout.content || '');
+    };
+
+    const handleSaveEdit = (shoutId: number) => {
+        router.patch(
+            update(shoutId),
+            { content: editContent },
+            {
+                onSuccess: () => {
+                    setEditingShoutId(null);
+                    setEditContent('');
+                },
+            },
+        );
+    };
+
+    const handleCancelEdit = () => {
+        setEditingShoutId(null);
+        setEditContent('');
+    };
+
     const handleDelete = (shoutId: number) => {
         if (confirm('この投稿を削除しますか？')) {
             router.delete(destroy(shoutId));
@@ -236,7 +261,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                             <ImageIcon className="size-5" />
                                         </Button>
                                     </div>
-                                    <Button type="submit" disabled={processing || !data.content.trim()}>
+                                    <Button
+                                        type="submit"
+                                        disabled={processing || (!data.content.trim() && data.images.length === 0)}
+                                    >
                                         <Send className="mr-2 size-4" />
                                         投稿
                                     </Button>
@@ -265,18 +293,49 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                 })}
                                             </p>
                                         </div>
-                                        {shout.user_id === page.props.auth.user.id && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleDelete(shout.id)}
-                                                className="size-8"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </Button>
+                                        {shout.user_id === page.props.auth.user.id && editingShoutId !== shout.id && (
+                                            <div className="flex gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleEdit(shout)}
+                                                    className="size-8"
+                                                >
+                                                    <Edit className="size-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleDelete(shout.id)}
+                                                    className="size-8"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            </div>
                                         )}
                                     </div>
-                                    <p className="mt-2 whitespace-pre-wrap break-words">{shout.content}</p>
+                                    {editingShoutId === shout.id ? (
+                                        <div className="mt-2 space-y-2">
+                                            <Textarea
+                                                value={editContent}
+                                                onChange={(e) => setEditContent(e.target.value)}
+                                                className="min-h-[100px] resize-none"
+                                                maxLength={1000}
+                                                autoFocus
+                                            />
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="outline" size="sm" onClick={handleCancelEdit}>
+                                                    キャンセル
+                                                </Button>
+                                                <Button size="sm" onClick={() => handleSaveEdit(shout.id)}>
+                                                    <Save className="mr-2 size-4" />
+                                                    保存
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="mt-2 whitespace-pre-wrap break-words">{shout.content}</p>
+                                    )}
 
                                     {/* 画像 */}
                                     {shout.images && shout.images.length > 0 && (
