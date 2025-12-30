@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MarkdownImageUploadRequest;
 use App\Http\Requests\MarkdownRequest;
+use App\Http\Requests\MarkdownTranslateRequest;
 use App\Models\MarkdownDocument;
 use App\Models\ShoutLink;
 use Illuminate\Http\JsonResponse;
@@ -13,25 +14,16 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use OpenAI\Laravel\Facades\OpenAI;
 
 class MarkdownController extends Controller
 {
     /**
-     * Display the index markdown document or show create form.
+     * Display the index markdown document.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
-        $indexDocument = MarkdownDocument::query()->where('slug', 'index')->first();
-
-        if ($indexDocument) {
-            return to_route('markdown.show', $indexDocument);
-        }
-
-        // indexドキュメントが存在しない場合はトップページ作成フォーム
-        return Inertia::render('markdown/edit', [
-            'document' => null,
-            'isIndexDocument' => true,
-        ]);
+        return $this->show('index');
     }
 
     /**
@@ -174,5 +166,119 @@ class MarkdownController extends Controller
         $url = '/storage/'.$path;
 
         return back()->with('imageUrl', $url);
+    }
+
+    /**
+     * Translate the given text using OpenAI API.
+     */
+    public function translate(MarkdownTranslateRequest $request): JsonResponse
+    {
+        $text = $request->validated()['text'];
+
+        // 言語自動検出
+        $sourceLang = $this->detectLanguage($text);
+        $targetLang = $sourceLang === 'ja' ? 'en' : 'ja';
+
+        // OpenAI APIで翻訳
+        $translated = $this->translateWithOpenAI($text, $sourceLang, $targetLang);
+
+        return response()->json([
+            'original' => $text,
+            'translated' => $translated,
+            'source_lang' => $sourceLang,
+            'target_lang' => $targetLang,
+        ]);
+    }
+
+    /**
+     * Detect the language of the given text.
+     */
+    private function detectLanguage(string $text): string
+    {
+        // 日本語の文字（ひらがな、カタカナ、漢字）が含まれているか判定
+        if (preg_match('/[\x{3040}-\x{309F}\x{30A0}-\x{30FF}\x{4E00}-\x{9FAF}]/u', $text)) {
+            return 'ja';
+        }
+
+        return 'en';
+    }
+
+    /**
+     * Translate text using OpenAI API.
+     */
+    private function translateWithOpenAI(string $text, string $sourceLang, string $targetLang): string
+    {
+        $sourceLanguage = $sourceLang === 'ja' ? 'Japanese' : 'English';
+        $targetLanguage = $targetLang === 'ja' ? 'Japanese' : 'English';
+
+        $result = OpenAI::chat()->create([
+            'model' => 'gpt-4o-mini',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => "You are a professional translator. Translate the following text from {$sourceLanguage} to {$targetLanguage}. Output only the translated text, without any additional explanations or comments.",
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $text,
+                ],
+            ],
+        ]);
+
+        return $result->choices[0]->message->content;
+    }
+
+    /**
+     * Convert plain text to structured Markdown.
+     */
+    public function convertToMarkdown(MarkdownTranslateRequest $request): JsonResponse
+    {
+        $text = $request->validated()['text'];
+
+        // OpenAI APIでMarkdown構造に変換
+        $markdown = $this->convertToMarkdownWithOpenAI($text);
+
+        return response()->json([
+            'original' => $text,
+            'markdown' => $markdown,
+        ]);
+    }
+
+    /**
+     * Convert plain text to Markdown using OpenAI API.
+     */
+    private function convertToMarkdownWithOpenAI(string $text): string
+    {
+        $result = OpenAI::chat()->create([
+            'model' => 'gpt-4o-mini',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'You are a Markdown formatting expert. Convert the given plain text into well-structured Markdown format.
+
+Rules:
+- Detect code blocks and wrap them with appropriate language tags (```javascript, ```php, ```html, etc.)
+- Identify headings and format them with # symbols
+- Convert lists to proper Markdown lists (- or 1.)
+- Preserve code examples exactly as they are
+- Detect file paths and format them as inline code (`path/to/file`)
+- Keep the original language (do not translate)
+- Output ONLY the Markdown formatted text, no explanations
+
+Examples:
+Input: "This is a title\n\nSome text here"
+Output: "# This is a title\n\nSome text here"
+
+Input: "Example:\nfunction test() { return true; }"
+Output: "Example:\n```javascript\nfunction test() { return true; }\n```"',
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $text,
+                ],
+            ],
+        ]);
+
+        return $result->choices[0]->message->content;
     }
 }

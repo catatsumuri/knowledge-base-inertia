@@ -1,7 +1,9 @@
 import {
+    convertToMarkdown,
     edit,
     show,
     store,
+    translate,
     update,
     uploadImage,
 } from '@/actions/App/Http/Controllers/MarkdownController';
@@ -15,6 +17,7 @@ import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head, router, usePage } from '@inertiajs/react';
+import { Languages, LoaderCircle, Wand2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface MarkdownDocument {
@@ -40,6 +43,8 @@ export default function Edit({
     const { __ } = useLang();
     const [content, setContent] = useState(document?.content ?? '');
     const [activeTab, setActiveTab] = useState('edit');
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [isConverting, setIsConverting] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { props } = usePage<{ imageUrl?: string }>();
     const previousImageUrlRef = useRef<string | undefined>();
@@ -110,6 +115,172 @@ export default function Edit({
             if (file) {
                 handleImageUpload(file);
             }
+        }
+    };
+
+    const handleTranslate = async () => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const { selectionStart, selectionEnd } = textarea;
+        const selectedText = content.substring(selectionStart, selectionEnd);
+
+        if (!selectedText.trim()) {
+            alert(__('Please select text to translate'));
+            return;
+        }
+
+        setIsTranslating(true);
+
+        try {
+            // CSRFトークンを取得
+            const metaTag = window.document.querySelector(
+                'meta[name="csrf-token"]',
+            );
+            const csrfToken = metaTag
+                ? metaTag.getAttribute('content') || ''
+                : '';
+
+            const response = await fetch(translate.url(), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ text: selectedText }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Translation failed');
+            }
+
+            const data = await response.json();
+            const { translated } = data;
+
+            // Undo対応の置換（execCommandを使用）
+            textarea.focus();
+            textarea.setSelectionRange(selectionStart, selectionEnd);
+
+            // execCommandを試す
+            const success = window.document.execCommand(
+                'insertText',
+                false,
+                translated,
+            );
+
+            if (success) {
+                // execCommandが成功した場合、Reactのステートを更新
+                const newContent =
+                    content.substring(0, selectionStart) +
+                    translated +
+                    content.substring(selectionEnd);
+                setContent(newContent);
+                textarea.setSelectionRange(
+                    selectionStart + translated.length,
+                    selectionStart + translated.length,
+                );
+            } else {
+                // フォールバック
+                const newContent =
+                    content.substring(0, selectionStart) +
+                    translated +
+                    content.substring(selectionEnd);
+                setContent(newContent);
+                setTimeout(() => {
+                    textarea.setSelectionRange(
+                        selectionStart + translated.length,
+                        selectionStart + translated.length,
+                    );
+                }, 0);
+            }
+        } catch (error) {
+            console.error('Translation error:', error);
+            alert(__('Translation failed. Please try again.'));
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    const handleConvert = async () => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const { selectionStart, selectionEnd } = textarea;
+        const selectedText = content.substring(selectionStart, selectionEnd);
+
+        if (!selectedText.trim()) {
+            alert(__('Please select text to convert'));
+            return;
+        }
+
+        setIsConverting(true);
+
+        try {
+            // CSRFトークンを取得
+            const metaTag = window.document.querySelector(
+                'meta[name="csrf-token"]',
+            );
+            const csrfToken = metaTag
+                ? metaTag.getAttribute('content') || ''
+                : '';
+
+            const response = await fetch(convertToMarkdown.url(), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ text: selectedText }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Conversion failed');
+            }
+
+            const data = await response.json();
+            const { markdown } = data;
+
+            // Undo対応の置換（execCommandを使用）
+            textarea.focus();
+            textarea.setSelectionRange(selectionStart, selectionEnd);
+
+            // execCommandを試す
+            const success = window.document.execCommand(
+                'insertText',
+                false,
+                markdown,
+            );
+
+            if (success) {
+                // execCommandが成功した場合、Reactのステートを更新
+                const newContent =
+                    content.substring(0, selectionStart) +
+                    markdown +
+                    content.substring(selectionEnd);
+                setContent(newContent);
+                textarea.setSelectionRange(
+                    selectionStart + markdown.length,
+                    selectionStart + markdown.length,
+                );
+            } else {
+                // フォールバック
+                const newContent =
+                    content.substring(0, selectionStart) +
+                    markdown +
+                    content.substring(selectionEnd);
+                setContent(newContent);
+                setTimeout(() => {
+                    textarea.setSelectionRange(
+                        selectionStart + markdown.length,
+                        selectionStart + markdown.length,
+                    );
+                }, 0);
+            }
+        } catch (error) {
+            console.error('Conversion error:', error);
+            alert(__('Conversion failed. Please try again.'));
+        } finally {
+            setIsConverting(false);
         }
     };
 
@@ -258,6 +429,52 @@ export default function Edit({
                                     </TabsList>
 
                                     <TabsContent value="edit">
+                                        {/* ツールバー */}
+                                        <div className="mb-2 flex gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleTranslate}
+                                                disabled={
+                                                    isTranslating || processing
+                                                }
+                                            >
+                                                {isTranslating ? (
+                                                    <>
+                                                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                                        {__('Translating...')}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Languages className="mr-2 h-4 w-4" />
+                                                        {__('AI Translation')}
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleConvert}
+                                                disabled={
+                                                    isConverting || processing
+                                                }
+                                            >
+                                                {isConverting ? (
+                                                    <>
+                                                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                                        {__('Converting...')}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Wand2 className="mr-2 h-4 w-4" />
+                                                        {__('Markdown Conversion')}
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+
                                         <Textarea
                                             ref={textareaRef}
                                             id="content"

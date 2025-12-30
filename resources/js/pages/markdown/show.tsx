@@ -14,15 +14,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import { parseToc, type TocNode } from '@/lib/parse-toc';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type User } from '@/types';
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Image as ImageIcon, MessageSquare, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, MessageSquare, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface MarkdownDocument {
@@ -79,6 +81,8 @@ export default function Show({
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newSlug, setNewSlug] = useState('');
 
     useEffect(() => {
         if (contentRef.current && document.content) {
@@ -113,6 +117,13 @@ export default function Show({
     };
 
     const breadcrumbs = generateBreadcrumbs();
+
+    const handleCreateSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newSlug.trim()) {
+            router.visit(`/markdown/${newSlug.trim()}`);
+        }
+    };
 
     const openLightbox = (images: string[], index: number) => {
         setLightboxImages(images);
@@ -157,16 +168,24 @@ export default function Show({
 
             <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">{document.title}</h1>
+                    <h1 className="text-2xl font-bold">{document.title || '新規ページ'}</h1>
                     <div className="flex gap-2">
-                        <Button asChild>
-                            <Link href={edit(document.slug).url}>
-                                <Pencil className="h-4 w-4" />
-                                {__('Edit')}
-                            </Link>
-                        </Button>
+                        {document.slug === 'index' && (
+                            <Button variant="outline" onClick={() => setShowCreateForm(!showCreateForm)}>
+                                <Plus className="h-4 w-4" />
+                                新規作成
+                            </Button>
+                        )}
+                        {document.id && (
+                            <>
+                                <Button asChild>
+                                    <Link href={edit(document.slug).url}>
+                                        <Pencil className="h-4 w-4" />
+                                        {__('Edit')}
+                                    </Link>
+                                </Button>
 
-                        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="destructive">
                                     <Trash2 className="h-4 w-4" />
@@ -185,7 +204,7 @@ export default function Show({
                                         </span>
                                     </DialogDescription>
                                 </DialogHeader>
-                                <Form {...destroy.form(document.slug)} onSuccess={() => setIsDeleteDialogOpen(false)}>
+                                <Form action={destroy(document.slug)} onSuccess={() => setIsDeleteDialogOpen(false)}>
                                     {({ processing }) => (
                                         <DialogFooter>
                                             <DialogClose asChild>
@@ -201,8 +220,48 @@ export default function Show({
                                 </Form>
                             </DialogContent>
                         </Dialog>
+                            </>
+                        )}
                     </div>
                 </div>
+
+                {/* 新規作成フォーム */}
+                {showCreateForm && (
+                    <Card className="p-4">
+                        <form onSubmit={handleCreateSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="slug">ページスラッグ</Label>
+                                <Input
+                                    id="slug"
+                                    type="text"
+                                    value={newSlug}
+                                    onChange={(e) => setNewSlug(e.target.value)}
+                                    placeholder="例: getting-started, api/introduction"
+                                    autoFocus
+                                    className="font-mono"
+                                />
+                                <p className="text-sm text-muted-foreground">
+                                    URL: /markdown/{newSlug || '...'}
+                                </p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowCreateForm(false);
+                                        setNewSlug('');
+                                    }}
+                                >
+                                    キャンセル
+                                </Button>
+                                <Button type="submit" disabled={!newSlug.trim()}>
+                                    作成
+                                </Button>
+                            </div>
+                        </form>
+                    </Card>
+                )}
 
                 <div className="flex gap-8 px-4">
                     <div
