@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\MarkdownImageUploadRequest;
 use App\Http\Requests\MarkdownRequest;
 use App\Models\MarkdownDocument;
+use App\Models\ShoutLink;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -82,8 +85,19 @@ class MarkdownController extends Controller
 
         $document->load(['createdBy', 'updatedBy']);
 
+        // このページにメンションしているshoutを取得（返信も含む）
+        $relatedShouts = ShoutLink::query()
+            ->where('slug', $slug)
+            ->with(['shout.user', 'shout.links', 'shout.replies.user', 'shout.replies.links'])
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->pluck('shout')
+            ->filter();
+
         return Inertia::render('markdown/show', [
             'document' => $document,
+            'relatedShouts' => $relatedShouts,
         ]);
     }
 
@@ -124,6 +138,27 @@ class MarkdownController extends Controller
         $document->delete();
 
         return to_route('markdown.index');
+    }
+
+    /**
+     * Search for markdown documents by slug or title.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->input('q', '');
+
+        $documentsQuery = MarkdownDocument::query()->select('slug', 'title');
+
+        if (! empty($query)) {
+            $documentsQuery->where(function ($q) use ($query) {
+                $q->where('slug', 'like', "%{$query}%")
+                    ->orWhere('title', 'like', "%{$query}%");
+            });
+        }
+
+        $documents = $documentsQuery->limit(10)->get();
+
+        return response()->json($documents);
     }
 
     /**

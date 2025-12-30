@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shout;
+use App\Models\ShoutLink;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,8 @@ class ShoutboxController extends Controller
 {
     public function index(): Response
     {
-        $shouts = Shout::with('user')
+        $shouts = Shout::with(['user', 'links', 'replies.user', 'replies.links'])
+            ->whereNull('parent_id') // トップレベルのshoutのみ
             ->latest()
             ->paginate(20);
 
@@ -25,6 +27,7 @@ class ShoutboxController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'parent_id' => ['nullable', 'exists:shouts,id'],
             'content' => ['nullable', 'string', 'max:1000'],
             'images' => ['nullable', 'array', 'max:4'],
             'images.*' => ['image', 'max:5120'], // 5MB max
@@ -46,11 +49,15 @@ class ShoutboxController extends Controller
             }
         }
 
-        Shout::create([
+        $shout = Shout::create([
             'user_id' => $request->user()->id,
+            'parent_id' => $validated['parent_id'] ?? null,
             'content' => $validated['content'],
             'images' => empty($imagePaths) ? null : $imagePaths,
         ]);
+
+        // @slug形式のリンクを抽出して保存
+        $this->saveMentionedLinks($shout, $validated['content']);
 
         return redirect()->back();
     }
@@ -77,6 +84,10 @@ class ShoutboxController extends Controller
             'content' => $validated['content'],
         ]);
 
+        // 既存のリンクを削除して新しいリンクを保存
+        $shout->links()->delete();
+        $this->saveMentionedLinks($shout, $validated['content']);
+
         return redirect()->back();
     }
 
@@ -97,5 +108,28 @@ class ShoutboxController extends Controller
         $shout->delete();
 
         return redirect()->back();
+    }
+
+    private function saveMentionedLinks(Shout $shout, ?string $content): void
+    {
+        if (empty($content)) {
+            return;
+        }
+
+        // @slug形式のメンションを抽出（@の後に英数字、ハイフン、アンダースコア、スラッシュが続くパターン）
+        preg_match_all('/@([a-zA-Z0-9_\-\/]+)/', $content, $matches);
+
+        if (empty($matches[1])) {
+            return;
+        }
+
+        // 重複を除去してリンクを保存
+        $slugs = array_unique($matches[1]);
+        foreach ($slugs as $slug) {
+            ShoutLink::create([
+                'shout_id' => $shout->id,
+                'slug' => $slug,
+            ]);
+        }
     }
 }

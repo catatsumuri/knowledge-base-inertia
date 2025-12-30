@@ -14,9 +14,19 @@ return new class extends Migration
         Schema::create('shouts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('parent_id')->nullable()->constrained('shouts')->onDelete('cascade');
             $table->text('content')->nullable();
             $table->json('images')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('shout_links', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shout_id')->constrained()->onDelete('cascade');
+            $table->string('slug');
+            $table->timestamps();
+
+            $table->index(['shout_id', 'slug']);
         });
     }
 
@@ -25,6 +35,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('shout_links');
         Schema::dropIfExists('shouts');
     }
 };

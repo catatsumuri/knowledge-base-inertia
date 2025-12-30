@@ -1,7 +1,9 @@
 import { destroy, edit, show } from '@/actions/App/Http/Controllers/MarkdownController';
 import { MarkdownViewer } from '@/components/markdown-viewer';
 import { Toc } from '@/components/toc';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
     Dialog,
     DialogClose,
@@ -12,12 +14,15 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import { parseToc, type TocNode } from '@/lib/parse-toc';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type User } from '@/types';
 import { Form, Head, Link } from '@inertiajs/react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface MarkdownDocument {
@@ -41,11 +46,39 @@ interface MarkdownDocument {
     };
 }
 
-export default function Show({ document }: { document: MarkdownDocument }) {
+interface ShoutLink {
+    id: number;
+    shout_id: number;
+    slug: string;
+    created_at: string;
+}
+
+interface Shout {
+    id: number;
+    user_id: number;
+    content: string;
+    images: string[] | null;
+    created_at: string;
+    user: User;
+    links: ShoutLink[];
+    replies?: Shout[];
+}
+
+export default function Show({
+    document,
+    relatedShouts,
+}: {
+    document: MarkdownDocument;
+    relatedShouts: Shout[];
+}) {
     const { __ } = useLang();
+    const getInitials = useInitials();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [toc, setToc] = useState<TocNode[]>([]);
     const contentRef = useRef<HTMLDivElement>(null);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
         if (contentRef.current && document.content) {
@@ -80,6 +113,43 @@ export default function Show({ document }: { document: MarkdownDocument }) {
     };
 
     const breadcrumbs = generateBreadcrumbs();
+
+    const openLightbox = (images: string[], index: number) => {
+        setLightboxImages(images);
+        setCurrentImageIndex(index);
+        setLightboxOpen(true);
+    };
+
+    const nextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % lightboxImages.length);
+    };
+
+    const prevImage = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+    };
+
+    const renderContentWithLinks = (content: string) => {
+        if (!content) return null;
+
+        // @slug形式をリンクに変換
+        const parts = content.split(/(@[a-zA-Z0-9_\-\/]+)/g);
+
+        return parts.map((part, index) => {
+            if (part.startsWith('@')) {
+                const slug = part.slice(1);
+                return (
+                    <Link
+                        key={index}
+                        href={`/markdown/${slug}`}
+                        className="text-primary hover:underline font-medium"
+                    >
+                        {part}
+                    </Link>
+                );
+            }
+            return <span key={index}>{part}</span>;
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -162,6 +232,171 @@ export default function Show({ document }: { document: MarkdownDocument }) {
                         {__('Last updated by')}: {document.updated_by.name}
                     </div>
                 )}
+
+                {/* 関連するShout一覧 */}
+                {relatedShouts && relatedShouts.length > 0 && (
+                    <div className="mt-8 space-y-4">
+                        <div className="flex items-center gap-2">
+                            <MessageSquare className="size-5" />
+                            <h2 className="text-xl font-semibold">
+                                このページについてのディスカッション ({relatedShouts.length})
+                            </h2>
+                        </div>
+
+                        <div className="space-y-3">
+                            {relatedShouts.map((shout) => (
+                                <Card key={shout.id} className="p-4">
+                                    <div className="flex gap-3">
+                                        <Avatar className="size-10">
+                                            <AvatarImage src={shout.user.avatar} />
+                                            <AvatarFallback>{getInitials(shout.user.name)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-start justify-between">
+                                                <div>
+                                                    <p className="font-semibold">{shout.user.name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {format(new Date(shout.created_at), 'PPP p', {
+                                                            locale: ja,
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <p className="mt-2 whitespace-pre-wrap break-words">
+                                                {renderContentWithLinks(shout.content)}
+                                            </p>
+
+                                            {/* 画像 */}
+                                            {shout.images && shout.images.length > 0 && (
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {shout.images.map((image, index) => (
+                                                        <button
+                                                            key={index}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openLightbox(
+                                                                    shout.images!.map((img) => `/storage/${img}`),
+                                                                    index,
+                                                                )
+                                                            }
+                                                            className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+                                                        >
+                                                            <img
+                                                                src={`/storage/${image}`}
+                                                                alt={`Image ${index + 1}`}
+                                                                className="h-32 w-32 object-cover"
+                                                            />
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                                <ImageIcon className="size-6 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* 返信一覧 */}
+                                            {shout.replies && shout.replies.length > 0 && (
+                                                <div className="mt-4 space-y-3 border-l-2 pl-4">
+                                                    {shout.replies.map((reply) => (
+                                                        <div key={reply.id} className="flex gap-2">
+                                                            <Avatar className="size-8">
+                                                                <AvatarImage src={reply.user.avatar} />
+                                                                <AvatarFallback>
+                                                                    {getInitials(reply.user.name)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-sm font-semibold">{reply.user.name}</p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {format(new Date(reply.created_at), 'PPP p', {
+                                                                            locale: ja,
+                                                                        })}
+                                                                    </p>
+                                                                </div>
+                                                                <p className="mt-1 text-sm whitespace-pre-wrap break-words">
+                                                                    {renderContentWithLinks(reply.content)}
+                                                                </p>
+                                                                {reply.images && reply.images.length > 0 && (
+                                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                                        {reply.images.map((image, index) => (
+                                                                            <button
+                                                                                key={index}
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    openLightbox(
+                                                                                        reply.images!.map((img) => `/storage/${img}`),
+                                                                                        index,
+                                                                                    )
+                                                                                }
+                                                                                className="group relative overflow-hidden rounded transition-opacity hover:opacity-90"
+                                                                            >
+                                                                                <img
+                                                                                    src={`/storage/${image}`}
+                                                                                    alt={`Image ${index + 1}`}
+                                                                                    className="h-20 w-20 object-cover"
+                                                                                />
+                                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                                                    <ImageIcon className="size-4 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                                                </div>
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+
+                        <div className="text-center">
+                            <Button asChild variant="outline">
+                                <Link href="/shoutbox">シャウトボックスで会話に参加</Link>
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* 画像ライトボックス */}
+                <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+                    <DialogContent className="max-w-4xl p-0">
+                        <div className="relative">
+                            <img
+                                src={lightboxImages[currentImageIndex]}
+                                alt="Full size"
+                                className="h-auto w-full"
+                            />
+                            {lightboxImages.length > 1 && (
+                                <>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={prevImage}
+                                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                                    >
+                                        <ChevronLeft className="size-6" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={nextImage}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                                    >
+                                        <ChevronRight className="size-6" />
+                                    </Button>
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
+                                        {currentImageIndex + 1} / {lightboxImages.length}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

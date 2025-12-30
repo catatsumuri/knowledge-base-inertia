@@ -10,19 +10,34 @@ import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PaginatedData, type User } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Edit, Image as ImageIcon, Save, Send, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Image as ImageIcon, MessageCircle, Save, Send, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+
+interface ShoutLink {
+    id: number;
+    shout_id: number;
+    slug: string;
+    created_at: string;
+}
 
 interface Shout {
     id: number;
     user_id: number;
+    parent_id: number | null;
     content: string;
     images: string[] | null;
     created_at: string;
     user: User;
+    links: ShoutLink[];
+    replies?: Shout[];
+}
+
+interface MarkdownPage {
+    slug: string;
+    title: string;
 }
 
 interface ShoutboxIndexProps {
@@ -34,7 +49,12 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const page = usePage<{ auth: { user: User } }>();
     const getInitials = useInitials();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const replyFileInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+    const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
     const [previewImages, setPreviewImages] = useState<string[]>([]);
+    const [replyPreviewImages, setReplyPreviewImages] = useState<string[]>([]);
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -42,10 +62,37 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
     const [currentProcessingImage, setCurrentProcessingImage] = useState<File | null>(null);
     const [currentFilteringIndex, setCurrentFilteringIndex] = useState<number | null>(null);
+    const [isReplyImage, setIsReplyImage] = useState(false);
     const [editingShoutId, setEditingShoutId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [suggestions, setSuggestions] = useState<MarkdownPage[]>([]);
+    const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+    const [mentionStart, setMentionStart] = useState<number | null>(null);
+    const [showEditSuggestions, setShowEditSuggestions] = useState(false);
+    const [editSuggestions, setEditSuggestions] = useState<MarkdownPage[]>([]);
+    const [selectedEditSuggestionIndex, setSelectedEditSuggestionIndex] = useState(0);
+    const [editMentionStart, setEditMentionStart] = useState<number | null>(null);
+    const [showReplySuggestions, setShowReplySuggestions] = useState(false);
+    const [replySuggestions, setReplySuggestions] = useState<MarkdownPage[]>([]);
+    const [selectedReplySuggestionIndex, setSelectedReplySuggestionIndex] = useState(0);
+    const [replyMentionStart, setReplyMentionStart] = useState<number | null>(null);
+    const [replyingToShoutId, setReplyingToShoutId] = useState<number | null>(null);
 
     const { data, setData, post, processing, reset, errors } = useForm({
+        parent_id: null as number | null,
+        content: '',
+        images: [] as File[],
+    });
+
+    const {
+        data: replyData,
+        setData: setReplyData,
+        post: postReply,
+        processing: replyProcessing,
+        reset: resetReply,
+    } = useForm({
+        parent_id: null as number | null,
         content: '',
         images: [] as File[],
     });
@@ -63,8 +110,92 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
             onSuccess: () => {
                 reset();
                 setPreviewImages([]);
+                setShowSuggestions(false);
             },
         });
+    };
+
+    const handleContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        const cursorPosition = e.target.selectionStart;
+        setData('content', value);
+
+        // @以降の文字列を検出
+        const textBeforeCursor = value.substring(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@([a-zA-Z0-9_\-/]*)$/);
+
+        if (mentionMatch) {
+            const query = mentionMatch[1];
+            const start = cursorPosition - mentionMatch[0].length;
+            setMentionStart(start);
+
+            if (query.length > 0) {
+                // API検索
+                try {
+                    const response = await fetch(`/api/markdown/search?q=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    setSuggestions(data);
+                    setShowSuggestions(data.length > 0);
+                    setSelectedSuggestionIndex(0);
+                } catch (error) {
+                    console.error('Failed to fetch suggestions:', error);
+                }
+            } else {
+                // @だけ入力された場合は全件表示
+                try {
+                    const response = await fetch('/api/markdown/search?q=');
+                    const data = await response.json();
+                    setSuggestions(data);
+                    setShowSuggestions(data.length > 0);
+                    setSelectedSuggestionIndex(0);
+                } catch (error) {
+                    console.error('Failed to fetch suggestions:', error);
+                }
+            }
+        } else {
+            setShowSuggestions(false);
+            setMentionStart(null);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (!showSuggestions) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedSuggestionIndex((prev) => (prev + 1) % suggestions.length);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedSuggestionIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+        } else if (e.key === 'Enter' && suggestions.length > 0) {
+            e.preventDefault();
+            insertMention(suggestions[selectedSuggestionIndex].slug);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setShowSuggestions(false);
+        }
+    };
+
+    const insertMention = (slug: string) => {
+        if (mentionStart === null) return;
+
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const beforeMention = data.content.substring(0, mentionStart);
+        const afterCursor = data.content.substring(textarea.selectionStart);
+        const newContent = beforeMention + '@' + slug + ' ' + afterCursor;
+
+        setData('content', newContent);
+        setShowSuggestions(false);
+        setMentionStart(null);
+
+        // カーソル位置を設定
+        setTimeout(() => {
+            const newCursorPos = beforeMention.length + slug.length + 2;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.focus();
+        }, 0);
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +209,7 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         if (files.length > 0) {
             setCurrentProcessingImage(files[0]);
             setCurrentFilteringIndex(data.images.length);
+            setIsReplyImage(false);
             setCropDialogOpen(true);
 
             // 残りの画像は一時保存
@@ -122,19 +254,31 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
 
     const handleFilterApply = (filteredImage: File) => {
         // フィルター適用後の画像を追加
-        setData('images', [...data.images, filteredImage]);
+        if (isReplyImage) {
+            setReplyData('images', [...replyData.images, filteredImage]);
 
-        // プレビュー生成
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreviewImages((prev) => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(filteredImage);
+            // プレビュー生成
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setReplyPreviewImages((prev) => [...prev, reader.result as string]);
+            };
+            reader.readAsDataURL(filteredImage);
+        } else {
+            setData('images', [...data.images, filteredImage]);
+
+            // プレビュー生成
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImages((prev) => [...prev, reader.result as string]);
+            };
+            reader.readAsDataURL(filteredImage);
+        }
 
         // ダイアログを閉じる
         setFilterDialogOpen(false);
         setCurrentProcessingImage(null);
         setCurrentFilteringIndex(null);
+        setIsReplyImage(false);
     };
 
     const handleFilterCancel = () => {
@@ -156,6 +300,73 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         setEditContent(shout.content || '');
     };
 
+    const handleEditContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        const cursorPosition = e.target.selectionStart;
+        setEditContent(value);
+
+        const textBeforeCursor = value.substring(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@([a-zA-Z0-9_\-/]*)$/);
+
+        if (mentionMatch) {
+            const query = mentionMatch[1];
+            const start = cursorPosition - mentionMatch[0].length;
+            setEditMentionStart(start);
+
+            try {
+                const response = await fetch(`/api/markdown/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                setEditSuggestions(data);
+                setShowEditSuggestions(data.length > 0);
+                setSelectedEditSuggestionIndex(0);
+            } catch (error) {
+                console.error('Failed to fetch suggestions:', error);
+            }
+        } else {
+            setShowEditSuggestions(false);
+            setEditMentionStart(null);
+        }
+    };
+
+    const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (!showEditSuggestions) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedEditSuggestionIndex((prev) => (prev + 1) % editSuggestions.length);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedEditSuggestionIndex((prev) => (prev - 1 + editSuggestions.length) % editSuggestions.length);
+        } else if (e.key === 'Enter' && editSuggestions.length > 0) {
+            e.preventDefault();
+            insertEditMention(editSuggestions[selectedEditSuggestionIndex].slug);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setShowEditSuggestions(false);
+        }
+    };
+
+    const insertEditMention = (slug: string) => {
+        if (editMentionStart === null) return;
+
+        const textarea = editTextareaRef.current;
+        if (!textarea) return;
+
+        const beforeMention = editContent.substring(0, editMentionStart);
+        const afterCursor = editContent.substring(textarea.selectionStart);
+        const newContent = beforeMention + '@' + slug + ' ' + afterCursor;
+
+        setEditContent(newContent);
+        setShowEditSuggestions(false);
+        setEditMentionStart(null);
+
+        setTimeout(() => {
+            const newCursorPos = beforeMention.length + slug.length + 2;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.focus();
+        }, 0);
+    };
+
     const handleSaveEdit = (shoutId: number) => {
         router.patch(
             update(shoutId),
@@ -164,6 +375,7 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                 onSuccess: () => {
                     setEditingShoutId(null);
                     setEditContent('');
+                    setShowEditSuggestions(false);
                 },
             },
         );
@@ -172,6 +384,136 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const handleCancelEdit = () => {
         setEditingShoutId(null);
         setEditContent('');
+        setShowEditSuggestions(false);
+    };
+
+    const handleReplyContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        const cursorPosition = e.target.selectionStart;
+        setReplyData('content', value);
+
+        const textBeforeCursor = value.substring(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@([a-zA-Z0-9_\-/]*)$/);
+
+        if (mentionMatch) {
+            const query = mentionMatch[1];
+            const start = cursorPosition - mentionMatch[0].length;
+            setReplyMentionStart(start);
+
+            try {
+                const response = await fetch(`/api/markdown/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                setReplySuggestions(data);
+                setShowReplySuggestions(data.length > 0);
+                setSelectedReplySuggestionIndex(0);
+            } catch (error) {
+                console.error('Failed to fetch suggestions:', error);
+            }
+        } else {
+            setShowReplySuggestions(false);
+            setReplyMentionStart(null);
+        }
+    };
+
+    const handleReplyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (!showReplySuggestions) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedReplySuggestionIndex((prev) => (prev + 1) % replySuggestions.length);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedReplySuggestionIndex((prev) => (prev - 1 + replySuggestions.length) % replySuggestions.length);
+        } else if (e.key === 'Enter' && replySuggestions.length > 0) {
+            e.preventDefault();
+            insertReplyMention(replySuggestions[selectedReplySuggestionIndex].slug);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setShowReplySuggestions(false);
+        }
+    };
+
+    const insertReplyMention = (slug: string) => {
+        if (replyMentionStart === null) return;
+
+        const textarea = replyTextareaRef.current;
+        if (!textarea) return;
+
+        const beforeMention = replyData.content.substring(0, replyMentionStart);
+        const afterCursor = replyData.content.substring(textarea.selectionStart);
+        const newContent = beforeMention + '@' + slug + ' ' + afterCursor;
+
+        setReplyData('content', newContent);
+        setShowReplySuggestions(false);
+        setReplyMentionStart(null);
+
+        setTimeout(() => {
+            const newCursorPos = beforeMention.length + slug.length + 2;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.focus();
+        }, 0);
+    };
+
+    const handleReply = (shoutId: number) => {
+        setReplyingToShoutId(shoutId);
+        setReplyData('parent_id', shoutId);
+    };
+
+    const handleCancelReply = () => {
+        setReplyingToShoutId(null);
+        resetReply();
+        setReplyPreviewImages([]);
+        setShowReplySuggestions(false);
+    };
+
+    const handleSubmitReply = (e: React.FormEvent) => {
+        e.preventDefault();
+        postReply(store(), {
+            onSuccess: () => {
+                resetReply();
+                setReplyingToShoutId(null);
+                setReplyPreviewImages([]);
+            },
+        });
+    };
+
+    const handleReplyImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length + replyData.images.length > 4) {
+            alert('画像は最大4枚までです');
+            return;
+        }
+
+        if (files.length > 0) {
+            setCurrentProcessingImage(files[0]);
+            setCurrentFilteringIndex(replyData.images.length);
+            setIsReplyImage(true);
+            setCropDialogOpen(true);
+
+            if (files.length > 1) {
+                const remainingFiles = files.slice(1);
+                remainingFiles.forEach((file) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setReplyPreviewImages((prev) => [...prev, reader.result as string]);
+                    };
+                    reader.readAsDataURL(file);
+                    setReplyData('images', [...replyData.images, file]);
+                });
+            }
+        }
+
+        if (replyFileInputRef.current) {
+            replyFileInputRef.current.value = '';
+        }
+    };
+
+    const removeReplyImage = (index: number) => {
+        setReplyData(
+            'images',
+            replyData.images.filter((_, i) => i !== index),
+        );
+        setReplyPreviewImages((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleDelete = (shoutId: number) => {
@@ -194,6 +536,29 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         setCurrentImageIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
     };
 
+    const renderContentWithLinks = (content: string) => {
+        if (!content) return null;
+
+        // @slug形式をリンクに変換
+        const parts = content.split(/(@[a-zA-Z0-9_\-\/]+)/g);
+
+        return parts.map((part, index) => {
+            if (part.startsWith('@')) {
+                const slug = part.slice(1);
+                return (
+                    <Link
+                        key={index}
+                        href={`/markdown/${slug}`}
+                        className="text-primary hover:underline font-medium"
+                    >
+                        {part}
+                    </Link>
+                );
+            }
+            return <span key={index}>{part}</span>;
+        });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('Shoutbox')} />
@@ -206,14 +571,35 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                 <AvatarImage src={page.props.auth.user.avatar} />
                                 <AvatarFallback>{getInitials(page.props.auth.user.name)}</AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 space-y-3">
+                            <div className="relative flex-1 space-y-3">
                                 <Textarea
+                                    ref={textareaRef}
                                     value={data.content}
-                                    onChange={(e) => setData('content', e.target.value)}
-                                    placeholder="いま何してる？"
+                                    onChange={handleContentChange}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="いま何してる？ (@でページをメンション)"
                                     className="min-h-[100px] resize-none border-none p-0 text-lg focus-visible:ring-0"
                                     maxLength={1000}
                                 />
+
+                                {/* サジェストリスト */}
+                                {showSuggestions && suggestions.length > 0 && (
+                                    <Card className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                        {suggestions.map((suggestion, index) => (
+                                            <button
+                                                key={suggestion.slug}
+                                                type="button"
+                                                onClick={() => insertMention(suggestion.slug)}
+                                                className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                    index === selectedSuggestionIndex ? 'bg-muted' : ''
+                                                }`}
+                                            >
+                                                <div className="font-medium">@{suggestion.slug}</div>
+                                                <div className="text-sm text-muted-foreground">{suggestion.title}</div>
+                                            </button>
+                                        ))}
+                                    </Card>
+                                )}
 
                                 {/* 画像プレビュー */}
                                 {previewImages.length > 0 && (
@@ -293,36 +679,72 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                 })}
                                             </p>
                                         </div>
-                                        {shout.user_id === page.props.auth.user.id && editingShoutId !== shout.id && (
+                                        {editingShoutId !== shout.id && (
                                             <div className="flex gap-1">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => handleEdit(shout)}
+                                                    onClick={() => handleReply(shout.id)}
                                                     className="size-8"
+                                                    title="返信"
                                                 >
-                                                    <Edit className="size-4" />
+                                                    <MessageCircle className="size-4" />
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleDelete(shout.id)}
-                                                    className="size-8"
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
+                                                {shout.user_id === page.props.auth.user.id && (
+                                                    <>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleEdit(shout)}
+                                                            className="size-8"
+                                                        >
+                                                            <Edit className="size-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleDelete(shout.id)}
+                                                            className="size-8"
+                                                        >
+                                                            <Trash2 className="size-4" />
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         )}
                                     </div>
                                     {editingShoutId === shout.id ? (
                                         <div className="mt-2 space-y-2">
-                                            <Textarea
-                                                value={editContent}
-                                                onChange={(e) => setEditContent(e.target.value)}
-                                                className="min-h-[100px] resize-none"
-                                                maxLength={1000}
-                                                autoFocus
-                                            />
+                                            <div className="relative">
+                                                <Textarea
+                                                    ref={editTextareaRef}
+                                                    value={editContent}
+                                                    onChange={handleEditContentChange}
+                                                    onKeyDown={handleEditKeyDown}
+                                                    className="min-h-[100px] resize-none"
+                                                    maxLength={1000}
+                                                    autoFocus
+                                                />
+
+                                                {/* 編集時のサジェストリスト */}
+                                                {showEditSuggestions && editSuggestions.length > 0 && (
+                                                    <Card className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                                        {editSuggestions.map((suggestion, index) => (
+                                                            <button
+                                                                key={suggestion.slug}
+                                                                type="button"
+                                                                onClick={() => insertEditMention(suggestion.slug)}
+                                                                className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                                    index === selectedEditSuggestionIndex ? 'bg-muted' : ''
+                                                                }`}
+                                                            >
+                                                                <div className="font-medium">@{suggestion.slug}</div>
+                                                                <div className="text-sm text-muted-foreground">{suggestion.title}</div>
+                                                            </button>
+                                                        ))}
+                                                    </Card>
+                                                )}
+                                            </div>
                                             <div className="flex justify-end gap-2">
                                                 <Button variant="outline" size="sm" onClick={handleCancelEdit}>
                                                     キャンセル
@@ -334,7 +756,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="mt-2 whitespace-pre-wrap break-words">{shout.content}</p>
+                                        <p className="mt-2 whitespace-pre-wrap break-words">
+                                            {renderContentWithLinks(shout.content)}
+                                        </p>
                                     )}
 
                                     {/* 画像 */}
@@ -363,6 +787,175 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                 </button>
                                             ))}
                                         </div>
+                                    )}
+
+                                    {/* 返信一覧 */}
+                                    {shout.replies && shout.replies.length > 0 && (
+                                        <div className="mt-4 space-y-3 border-l-2 pl-4">
+                                            {shout.replies.map((reply) => (
+                                                <div key={reply.id} className="flex gap-2">
+                                                    <Avatar className="size-8">
+                                                        <AvatarImage src={reply.user.avatar} />
+                                                        <AvatarFallback>
+                                                            {getInitials(reply.user.name)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-sm font-semibold">{reply.user.name}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {format(new Date(reply.created_at), 'PPP p', {
+                                                                    locale: ja,
+                                                                })}
+                                                            </p>
+                                                        </div>
+                                                        <p className="mt-1 text-sm whitespace-pre-wrap break-words">
+                                                            {renderContentWithLinks(reply.content)}
+                                                        </p>
+                                                        {reply.images && reply.images.length > 0 && (
+                                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                                {reply.images.map((image, index) => (
+                                                                    <button
+                                                                        key={index}
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            openLightbox(
+                                                                                reply.images!.map((img) => `/storage/${img}`),
+                                                                                index,
+                                                                            )
+                                                                        }
+                                                                        className="group relative overflow-hidden rounded transition-opacity hover:opacity-90"
+                                                                    >
+                                                                        <img
+                                                                            src={`/storage/${image}`}
+                                                                            alt={`Image ${index + 1}`}
+                                                                            className="h-20 w-20 object-cover"
+                                                                        />
+                                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                                            <ImageIcon className="size-4 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                                        </div>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* 返信フォーム */}
+                                    {replyingToShoutId === shout.id && (
+                                        <form onSubmit={handleSubmitReply} className="mt-4 border-l-2 pl-4">
+                                            <div className="flex gap-2">
+                                                <Avatar className="size-8">
+                                                    <AvatarImage src={page.props.auth.user.avatar} />
+                                                    <AvatarFallback>
+                                                        {getInitials(page.props.auth.user.name)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="relative">
+                                                        <Textarea
+                                                            ref={replyTextareaRef}
+                                                            value={replyData.content}
+                                                            onChange={handleReplyContentChange}
+                                                            onKeyDown={handleReplyKeyDown}
+                                                            placeholder="返信を入力... (@でページをメンション)"
+                                                            className="min-h-[60px] text-sm resize-none"
+                                                            maxLength={1000}
+                                                            autoFocus
+                                                        />
+
+                                                        {/* 返信時のサジェストリスト */}
+                                                        {showReplySuggestions && replySuggestions.length > 0 && (
+                                                            <Card className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                                                {replySuggestions.map((suggestion, index) => (
+                                                                    <button
+                                                                        key={suggestion.slug}
+                                                                        type="button"
+                                                                        onClick={() => insertReplyMention(suggestion.slug)}
+                                                                        className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                                            index === selectedReplySuggestionIndex ? 'bg-muted' : ''
+                                                                        }`}
+                                                                    >
+                                                                        <div className="text-sm font-medium">@{suggestion.slug}</div>
+                                                                        <div className="text-xs text-muted-foreground">{suggestion.title}</div>
+                                                                    </button>
+                                                                ))}
+                                                            </Card>
+                                                        )}
+                                                    </div>
+
+                                                    {/* 返信画像プレビュー */}
+                                                    {replyPreviewImages.length > 0 && (
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {replyPreviewImages.map((preview, index) => (
+                                                                <div key={index} className="group relative">
+                                                                    <img
+                                                                        src={preview}
+                                                                        alt={`Preview ${index + 1}`}
+                                                                        className="h-24 w-full rounded-lg object-cover"
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeReplyImage(index)}
+                                                                        className="absolute right-1 top-1 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+                                                                    >
+                                                                        <X className="size-3" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex gap-1">
+                                                            <input
+                                                                ref={replyFileInputRef}
+                                                                type="file"
+                                                                multiple
+                                                                accept="image/*"
+                                                                onChange={handleReplyImageChange}
+                                                                className="hidden"
+                                                            />
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => replyFileInputRef.current?.click()}
+                                                                disabled={replyData.images.length >= 4}
+                                                                className="size-8"
+                                                            >
+                                                                <ImageIcon className="size-4" />
+                                                            </Button>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={handleCancelReply}
+                                                            >
+                                                                キャンセル
+                                                            </Button>
+                                                            <Button
+                                                                type="submit"
+                                                                size="sm"
+                                                                disabled={
+                                                                    replyProcessing ||
+                                                                    (!replyData.content.trim() &&
+                                                                        replyData.images.length === 0)
+                                                                }
+                                                            >
+                                                                <Send className="mr-2 size-3" />
+                                                                返信
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
                                     )}
                                 </div>
                             </div>

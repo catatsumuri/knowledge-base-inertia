@@ -39,5 +39,45 @@ class DatabaseSeeder extends Seeder
                 'updated_by' => $testUser->id,
             ]
         );
+
+        // はじめにページ
+        MarkdownDocument::firstOrCreate(
+            ['slug' => 'welcome'],
+            [
+                'title' => 'はじめに',
+                'content' => <<<'MARKDOWN'
+# ようこそ！
+
+このナレッジベースへようこそ。
+
+## 機能紹介
+
+このアプリケーションでは以下の機能が利用できます：
+
+### ドキュメント管理
+- **Markdown記法**でドキュメントを作成・編集
+- リアルタイムプレビュー
+- 画像アップロード対応
+- リッチなリンクカード（OGP対応）
+
+### シャウトボックス
+- Twitter風のタイムライン
+- 画像投稿（最大4枚、トリミング・フィルター機能付き）
+- インライン編集機能
+- テキストなし画像のみの投稿も可能
+
+## 使い方
+
+1. サイドバーから各機能にアクセス
+2. Markdownページでドキュメントを作成
+3. シャウトボックスで気軽につぶやき
+
+詳しい使い方は各ページをご覧ください。
+MARKDOWN
+                ,
+                'created_by' => $testUser->id,
+                'updated_by' => $testUser->id,
+            ]
+        );
     }
 }
