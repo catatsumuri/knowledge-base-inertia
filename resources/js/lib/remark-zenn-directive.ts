@@ -36,8 +36,11 @@ export function remarkZennDirective() {
             if (directiveNode.name === 'message') {
                 // :::message{.alert} または :::message{alert} のようなattributesをチェック
                 const attributes = directiveNode.attributes || {};
-                const className = attributes.className || attributes.class || '';
-                const isAlert = className.includes('alert') || attributes.alert !== undefined;
+                const className =
+                    attributes.className || attributes.class || '';
+                const isAlert =
+                    className.includes('alert') ||
+                    attributes.alert !== undefined;
 
                 const messageType = isAlert ? 'alert' : 'message';
 
@@ -83,7 +86,8 @@ export function remarkZennDirective() {
                     originalChildren.length > 0 &&
                     originalChildren[0].type === 'paragraph'
                 ) {
-                    const firstParagraph = originalChildren.shift() as Paragraph;
+                    const firstParagraph =
+                        originalChildren.shift() as Paragraph;
                     // テキストを抽出
                     if (
                         firstParagraph.children &&

@@ -27,7 +27,10 @@ export function parseToc(element: HTMLElement): TocNode[] {
         let array = acc; // current TOC を投入するターゲットとなる配列。トップレベルから初めて条件を満たすたびにネストする
 
         while (true) {
-            if (array.length === 0 || array[array.length - 1].level >= current.level) {
+            if (
+                array.length === 0 ||
+                array[array.length - 1].level >= current.level
+            ) {
                 // ターゲット配列が空（最初のheadings）のときはcurrentを先頭に追加
                 // ターゲット配列の末尾レベルがcurrentと比べて同じか大きければarrayの末尾に追加
                 break;

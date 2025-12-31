@@ -1,4 +1,8 @@
-import { store, destroy, update } from '@/actions/App/Http/Controllers/ShoutboxController';
+import {
+    destroy,
+    store,
+    update,
+} from '@/actions/App/Http/Controllers/ShoutboxController';
 import { ImageCropper } from '@/components/image-cropper';
 import { ImageFilter } from '@/components/image-filter';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +17,17 @@ import { type BreadcrumbItem, type PaginatedData, type User } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Edit, Image as ImageIcon, MessageCircle, Save, Send, Trash2, X } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Edit,
+    Image as ImageIcon,
+    MessageCircle,
+    Save,
+    Send,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface ShoutLink {
@@ -60,8 +74,11 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [cropDialogOpen, setCropDialogOpen] = useState(false);
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
-    const [currentProcessingImage, setCurrentProcessingImage] = useState<File | null>(null);
-    const [currentFilteringIndex, setCurrentFilteringIndex] = useState<number | null>(null);
+    const [currentProcessingImage, setCurrentProcessingImage] =
+        useState<File | null>(null);
+    const [currentFilteringIndex, setCurrentFilteringIndex] = useState<
+        number | null
+    >(null);
     const [isReplyImage, setIsReplyImage] = useState(false);
     const [editingShoutId, setEditingShoutId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState('');
@@ -71,13 +88,23 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     const [mentionStart, setMentionStart] = useState<number | null>(null);
     const [showEditSuggestions, setShowEditSuggestions] = useState(false);
     const [editSuggestions, setEditSuggestions] = useState<MarkdownPage[]>([]);
-    const [selectedEditSuggestionIndex, setSelectedEditSuggestionIndex] = useState(0);
-    const [editMentionStart, setEditMentionStart] = useState<number | null>(null);
+    const [selectedEditSuggestionIndex, setSelectedEditSuggestionIndex] =
+        useState(0);
+    const [editMentionStart, setEditMentionStart] = useState<number | null>(
+        null,
+    );
     const [showReplySuggestions, setShowReplySuggestions] = useState(false);
-    const [replySuggestions, setReplySuggestions] = useState<MarkdownPage[]>([]);
-    const [selectedReplySuggestionIndex, setSelectedReplySuggestionIndex] = useState(0);
-    const [replyMentionStart, setReplyMentionStart] = useState<number | null>(null);
-    const [replyingToShoutId, setReplyingToShoutId] = useState<number | null>(null);
+    const [replySuggestions, setReplySuggestions] = useState<MarkdownPage[]>(
+        [],
+    );
+    const [selectedReplySuggestionIndex, setSelectedReplySuggestionIndex] =
+        useState(0);
+    const [replyMentionStart, setReplyMentionStart] = useState<number | null>(
+        null,
+    );
+    const [replyingToShoutId, setReplyingToShoutId] = useState<number | null>(
+        null,
+    );
 
     const { data, setData, post, processing, reset, errors } = useForm({
         parent_id: null as number | null,
@@ -115,7 +142,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         });
     };
 
-    const handleContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleContentChange = async (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         const value = e.target.value;
         const cursorPosition = e.target.selectionStart;
         setData('content', value);
@@ -132,7 +161,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
             if (query.length > 0) {
                 // API検索
                 try {
-                    const response = await fetch(`/api/markdown/search?q=${encodeURIComponent(query)}`);
+                    const response = await fetch(
+                        `/api/markdown/search?q=${encodeURIComponent(query)}`,
+                    );
                     const data = await response.json();
                     setSuggestions(data);
                     setShowSuggestions(data.length > 0);
@@ -163,10 +194,14 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedSuggestionIndex((prev) => (prev + 1) % suggestions.length);
+            setSelectedSuggestionIndex(
+                (prev) => (prev + 1) % suggestions.length,
+            );
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setSelectedSuggestionIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+            setSelectedSuggestionIndex(
+                (prev) => (prev - 1 + suggestions.length) % suggestions.length,
+            );
         } else if (e.key === 'Enter' && suggestions.length > 0) {
             e.preventDefault();
             insertMention(suggestions[selectedSuggestionIndex].slug);
@@ -219,7 +254,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                 remainingFiles.forEach((file) => {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        setPreviewImages((prev) => [...prev, reader.result as string]);
+                        setPreviewImages((prev) => [
+                            ...prev,
+                            reader.result as string,
+                        ]);
                     };
                     reader.readAsDataURL(file);
                     setData('images', [...data.images, file]);
@@ -260,7 +298,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
             // プレビュー生成
             const reader = new FileReader();
             reader.onloadend = () => {
-                setReplyPreviewImages((prev) => [...prev, reader.result as string]);
+                setReplyPreviewImages((prev) => [
+                    ...prev,
+                    reader.result as string,
+                ]);
             };
             reader.readAsDataURL(filteredImage);
         } else {
@@ -300,7 +341,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         setEditContent(shout.content || '');
     };
 
-    const handleEditContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleEditContentChange = async (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         const value = e.target.value;
         const cursorPosition = e.target.selectionStart;
         setEditContent(value);
@@ -314,7 +357,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
             setEditMentionStart(start);
 
             try {
-                const response = await fetch(`/api/markdown/search?q=${encodeURIComponent(query)}`);
+                const response = await fetch(
+                    `/api/markdown/search?q=${encodeURIComponent(query)}`,
+                );
                 const data = await response.json();
                 setEditSuggestions(data);
                 setShowEditSuggestions(data.length > 0);
@@ -333,13 +378,21 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedEditSuggestionIndex((prev) => (prev + 1) % editSuggestions.length);
+            setSelectedEditSuggestionIndex(
+                (prev) => (prev + 1) % editSuggestions.length,
+            );
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setSelectedEditSuggestionIndex((prev) => (prev - 1 + editSuggestions.length) % editSuggestions.length);
+            setSelectedEditSuggestionIndex(
+                (prev) =>
+                    (prev - 1 + editSuggestions.length) %
+                    editSuggestions.length,
+            );
         } else if (e.key === 'Enter' && editSuggestions.length > 0) {
             e.preventDefault();
-            insertEditMention(editSuggestions[selectedEditSuggestionIndex].slug);
+            insertEditMention(
+                editSuggestions[selectedEditSuggestionIndex].slug,
+            );
         } else if (e.key === 'Escape') {
             e.preventDefault();
             setShowEditSuggestions(false);
@@ -387,7 +440,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         setShowEditSuggestions(false);
     };
 
-    const handleReplyContentChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleReplyContentChange = async (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         const value = e.target.value;
         const cursorPosition = e.target.selectionStart;
         setReplyData('content', value);
@@ -401,7 +456,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
             setReplyMentionStart(start);
 
             try {
-                const response = await fetch(`/api/markdown/search?q=${encodeURIComponent(query)}`);
+                const response = await fetch(
+                    `/api/markdown/search?q=${encodeURIComponent(query)}`,
+                );
                 const data = await response.json();
                 setReplySuggestions(data);
                 setShowReplySuggestions(data.length > 0);
@@ -415,18 +472,28 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         }
     };
 
-    const handleReplyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleReplyKeyDown = (
+        e: React.KeyboardEvent<HTMLTextAreaElement>,
+    ) => {
         if (!showReplySuggestions) return;
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedReplySuggestionIndex((prev) => (prev + 1) % replySuggestions.length);
+            setSelectedReplySuggestionIndex(
+                (prev) => (prev + 1) % replySuggestions.length,
+            );
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setSelectedReplySuggestionIndex((prev) => (prev - 1 + replySuggestions.length) % replySuggestions.length);
+            setSelectedReplySuggestionIndex(
+                (prev) =>
+                    (prev - 1 + replySuggestions.length) %
+                    replySuggestions.length,
+            );
         } else if (e.key === 'Enter' && replySuggestions.length > 0) {
             e.preventDefault();
-            insertReplyMention(replySuggestions[selectedReplySuggestionIndex].slug);
+            insertReplyMention(
+                replySuggestions[selectedReplySuggestionIndex].slug,
+            );
         } else if (e.key === 'Escape') {
             e.preventDefault();
             setShowReplySuggestions(false);
@@ -440,7 +507,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
         if (!textarea) return;
 
         const beforeMention = replyData.content.substring(0, replyMentionStart);
-        const afterCursor = replyData.content.substring(textarea.selectionStart);
+        const afterCursor = replyData.content.substring(
+            textarea.selectionStart,
+        );
         const newContent = beforeMention + '@' + slug + ' ' + afterCursor;
 
         setReplyData('content', newContent);
@@ -495,7 +564,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                 remainingFiles.forEach((file) => {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        setReplyPreviewImages((prev) => [...prev, reader.result as string]);
+                        setReplyPreviewImages((prev) => [
+                            ...prev,
+                            reader.result as string,
+                        ]);
                     };
                     reader.readAsDataURL(file);
                     setReplyData('images', [...replyData.images, file]);
@@ -533,7 +605,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
     };
 
     const prevImage = () => {
-        setCurrentImageIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+        setCurrentImageIndex(
+            (prev) =>
+                (prev - 1 + lightboxImages.length) % lightboxImages.length,
+        );
     };
 
     const renderContentWithLinks = (content: string) => {
@@ -549,7 +624,7 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                     <Link
                         key={index}
                         href={`/markdown/${slug}`}
-                        className="text-primary hover:underline font-medium"
+                        className="font-medium text-primary hover:underline"
                     >
                         {part}
                     </Link>
@@ -568,8 +643,12 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                     <form onSubmit={handleSubmit}>
                         <div className="flex gap-3">
                             <Avatar className="size-10">
-                                <AvatarImage src={page.props.auth.user.avatar} />
-                                <AvatarFallback>{getInitials(page.props.auth.user.name)}</AvatarFallback>
+                                <AvatarImage
+                                    src={page.props.auth.user.avatar}
+                                />
+                                <AvatarFallback>
+                                    {getInitials(page.props.auth.user.name)}
+                                </AvatarFallback>
                             </Avatar>
                             <div className="relative flex-1 space-y-3">
                                 <Textarea
@@ -584,20 +663,33 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
 
                                 {/* サジェストリスト */}
                                 {showSuggestions && suggestions.length > 0 && (
-                                    <Card className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
-                                        {suggestions.map((suggestion, index) => (
-                                            <button
-                                                key={suggestion.slug}
-                                                type="button"
-                                                onClick={() => insertMention(suggestion.slug)}
-                                                className={`w-full px-4 py-2 text-left hover:bg-muted ${
-                                                    index === selectedSuggestionIndex ? 'bg-muted' : ''
-                                                }`}
-                                            >
-                                                <div className="font-medium">@{suggestion.slug}</div>
-                                                <div className="text-sm text-muted-foreground">{suggestion.title}</div>
-                                            </button>
-                                        ))}
+                                    <Card className="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                        {suggestions.map(
+                                            (suggestion, index) => (
+                                                <button
+                                                    key={suggestion.slug}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        insertMention(
+                                                            suggestion.slug,
+                                                        )
+                                                    }
+                                                    className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                        index ===
+                                                        selectedSuggestionIndex
+                                                            ? 'bg-muted'
+                                                            : ''
+                                                    }`}
+                                                >
+                                                    <div className="font-medium">
+                                                        @{suggestion.slug}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {suggestion.title}
+                                                    </div>
+                                                </button>
+                                            ),
+                                        )}
                                     </Card>
                                 )}
 
@@ -605,7 +697,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                 {previewImages.length > 0 && (
                                     <div className="grid grid-cols-2 gap-2">
                                         {previewImages.map((preview, index) => (
-                                            <div key={index} className="group relative">
+                                            <div
+                                                key={index}
+                                                className="group relative"
+                                            >
                                                 <img
                                                     src={preview}
                                                     alt={`Preview ${index + 1}`}
@@ -613,8 +708,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => removeImage(index)}
-                                                    className="absolute right-1 top-1 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+                                                    onClick={() =>
+                                                        removeImage(index)
+                                                    }
+                                                    className="absolute top-1 right-1 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70"
                                                 >
                                                     <X className="size-4" />
                                                 </button>
@@ -624,7 +721,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                 )}
 
                                 {errors.content && (
-                                    <p className="text-sm text-destructive">{errors.content}</p>
+                                    <p className="text-sm text-destructive">
+                                        {errors.content}
+                                    </p>
                                 )}
 
                                 <div className="flex items-center justify-between border-t pt-3">
@@ -641,7 +740,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                             type="button"
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => fileInputRef.current?.click()}
+                                            onClick={() =>
+                                                fileInputRef.current?.click()
+                                            }
                                             disabled={data.images.length >= 4}
                                         >
                                             <ImageIcon className="size-5" />
@@ -649,7 +750,11 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                     </div>
                                     <Button
                                         type="submit"
-                                        disabled={processing || (!data.content.trim() && data.images.length === 0)}
+                                        disabled={
+                                            processing ||
+                                            (!data.content.trim() &&
+                                                data.images.length === 0)
+                                        }
                                     >
                                         <Send className="mr-2 size-4" />
                                         投稿
@@ -667,16 +772,24 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                             <div className="flex gap-3">
                                 <Avatar className="size-10">
                                     <AvatarImage src={shout.user.avatar} />
-                                    <AvatarFallback>{getInitials(shout.user.name)}</AvatarFallback>
+                                    <AvatarFallback>
+                                        {getInitials(shout.user.name)}
+                                    </AvatarFallback>
                                 </Avatar>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <p className="font-semibold">{shout.user.name}</p>
+                                            <p className="font-semibold">
+                                                {shout.user.name}
+                                            </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {format(new Date(shout.created_at), 'PPP p', {
-                                                    locale: ja,
-                                                })}
+                                                {format(
+                                                    new Date(shout.created_at),
+                                                    'PPP p',
+                                                    {
+                                                        locale: ja,
+                                                    },
+                                                )}
                                             </p>
                                         </div>
                                         {editingShoutId !== shout.id && (
@@ -684,18 +797,25 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => handleReply(shout.id)}
+                                                    onClick={() =>
+                                                        handleReply(shout.id)
+                                                    }
                                                     className="size-8"
                                                     title="返信"
                                                 >
                                                     <MessageCircle className="size-4" />
                                                 </Button>
-                                                {shout.user_id === page.props.auth.user.id && (
+                                                {shout.user_id ===
+                                                    page.props.auth.user.id && (
                                                     <>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => handleEdit(shout)}
+                                                            onClick={() =>
+                                                                handleEdit(
+                                                                    shout,
+                                                                )
+                                                            }
                                                             className="size-8"
                                                         >
                                                             <Edit className="size-4" />
@@ -703,7 +823,11 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => handleDelete(shout.id)}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    shout.id,
+                                                                )
+                                                            }
                                                             className="size-8"
                                                         >
                                                             <Trash2 className="size-4" />
@@ -719,212 +843,371 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                 <Textarea
                                                     ref={editTextareaRef}
                                                     value={editContent}
-                                                    onChange={handleEditContentChange}
-                                                    onKeyDown={handleEditKeyDown}
+                                                    onChange={
+                                                        handleEditContentChange
+                                                    }
+                                                    onKeyDown={
+                                                        handleEditKeyDown
+                                                    }
                                                     className="min-h-[100px] resize-none"
                                                     maxLength={1000}
                                                     autoFocus
                                                 />
 
                                                 {/* 編集時のサジェストリスト */}
-                                                {showEditSuggestions && editSuggestions.length > 0 && (
-                                                    <Card className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
-                                                        {editSuggestions.map((suggestion, index) => (
-                                                            <button
-                                                                key={suggestion.slug}
-                                                                type="button"
-                                                                onClick={() => insertEditMention(suggestion.slug)}
-                                                                className={`w-full px-4 py-2 text-left hover:bg-muted ${
-                                                                    index === selectedEditSuggestionIndex ? 'bg-muted' : ''
-                                                                }`}
-                                                            >
-                                                                <div className="font-medium">@{suggestion.slug}</div>
-                                                                <div className="text-sm text-muted-foreground">{suggestion.title}</div>
-                                                            </button>
-                                                        ))}
-                                                    </Card>
-                                                )}
+                                                {showEditSuggestions &&
+                                                    editSuggestions.length >
+                                                        0 && (
+                                                        <Card className="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                                            {editSuggestions.map(
+                                                                (
+                                                                    suggestion,
+                                                                    index,
+                                                                ) => (
+                                                                    <button
+                                                                        key={
+                                                                            suggestion.slug
+                                                                        }
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            insertEditMention(
+                                                                                suggestion.slug,
+                                                                            )
+                                                                        }
+                                                                        className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                                            index ===
+                                                                            selectedEditSuggestionIndex
+                                                                                ? 'bg-muted'
+                                                                                : ''
+                                                                        }`}
+                                                                    >
+                                                                        <div className="font-medium">
+                                                                            @
+                                                                            {
+                                                                                suggestion.slug
+                                                                            }
+                                                                        </div>
+                                                                        <div className="text-sm text-muted-foreground">
+                                                                            {
+                                                                                suggestion.title
+                                                                            }
+                                                                        </div>
+                                                                    </button>
+                                                                ),
+                                                            )}
+                                                        </Card>
+                                                    )}
                                             </div>
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="outline" size="sm" onClick={handleCancelEdit}>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleCancelEdit}
+                                                >
                                                     キャンセル
                                                 </Button>
-                                                <Button size="sm" onClick={() => handleSaveEdit(shout.id)}>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        handleSaveEdit(shout.id)
+                                                    }
+                                                >
                                                     <Save className="mr-2 size-4" />
                                                     保存
                                                 </Button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="mt-2 whitespace-pre-wrap break-words">
-                                            {renderContentWithLinks(shout.content)}
+                                        <p className="mt-2 break-words whitespace-pre-wrap">
+                                            {renderContentWithLinks(
+                                                shout.content,
+                                            )}
                                         </p>
                                     )}
 
                                     {/* 画像 */}
-                                    {shout.images && shout.images.length > 0 && (
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {shout.images.map((image, index) => (
-                                                <button
-                                                    key={index}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        openLightbox(
-                                                            shout.images!.map((img) => `/storage/${img}`),
-                                                            index,
-                                                        )
-                                                    }
-                                                    className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
-                                                >
-                                                    <img
-                                                        src={`/storage/${image}`}
-                                                        alt={`Image ${index + 1}`}
-                                                        className="h-32 w-32 object-cover"
-                                                    />
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
-                                                        <ImageIcon className="size-6 text-white opacity-0 transition-opacity group-hover:opacity-100" />
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {shout.images &&
+                                        shout.images.length > 0 && (
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {shout.images.map(
+                                                    (image, index) => (
+                                                        <button
+                                                            key={index}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openLightbox(
+                                                                    shout.images!.map(
+                                                                        (img) =>
+                                                                            `/storage/${img}`,
+                                                                    ),
+                                                                    index,
+                                                                )
+                                                            }
+                                                            className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+                                                        >
+                                                            <img
+                                                                src={`/storage/${image}`}
+                                                                alt={`Image ${index + 1}`}
+                                                                className="h-32 w-32 object-cover"
+                                                            />
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                                <ImageIcon className="size-6 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                            </div>
+                                                        </button>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
 
                                     {/* 返信一覧 */}
-                                    {shout.replies && shout.replies.length > 0 && (
-                                        <div className="mt-4 space-y-3 border-l-2 pl-4">
-                                            {shout.replies.map((reply) => (
-                                                <div key={reply.id} className="flex gap-2">
-                                                    <Avatar className="size-8">
-                                                        <AvatarImage src={reply.user.avatar} />
-                                                        <AvatarFallback>
-                                                            {getInitials(reply.user.name)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <p className="text-sm font-semibold">{reply.user.name}</p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {format(new Date(reply.created_at), 'PPP p', {
-                                                                    locale: ja,
-                                                                })}
-                                                            </p>
-                                                        </div>
-                                                        <p className="mt-1 text-sm whitespace-pre-wrap break-words">
-                                                            {renderContentWithLinks(reply.content)}
-                                                        </p>
-                                                        {reply.images && reply.images.length > 0 && (
-                                                            <div className="mt-2 flex flex-wrap gap-2">
-                                                                {reply.images.map((image, index) => (
-                                                                    <button
-                                                                        key={index}
-                                                                        type="button"
-                                                                        onClick={() =>
-                                                                            openLightbox(
-                                                                                reply.images!.map((img) => `/storage/${img}`),
-                                                                                index,
-                                                                            )
-                                                                        }
-                                                                        className="group relative overflow-hidden rounded transition-opacity hover:opacity-90"
-                                                                    >
-                                                                        <img
-                                                                            src={`/storage/${image}`}
-                                                                            alt={`Image ${index + 1}`}
-                                                                            className="h-20 w-20 object-cover"
-                                                                        />
-                                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
-                                                                            <ImageIcon className="size-4 text-white opacity-0 transition-opacity group-hover:opacity-100" />
-                                                                        </div>
-                                                                    </button>
-                                                                ))}
+                                    {shout.replies &&
+                                        shout.replies.length > 0 && (
+                                            <div className="mt-4 space-y-3 border-l-2 pl-4">
+                                                {shout.replies.map((reply) => (
+                                                    <div
+                                                        key={reply.id}
+                                                        className="flex gap-2"
+                                                    >
+                                                        <Avatar className="size-8">
+                                                            <AvatarImage
+                                                                src={
+                                                                    reply.user
+                                                                        .avatar
+                                                                }
+                                                            />
+                                                            <AvatarFallback>
+                                                                {getInitials(
+                                                                    reply.user
+                                                                        .name,
+                                                                )}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-sm font-semibold">
+                                                                    {
+                                                                        reply
+                                                                            .user
+                                                                            .name
+                                                                    }
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {format(
+                                                                        new Date(
+                                                                            reply.created_at,
+                                                                        ),
+                                                                        'PPP p',
+                                                                        {
+                                                                            locale: ja,
+                                                                        },
+                                                                    )}
+                                                                </p>
                                                             </div>
-                                                        )}
+                                                            <p className="mt-1 text-sm break-words whitespace-pre-wrap">
+                                                                {renderContentWithLinks(
+                                                                    reply.content,
+                                                                )}
+                                                            </p>
+                                                            {reply.images &&
+                                                                reply.images
+                                                                    .length >
+                                                                    0 && (
+                                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                                        {reply.images.map(
+                                                                            (
+                                                                                image,
+                                                                                index,
+                                                                            ) => (
+                                                                                <button
+                                                                                    key={
+                                                                                        index
+                                                                                    }
+                                                                                    type="button"
+                                                                                    onClick={() =>
+                                                                                        openLightbox(
+                                                                                            reply.images!.map(
+                                                                                                (
+                                                                                                    img,
+                                                                                                ) =>
+                                                                                                    `/storage/${img}`,
+                                                                                            ),
+                                                                                            index,
+                                                                                        )
+                                                                                    }
+                                                                                    className="group relative overflow-hidden rounded transition-opacity hover:opacity-90"
+                                                                                >
+                                                                                    <img
+                                                                                        src={`/storage/${image}`}
+                                                                                        alt={`Image ${index + 1}`}
+                                                                                        className="h-20 w-20 object-cover"
+                                                                                    />
+                                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                                                        <ImageIcon className="size-4 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                                                    </div>
+                                                                                </button>
+                                                                            ),
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                                ))}
+                                            </div>
+                                        )}
 
                                     {/* 返信フォーム */}
                                     {replyingToShoutId === shout.id && (
-                                        <form onSubmit={handleSubmitReply} className="mt-4 border-l-2 pl-4">
+                                        <form
+                                            onSubmit={handleSubmitReply}
+                                            className="mt-4 border-l-2 pl-4"
+                                        >
                                             <div className="flex gap-2">
                                                 <Avatar className="size-8">
-                                                    <AvatarImage src={page.props.auth.user.avatar} />
+                                                    <AvatarImage
+                                                        src={
+                                                            page.props.auth.user
+                                                                .avatar
+                                                        }
+                                                    />
                                                     <AvatarFallback>
-                                                        {getInitials(page.props.auth.user.name)}
+                                                        {getInitials(
+                                                            page.props.auth.user
+                                                                .name,
+                                                        )}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 space-y-2">
                                                     <div className="relative">
                                                         <Textarea
-                                                            ref={replyTextareaRef}
-                                                            value={replyData.content}
-                                                            onChange={handleReplyContentChange}
-                                                            onKeyDown={handleReplyKeyDown}
+                                                            ref={
+                                                                replyTextareaRef
+                                                            }
+                                                            value={
+                                                                replyData.content
+                                                            }
+                                                            onChange={
+                                                                handleReplyContentChange
+                                                            }
+                                                            onKeyDown={
+                                                                handleReplyKeyDown
+                                                            }
                                                             placeholder="返信を入力... (@でページをメンション)"
-                                                            className="min-h-[60px] text-sm resize-none"
+                                                            className="min-h-[60px] resize-none text-sm"
                                                             maxLength={1000}
                                                             autoFocus
                                                         />
 
                                                         {/* 返信時のサジェストリスト */}
-                                                        {showReplySuggestions && replySuggestions.length > 0 && (
-                                                            <Card className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
-                                                                {replySuggestions.map((suggestion, index) => (
-                                                                    <button
-                                                                        key={suggestion.slug}
-                                                                        type="button"
-                                                                        onClick={() => insertReplyMention(suggestion.slug)}
-                                                                        className={`w-full px-4 py-2 text-left hover:bg-muted ${
-                                                                            index === selectedReplySuggestionIndex ? 'bg-muted' : ''
-                                                                        }`}
-                                                                    >
-                                                                        <div className="text-sm font-medium">@{suggestion.slug}</div>
-                                                                        <div className="text-xs text-muted-foreground">{suggestion.title}</div>
-                                                                    </button>
-                                                                ))}
-                                                            </Card>
-                                                        )}
+                                                        {showReplySuggestions &&
+                                                            replySuggestions.length >
+                                                                0 && (
+                                                                <Card className="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                                                    {replySuggestions.map(
+                                                                        (
+                                                                            suggestion,
+                                                                            index,
+                                                                        ) => (
+                                                                            <button
+                                                                                key={
+                                                                                    suggestion.slug
+                                                                                }
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    insertReplyMention(
+                                                                                        suggestion.slug,
+                                                                                    )
+                                                                                }
+                                                                                className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                                                    index ===
+                                                                                    selectedReplySuggestionIndex
+                                                                                        ? 'bg-muted'
+                                                                                        : ''
+                                                                                }`}
+                                                                            >
+                                                                                <div className="text-sm font-medium">
+                                                                                    @
+                                                                                    {
+                                                                                        suggestion.slug
+                                                                                    }
+                                                                                </div>
+                                                                                <div className="text-xs text-muted-foreground">
+                                                                                    {
+                                                                                        suggestion.title
+                                                                                    }
+                                                                                </div>
+                                                                            </button>
+                                                                        ),
+                                                                    )}
+                                                                </Card>
+                                                            )}
                                                     </div>
 
                                                     {/* 返信画像プレビュー */}
-                                                    {replyPreviewImages.length > 0 && (
+                                                    {replyPreviewImages.length >
+                                                        0 && (
                                                         <div className="grid grid-cols-2 gap-2">
-                                                            {replyPreviewImages.map((preview, index) => (
-                                                                <div key={index} className="group relative">
-                                                                    <img
-                                                                        src={preview}
-                                                                        alt={`Preview ${index + 1}`}
-                                                                        className="h-24 w-full rounded-lg object-cover"
-                                                                    />
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => removeReplyImage(index)}
-                                                                        className="absolute right-1 top-1 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+                                                            {replyPreviewImages.map(
+                                                                (
+                                                                    preview,
+                                                                    index,
+                                                                ) => (
+                                                                    <div
+                                                                        key={
+                                                                            index
+                                                                        }
+                                                                        className="group relative"
                                                                     >
-                                                                        <X className="size-3" />
-                                                                    </button>
-                                                                </div>
-                                                            ))}
+                                                                        <img
+                                                                            src={
+                                                                                preview
+                                                                            }
+                                                                            alt={`Preview ${index + 1}`}
+                                                                            className="h-24 w-full rounded-lg object-cover"
+                                                                        />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                removeReplyImage(
+                                                                                    index,
+                                                                                )
+                                                                            }
+                                                                            className="absolute top-1 right-1 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70"
+                                                                        >
+                                                                            <X className="size-3" />
+                                                                        </button>
+                                                                    </div>
+                                                                ),
+                                                            )}
                                                         </div>
                                                     )}
 
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex gap-1">
                                                             <input
-                                                                ref={replyFileInputRef}
+                                                                ref={
+                                                                    replyFileInputRef
+                                                                }
                                                                 type="file"
                                                                 multiple
                                                                 accept="image/*"
-                                                                onChange={handleReplyImageChange}
+                                                                onChange={
+                                                                    handleReplyImageChange
+                                                                }
                                                                 className="hidden"
                                                             />
                                                             <Button
                                                                 type="button"
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() => replyFileInputRef.current?.click()}
-                                                                disabled={replyData.images.length >= 4}
+                                                                onClick={() =>
+                                                                    replyFileInputRef.current?.click()
+                                                                }
+                                                                disabled={
+                                                                    replyData
+                                                                        .images
+                                                                        .length >=
+                                                                    4
+                                                                }
                                                                 className="size-8"
                                                             >
                                                                 <ImageIcon className="size-4" />
@@ -935,7 +1218,9 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                                 type="button"
                                                                 variant="outline"
                                                                 size="sm"
-                                                                onClick={handleCancelReply}
+                                                                onClick={
+                                                                    handleCancelReply
+                                                                }
                                                             >
                                                                 キャンセル
                                                             </Button>
@@ -945,7 +1230,10 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                                 disabled={
                                                                     replyProcessing ||
                                                                     (!replyData.content.trim() &&
-                                                                        replyData.images.length === 0)
+                                                                        replyData
+                                                                            .images
+                                                                            .length ===
+                                                                            0)
                                                                 }
                                                             >
                                                                 <Send className="mr-2 size-3" />
@@ -978,7 +1266,7 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                         variant="ghost"
                                         size="icon"
                                         onClick={prevImage}
-                                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                                        className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
                                     >
                                         <ChevronLeft className="size-6" />
                                     </Button>
@@ -986,12 +1274,13 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                         variant="ghost"
                                         size="icon"
                                         onClick={nextImage}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                                        className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
                                     >
                                         <ChevronRight className="size-6" />
                                     </Button>
                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
-                                        {currentImageIndex + 1} / {lightboxImages.length}
+                                        {currentImageIndex + 1} /{' '}
+                                        {lightboxImages.length}
                                     </div>
                                 </>
                             )}

@@ -16,14 +16,14 @@ export function isValidHttpUrl(str: string): boolean {
 /** GitHubのファイルURLか判定する */
 export function isGithubUrl(url: string): boolean {
     return /^https:\/\/github\.com\/([a-zA-Z0-9](-?[a-zA-Z0-9]){0,38})\/([a-zA-Z0-9](-?[a-zA-Z0-9._]){0,99})\/blob\/[^~\s:?[*^/\\]{2,}\/[\w!\-_~.*%()'"/]+(?:#L\d+(?:-L\d+)?)?$/.test(
-        url
+        url,
     );
 }
 
 /** Twitter/XのツイートURLか判定する */
 export function isTweetUrl(url: string): boolean {
     return /^https:\/\/(twitter|x)\.com\/[a-zA-Z0-9_-]+\/status\/[a-zA-Z0-9?=&\-_]+$/.test(
-        url
+        url,
     );
 }
 
@@ -42,7 +42,7 @@ const YOUTUBE_VIDEO_ID_LENGTH = 11;
  * YouTubeのURLからvideoIdと開始位置の秒数を取得する
  */
 export function extractYoutubeVideoParameters(
-    youtubeUrl: string
+    youtubeUrl: string,
 ): { videoId: string; start?: string } | undefined {
     if (!isYoutubeUrl(youtubeUrl)) return undefined;
 

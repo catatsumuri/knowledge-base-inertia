@@ -1,11 +1,17 @@
 import { Link } from 'lucide-react';
 
-interface MarkdownHeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
+interface MarkdownHeadingProps
+    extends React.HTMLAttributes<HTMLHeadingElement> {
     level: 1 | 2 | 3 | 4 | 5 | 6;
     children?: React.ReactNode;
 }
 
-export function MarkdownHeading({ level, children, id, ...props }: MarkdownHeadingProps) {
+export function MarkdownHeading({
+    level,
+    children,
+    id,
+    ...props
+}: MarkdownHeadingProps) {
     const Tag = `h${level}` as const;
 
     const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -32,7 +38,7 @@ export function MarkdownHeading({ level, children, id, ...props }: MarkdownHeadi
             <a
                 href={`#${id}`}
                 onClick={handleAnchorClick}
-                className="absolute -left-6 top-1/2 hidden -translate-y-1/2 rounded p-1 text-muted-foreground/50 opacity-0 transition-all hover:bg-accent hover:text-foreground group-hover:opacity-100 md:inline-flex"
+                className="absolute top-1/2 -left-6 hidden -translate-y-1/2 rounded p-1 text-muted-foreground/50 opacity-0 transition-all group-hover:opacity-100 hover:bg-accent hover:text-foreground md:inline-flex"
                 aria-label="この見出しへのリンク"
                 title="この見出しへのリンク"
             >

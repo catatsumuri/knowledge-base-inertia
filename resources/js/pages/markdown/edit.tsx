@@ -320,7 +320,9 @@ export default function Edit({
         }
 
         // 既存ドキュメントの編集
-        const slugParts = document.slug.split('/').filter((part) => part !== '');
+        const slugParts = document.slug
+            .split('/')
+            .filter((part) => part !== '');
         let currentPath = '';
 
         slugParts.forEach((part, index) => {
@@ -328,7 +330,9 @@ export default function Edit({
             const isLast = index === slugParts.length - 1;
 
             breadcrumbs.push({
-                title: isLast ? document.title : part.charAt(0).toUpperCase() + part.slice(1),
+                title: isLast
+                    ? document.title
+                    : part.charAt(0).toUpperCase() + part.slice(1),
                 href: show(currentPath).url,
             });
         });
@@ -396,7 +400,9 @@ export default function Edit({
                                         placeholder={__('Document title')}
                                         defaultValue={
                                             document?.title ??
-                                            (isIndexDocument ? __('Top page') : '')
+                                            (isIndexDocument
+                                                ? __('Top page')
+                                                : '')
                                         }
                                     />
                                     {errors.title && (
@@ -469,7 +475,9 @@ export default function Edit({
                                                 ) : (
                                                     <>
                                                         <Wand2 className="mr-2 h-4 w-4" />
-                                                        {__('Markdown Conversion')}
+                                                        {__(
+                                                            'Markdown Conversion',
+                                                        )}
                                                     </>
                                                 )}
                                             </Button>

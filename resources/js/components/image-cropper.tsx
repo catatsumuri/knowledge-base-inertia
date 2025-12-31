@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { useEffect, useRef, useState } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -12,7 +18,13 @@ interface ImageCropperProps {
     onSkip: () => void;
 }
 
-export function ImageCropper({ open, onClose, image, onCropComplete, onSkip }: ImageCropperProps) {
+export function ImageCropper({
+    open,
+    onClose,
+    image,
+    onCropComplete,
+    onSkip,
+}: ImageCropperProps) {
     const [imageSrc, setImageSrc] = useState<string>('');
     const [crop, setCrop] = useState<Crop>({
         unit: '%',
@@ -82,7 +94,7 @@ export function ImageCropper({ open, onClose, image, onCropComplete, onSkip }: I
                 },
                 image.type,
                 // JPEGの場合は品質を0.95に設定（0.0-1.0、デフォルトは0.92）
-                image.type === 'image/jpeg' ? 0.95 : undefined
+                image.type === 'image/jpeg' ? 0.95 : undefined,
             );
         });
     };
@@ -90,7 +102,9 @@ export function ImageCropper({ open, onClose, image, onCropComplete, onSkip }: I
     const handleCrop = async () => {
         try {
             const croppedBlob = await getCroppedImage();
-            const croppedFile = new File([croppedBlob], image.name, { type: image.type });
+            const croppedFile = new File([croppedBlob], image.name, {
+                type: image.type,
+            });
             onCropComplete(croppedFile);
         } catch (error) {
             console.error('Crop error:', error);
@@ -112,7 +126,12 @@ export function ImageCropper({ open, onClose, image, onCropComplete, onSkip }: I
                             onComplete={(c) => setCompletedCrop(c)}
                             className="max-h-96"
                         >
-                            <img ref={imgRef} src={imageSrc} alt="Crop" className="max-h-96" />
+                            <img
+                                ref={imgRef}
+                                src={imageSrc}
+                                alt="Crop"
+                                className="max-h-96"
+                            />
                         </ReactCrop>
                     )}
                 </div>
@@ -126,7 +145,9 @@ export function ImageCropper({ open, onClose, image, onCropComplete, onSkip }: I
                             <Button variant="ghost" onClick={onSkip}>
                                 スキップ
                             </Button>
-                            <Button onClick={handleCrop}>トリミングして次へ</Button>
+                            <Button onClick={handleCrop}>
+                                トリミングして次へ
+                            </Button>
                         </div>
                     </div>
                 </DialogFooter>

@@ -1,9 +1,26 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { useEffect, useRef, useState } from 'react';
 
-export type FilterType = 'normal' | 'grayscale' | 'sepia' | 'vintage' | 'brighten' | 'contrast' | 'cool' | 'warm' | 'vignette' | 'grain' | 'drama';
+export type FilterType =
+    | 'normal'
+    | 'grayscale'
+    | 'sepia'
+    | 'vintage'
+    | 'brighten'
+    | 'contrast'
+    | 'cool'
+    | 'warm'
+    | 'vignette'
+    | 'grain'
+    | 'drama';
 
 interface ImageFilterProps {
     open: boolean;
@@ -26,10 +43,17 @@ const filters: { name: string; type: FilterType }[] = [
     { name: 'ドラマ', type: 'drama' },
 ];
 
-export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps) {
+export function ImageFilter({
+    open,
+    onClose,
+    image,
+    onApply,
+}: ImageFilterProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [selectedFilter, setSelectedFilter] = useState<FilterType>('normal');
-    const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
+    const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(
+        null,
+    );
     const [intensity, setIntensity] = useState(100);
 
     useEffect(() => {
@@ -79,7 +103,10 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
         switch (filterType) {
             case 'grayscale':
                 for (let i = 0; i < data.length; i += 4) {
-                    const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                    const gray =
+                        data[i] * 0.299 +
+                        data[i + 1] * 0.587 +
+                        data[i + 2] * 0.114;
                     data[i] = data[i + 1] = data[i + 2] = gray;
                 }
                 break;
@@ -90,8 +117,14 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                     const g = data[i + 1];
                     const b = data[i + 2];
                     data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
-                    data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
-                    data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
+                    data[i + 1] = Math.min(
+                        255,
+                        r * 0.349 + g * 0.686 + b * 0.168,
+                    );
+                    data[i + 2] = Math.min(
+                        255,
+                        r * 0.272 + g * 0.534 + b * 0.131,
+                    );
                 }
                 break;
 
@@ -117,9 +150,18 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
             case 'contrast':
                 const factor = 1.5;
                 for (let i = 0; i < data.length; i += 4) {
-                    data[i] = Math.min(255, Math.max(0, factor * (data[i] - 128) + 128));
-                    data[i + 1] = Math.min(255, Math.max(0, factor * (data[i + 1] - 128) + 128));
-                    data[i + 2] = Math.min(255, Math.max(0, factor * (data[i + 2] - 128) + 128));
+                    data[i] = Math.min(
+                        255,
+                        Math.max(0, factor * (data[i] - 128) + 128),
+                    );
+                    data[i + 1] = Math.min(
+                        255,
+                        Math.max(0, factor * (data[i + 1] - 128) + 128),
+                    );
+                    data[i + 2] = Math.min(
+                        255,
+                        Math.max(0, factor * (data[i + 2] - 128) + 128),
+                    );
                 }
                 break;
 
@@ -141,7 +183,9 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                 // ビネット効果：中心から周辺を暗くする
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
-                const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+                const maxDistance = Math.sqrt(
+                    centerX * centerX + centerY * centerY,
+                );
 
                 for (let y = 0; y < canvas.height; y++) {
                     for (let x = 0; x < canvas.width; x++) {
@@ -149,7 +193,8 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                         const dx = x - centerX;
                         const dy = y - centerY;
                         const distance = Math.sqrt(dx * dx + dy * dy);
-                        const vignette = 1 - Math.pow(distance / maxDistance, 2) * 0.7;
+                        const vignette =
+                            1 - Math.pow(distance / maxDistance, 2) * 0.7;
 
                         data[i] = Math.max(0, data[i] * vignette);
                         data[i + 1] = Math.max(0, data[i + 1] * vignette);
@@ -164,8 +209,14 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                 for (let i = 0; i < data.length; i += 4) {
                     const noise = (Math.random() - 0.5) * 40;
                     data[i] = Math.min(255, Math.max(0, data[i] + noise));
-                    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
-                    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+                    data[i + 1] = Math.min(
+                        255,
+                        Math.max(0, data[i + 1] + noise),
+                    );
+                    data[i + 2] = Math.min(
+                        255,
+                        Math.max(0, data[i + 2] + noise),
+                    );
                 }
                 break;
             }
@@ -174,7 +225,9 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                 // ドラマ効果：ビネット + 高コントラスト + 彩度アップ
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
-                const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+                const maxDistance = Math.sqrt(
+                    centerX * centerX + centerY * centerY,
+                );
                 const contrastFactor = 1.8;
 
                 for (let y = 0; y < canvas.height; y++) {
@@ -183,12 +236,28 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                         const dx = x - centerX;
                         const dy = y - centerY;
                         const distance = Math.sqrt(dx * dx + dy * dy);
-                        const vignette = 1 - Math.pow(distance / maxDistance, 2) * 0.5;
+                        const vignette =
+                            1 - Math.pow(distance / maxDistance, 2) * 0.5;
 
                         // コントラスト
-                        let r = Math.min(255, Math.max(0, contrastFactor * (data[i] - 128) + 128));
-                        let g = Math.min(255, Math.max(0, contrastFactor * (data[i + 1] - 128) + 128));
-                        let b = Math.min(255, Math.max(0, contrastFactor * (data[i + 2] - 128) + 128));
+                        let r = Math.min(
+                            255,
+                            Math.max(0, contrastFactor * (data[i] - 128) + 128),
+                        );
+                        let g = Math.min(
+                            255,
+                            Math.max(
+                                0,
+                                contrastFactor * (data[i + 1] - 128) + 128,
+                            ),
+                        );
+                        let b = Math.min(
+                            255,
+                            Math.max(
+                                0,
+                                contrastFactor * (data[i + 2] - 128) + 128,
+                            ),
+                        );
 
                         // 彩度アップ
                         const gray = r * 0.299 + g * 0.587 + b * 0.114;
@@ -217,8 +286,10 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
             const ratio = filterIntensity / 100;
             for (let i = 0; i < data.length; i += 4) {
                 data[i] = originalData[i] * (1 - ratio) + data[i] * ratio;
-                data[i + 1] = originalData[i + 1] * (1 - ratio) + data[i + 1] * ratio;
-                data[i + 2] = originalData[i + 2] * (1 - ratio) + data[i + 2] * ratio;
+                data[i + 1] =
+                    originalData[i + 1] * (1 - ratio) + data[i + 1] * ratio;
+                data[i + 2] =
+                    originalData[i + 2] * (1 - ratio) + data[i + 2] * ratio;
             }
         }
 
@@ -234,14 +305,16 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
         canvas.toBlob(
             (blob) => {
                 if (blob) {
-                    const filteredFile = new File([blob], image.name, { type: image.type });
+                    const filteredFile = new File([blob], image.name, {
+                        type: image.type,
+                    });
                     onApply(filteredFile);
                     onClose();
                 }
             },
             image.type,
             // JPEGの場合は品質を0.95に設定（0.0-1.0、デフォルトは0.92）
-            image.type === 'image/jpeg' ? 0.95 : undefined
+            image.type === 'image/jpeg' ? 0.95 : undefined,
         );
     };
 
@@ -255,7 +328,10 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                 <div className="space-y-4">
                     {/* プレビュー */}
                     <div className="flex justify-center">
-                        <canvas ref={canvasRef} className="max-h-96 rounded-lg border" />
+                        <canvas
+                            ref={canvasRef}
+                            className="max-h-96 rounded-lg border"
+                        />
                     </div>
 
                     {/* フィルター選択 */}
@@ -263,7 +339,11 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                         {filters.map((filter) => (
                             <Button
                                 key={filter.type}
-                                variant={selectedFilter === filter.type ? 'default' : 'outline'}
+                                variant={
+                                    selectedFilter === filter.type
+                                        ? 'default'
+                                        : 'outline'
+                                }
                                 onClick={() => setSelectedFilter(filter.type)}
                                 className="text-xs"
                             >
@@ -276,12 +356,18 @@ export function ImageFilter({ open, onClose, image, onApply }: ImageFilterProps)
                     {selectedFilter !== 'normal' && (
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium">フィルター強度</label>
-                                <span className="text-sm text-muted-foreground">{intensity}%</span>
+                                <label className="text-sm font-medium">
+                                    フィルター強度
+                                </label>
+                                <span className="text-sm text-muted-foreground">
+                                    {intensity}%
+                                </span>
                             </div>
                             <Slider
                                 value={[intensity]}
-                                onValueChange={(value) => setIntensity(value[0])}
+                                onValueChange={(value) =>
+                                    setIntensity(value[0])
+                                }
                                 min={0}
                                 max={100}
                                 step={1}

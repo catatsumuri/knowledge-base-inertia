@@ -22,10 +22,19 @@ function TocList({ toc, depth = 1, maxDepth }: TocListProps) {
                             href={`#${node.id}`}
                             onClick={(e) => {
                                 e.preventDefault();
-                                const element = document.getElementById(node.id);
+                                const element = document.getElementById(
+                                    node.id,
+                                );
                                 if (element) {
-                                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                    window.history.pushState(null, '', `#${node.id}`);
+                                    element.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start',
+                                    });
+                                    window.history.pushState(
+                                        null,
+                                        '',
+                                        `#${node.id}`,
+                                    );
                                 }
                             }}
                             className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -33,8 +42,12 @@ function TocList({ toc, depth = 1, maxDepth }: TocListProps) {
                             {node.text}
                         </a>
                         {depth < maxDepth && node.children.length > 0 && (
-                            <div className="ml-4 mt-1.5 border-l border-border pl-3">
-                                <TocList toc={node.children} maxDepth={maxDepth} depth={depth + 1} />
+                            <div className="mt-1.5 ml-4 border-l border-border pl-3">
+                                <TocList
+                                    toc={node.children}
+                                    maxDepth={maxDepth}
+                                    depth={depth + 1}
+                                />
                             </div>
                         )}
                     </li>

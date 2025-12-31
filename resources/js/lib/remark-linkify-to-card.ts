@@ -2,7 +2,7 @@
  * リンクをカード埋め込みに変換するremarkプラグイン
  * Zenn Editorのmd-linkify-to-cardを参考に実装
  */
-import type { Root, Paragraph, Link, Text, Html } from 'mdast';
+import type { Html, Link, Paragraph, Root, Text } from 'mdast';
 import { visit } from 'unist-util-visit';
 import { isGithubUrl, isTweetUrl, isYoutubeUrl } from './url-matcher';
 
@@ -13,7 +13,10 @@ export type EmbedType = 'github' | 'tweet' | 'youtube' | 'card';
  */
 function isStandaloneLinkInParagraph(paragraph: Paragraph): Link | null {
     // 段落の子要素が1つのみで、それがリンクの場合
-    if (paragraph.children.length === 1 && paragraph.children[0].type === 'link') {
+    if (
+        paragraph.children.length === 1 &&
+        paragraph.children[0].type === 'link'
+    ) {
         return paragraph.children[0] as Link;
     }
 
@@ -42,7 +45,8 @@ function isStandaloneLinkInParagraph(paragraph: Paragraph): Link | null {
     const afterLink = children.slice(linkIndex + 1);
 
     const isStandalone =
-        beforeLink.every(isOnlyWhitespaceOrBreak) && afterLink.every(isOnlyWhitespaceOrBreak);
+        beforeLink.every(isOnlyWhitespaceOrBreak) &&
+        afterLink.every(isOnlyWhitespaceOrBreak);
 
     return isStandalone ? link : null;
 }

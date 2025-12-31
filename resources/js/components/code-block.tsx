@@ -132,172 +132,170 @@ export function CodeBlock({
 
     // 以下、コードブロックの処理
     if (isDiff && language) {
-            // diff記法の場合
-            const lines = content.split('\n');
-            const prismLanguage = Prism?.languages?.[language] || null;
+        // diff記法の場合
+        const lines = content.split('\n');
+        const prismLanguage = Prism?.languages?.[language] || null;
 
-            return (
-                <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
-                    <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
-                        <span>{filename || language}</span>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={toggleWrap}
-                                className="rounded p-1.5 transition-colors hover:bg-gray-700"
-                                title={wrap ? '横スクロール' : '折り返し'}
-                            >
-                                {wrap ? (
-                                    <MoveHorizontal size={16} />
-                                ) : (
-                                    <WrapText size={16} />
-                                )}
-                            </button>
-                            <button
-                                onClick={handleCopy}
-                                className="rounded p-1.5 transition-colors hover:bg-gray-700"
-                                title="コードをコピー"
-                            >
-                                {copied ? (
-                                    <Check size={16} />
-                                ) : (
-                                    <Copy size={16} />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                    <div className={wrap ? '' : 'overflow-x-auto'}>
-                        <pre className="!my-0 font-mono text-sm">
-                            <code>
-                                {lines.map((line, index) => {
-                                    let bgColor = 'transparent';
-                                    let symbol = '';
-                                    let codeContent = line;
-
-                                    if (line.startsWith('+')) {
-                                        bgColor = 'rgba(16, 185, 129, 0.15)'; // 緑
-                                        symbol = '+';
-                                        codeContent = line.slice(1);
-                                    } else if (line.startsWith('-')) {
-                                        bgColor = 'rgba(239, 68, 68, 0.15)'; // 赤
-                                        symbol = '-';
-                                        codeContent = line.slice(1);
-                                    } else if (line.startsWith('@@')) {
-                                        bgColor = 'rgba(59, 130, 246, 0.15)'; // 青
-                                        symbol = '';
-                                        codeContent = line;
-                                    }
-
-                                    // Prismでシンタックスハイライトを適用
-                                    let highlightedHTML = '';
-                                    if (prismLanguage && codeContent.trim()) {
-                                        try {
-                                            highlightedHTML = Prism.highlight(
-                                                codeContent,
-                                                prismLanguage,
-                                                language,
-                                            );
-                                        } catch {
-                                            // ハイライト失敗時はプレーンテキスト
-                                            highlightedHTML = codeContent;
-                                        }
-                                    } else {
-                                        highlightedHTML = codeContent;
-                                    }
-
-                                    return (
-                                        <div
-                                            key={index}
-                                            style={{ backgroundColor: bgColor }}
-                                            className={`px-4 py-0.5 ${wrap ? 'break-all whitespace-pre-wrap' : ''}`}
-                                        >
-                                            {symbol && (
-                                                <span
-                                                    className="inline-block w-4 text-gray-500 select-none"
-                                                    style={{
-                                                        userSelect: 'none',
-                                                    }}
-                                                >
-                                                    {symbol}
-                                                </span>
-                                            )}
-                                            <span
-                                                className="token-line"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: highlightedHTML,
-                                                }}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </code>
-                        </pre>
-                    </div>
-                </div>
-            );
-        }
-
-        // 通常のシンタックスハイライト（言語指定あり）
-        if (language) {
-            return (
-                <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
-                    <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
-                        <span>{filename || language}</span>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={toggleWrap}
-                                className="rounded p-1.5 transition-colors hover:bg-gray-700"
-                                title={wrap ? '横スクロール' : '折り返し'}
-                            >
-                                {wrap ? (
-                                    <MoveHorizontal size={16} />
-                                ) : (
-                                    <WrapText size={16} />
-                                )}
-                            </button>
-                            <button
-                                onClick={handleCopy}
-                                className="rounded p-1.5 transition-colors hover:bg-gray-700"
-                                title="コードをコピー"
-                            >
-                                {copied ? <Check size={16} /> : <Copy size={16} />}
-                            </button>
-                        </div>
-                    </div>
-                    <SyntaxHighlighter
-                        style={oneDark}
-                        language={language}
-                        PreTag="div"
-                        className="!mt-0 !rounded-t-none"
-                        wrapLines={wrap}
-                        wrapLongLines={wrap}
-                        {...props}
-                    >
-                        {content}
-                    </SyntaxHighlighter>
-                </div>
-            );
-        }
-
-        // 言語指定なしのコードブロック
         return (
             <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
                 <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
-                    <span>code</span>
-                    <button
-                        onClick={handleCopy}
-                        className="rounded p-1.5 transition-colors hover:bg-gray-700"
-                        title="コードをコピー"
-                    >
-                        {copied ? <Check size={16} /> : <Copy size={16} />}
-                    </button>
+                    <span>{filename || language}</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={toggleWrap}
+                            className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                            title={wrap ? '横スクロール' : '折り返し'}
+                        >
+                            {wrap ? (
+                                <MoveHorizontal size={16} />
+                            ) : (
+                                <WrapText size={16} />
+                            )}
+                        </button>
+                        <button
+                            onClick={handleCopy}
+                            className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                            title="コードをコピー"
+                        >
+                            {copied ? <Check size={16} /> : <Copy size={16} />}
+                        </button>
+                    </div>
                 </div>
                 <div className={wrap ? '' : 'overflow-x-auto'}>
-                    <pre className="!my-0 bg-[#282c34] px-4 py-3 font-mono text-sm text-gray-300">
-                        <code className={wrap ? 'break-all whitespace-pre-wrap' : ''}>
-                            {content}
+                    <pre className="!my-0 font-mono text-sm">
+                        <code>
+                            {lines.map((line, index) => {
+                                let bgColor = 'transparent';
+                                let symbol = '';
+                                let codeContent = line;
+
+                                if (line.startsWith('+')) {
+                                    bgColor = 'rgba(16, 185, 129, 0.15)'; // 緑
+                                    symbol = '+';
+                                    codeContent = line.slice(1);
+                                } else if (line.startsWith('-')) {
+                                    bgColor = 'rgba(239, 68, 68, 0.15)'; // 赤
+                                    symbol = '-';
+                                    codeContent = line.slice(1);
+                                } else if (line.startsWith('@@')) {
+                                    bgColor = 'rgba(59, 130, 246, 0.15)'; // 青
+                                    symbol = '';
+                                    codeContent = line;
+                                }
+
+                                // Prismでシンタックスハイライトを適用
+                                let highlightedHTML = '';
+                                if (prismLanguage && codeContent.trim()) {
+                                    try {
+                                        highlightedHTML = Prism.highlight(
+                                            codeContent,
+                                            prismLanguage,
+                                            language,
+                                        );
+                                    } catch {
+                                        // ハイライト失敗時はプレーンテキスト
+                                        highlightedHTML = codeContent;
+                                    }
+                                } else {
+                                    highlightedHTML = codeContent;
+                                }
+
+                                return (
+                                    <div
+                                        key={index}
+                                        style={{ backgroundColor: bgColor }}
+                                        className={`px-4 py-0.5 ${wrap ? 'break-all whitespace-pre-wrap' : ''}`}
+                                    >
+                                        {symbol && (
+                                            <span
+                                                className="inline-block w-4 text-gray-500 select-none"
+                                                style={{
+                                                    userSelect: 'none',
+                                                }}
+                                            >
+                                                {symbol}
+                                            </span>
+                                        )}
+                                        <span
+                                            className="token-line"
+                                            dangerouslySetInnerHTML={{
+                                                __html: highlightedHTML,
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
                         </code>
                     </pre>
                 </div>
             </div>
         );
+    }
+
+    // 通常のシンタックスハイライト（言語指定あり）
+    if (language) {
+        return (
+            <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
+                <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
+                    <span>{filename || language}</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={toggleWrap}
+                            className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                            title={wrap ? '横スクロール' : '折り返し'}
+                        >
+                            {wrap ? (
+                                <MoveHorizontal size={16} />
+                            ) : (
+                                <WrapText size={16} />
+                            )}
+                        </button>
+                        <button
+                            onClick={handleCopy}
+                            className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                            title="コードをコピー"
+                        >
+                            {copied ? <Check size={16} /> : <Copy size={16} />}
+                        </button>
+                    </div>
+                </div>
+                <SyntaxHighlighter
+                    style={oneDark}
+                    language={language}
+                    PreTag="div"
+                    className="!mt-0 !rounded-t-none"
+                    wrapLines={wrap}
+                    wrapLongLines={wrap}
+                    {...props}
+                >
+                    {content}
+                </SyntaxHighlighter>
+            </div>
+        );
+    }
+
+    // 言語指定なしのコードブロック
+    return (
+        <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
+            <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
+                <span>code</span>
+                <button
+                    onClick={handleCopy}
+                    className="rounded p-1.5 transition-colors hover:bg-gray-700"
+                    title="コードをコピー"
+                >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                </button>
+            </div>
+            <div className={wrap ? '' : 'overflow-x-auto'}>
+                <pre className="!my-0 bg-[#282c34] px-4 py-3 font-mono text-sm text-gray-300">
+                    <code
+                        className={wrap ? 'break-all whitespace-pre-wrap' : ''}
+                    >
+                        {content}
+                    </code>
+                </pre>
+            </div>
+        </div>
+    );
 }

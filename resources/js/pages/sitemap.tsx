@@ -1,10 +1,20 @@
 import { show } from '@/actions/App/Http/Controllers/MarkdownController';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ChevronDown, ChevronRight, File, Folder, FolderOpen } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronRight,
+    File,
+    Folder,
+    FolderOpen,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface TreeNode {
@@ -22,7 +32,13 @@ interface SitemapProps {
     tree: TreeNode[];
 }
 
-function TreeNodeComponent({ node, level = 0 }: { node: TreeNode; level?: number }) {
+function TreeNodeComponent({
+    node,
+    level = 0,
+}: {
+    node: TreeNode;
+    level?: number;
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const { __ } = useLang();
 
@@ -43,16 +59,23 @@ function TreeNodeComponent({ node, level = 0 }: { node: TreeNode; level?: number
                         </Link>
                         <div className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
                             {node.updated_at && (
-                                <span>{new Date(node.updated_at).toLocaleDateString('ja-JP')}</span>
+                                <span>
+                                    {new Date(
+                                        node.updated_at,
+                                    ).toLocaleDateString('ja-JP')}
+                                </span>
                             )}
                             {node.updated_by && (
                                 <span className="text-xs">
-                                    {__('Last updated by')}: {node.updated_by.name}
+                                    {__('Last updated by')}:{' '}
+                                    {node.updated_by.name}
                                 </span>
                             )}
                         </div>
                     </div>
-                    <div className="text-xs text-muted-foreground/70">/{node.slug}</div>
+                    <div className="text-xs text-muted-foreground/70">
+                        /{node.slug}
+                    </div>
                 </div>
             </div>
         );
@@ -74,11 +97,17 @@ function TreeNodeComponent({ node, level = 0 }: { node: TreeNode; level?: number
                 ) : (
                     <Folder className="size-4 shrink-0 text-muted-foreground" />
                 )}
-                <span className="font-semibold text-foreground">{node.title}</span>
+                <span className="font-semibold text-foreground">
+                    {node.title}
+                </span>
             </CollapsibleTrigger>
             <CollapsibleContent>
                 {node.children?.map((child, index) => (
-                    <TreeNodeComponent key={`${child.slug}-${index}`} node={child} level={level + 1} />
+                    <TreeNodeComponent
+                        key={`${child.slug}-${index}`}
+                        node={child}
+                        level={level + 1}
+                    />
                 ))}
             </CollapsibleContent>
         </Collapsible>
@@ -107,10 +136,15 @@ export default function Sitemap({ tree }: SitemapProps) {
                 <div className="rounded-xl border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div className="space-y-1">
                         {tree.length === 0 ? (
-                            <p className="text-muted-foreground">{__('No documents found.')}</p>
+                            <p className="text-muted-foreground">
+                                {__('No documents found.')}
+                            </p>
                         ) : (
                             tree.map((node, index) => (
-                                <TreeNodeComponent key={`${node.slug}-${index}`} node={node} />
+                                <TreeNodeComponent
+                                    key={`${node.slug}-${index}`}
+                                    node={node}
+                                />
                             ))
                         )}
                     </div>

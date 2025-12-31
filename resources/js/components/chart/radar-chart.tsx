@@ -101,7 +101,10 @@ export function RadarChart({ data, title, height, width }: RadarChartProps) {
                 width={chartWidth as any}
                 height={chartHeight as any}
             >
-                <RechartsRadar data={data} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+                <RechartsRadar
+                    data={data}
+                    margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+                >
                     <PolarGrid
                         stroke="currentColor"
                         className="stroke-gray-300 dark:stroke-gray-600"

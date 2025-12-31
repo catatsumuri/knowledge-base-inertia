@@ -26,8 +26,12 @@ function GithubEmbed({ url }: { url: string }) {
             >
                 <Github className="mt-1 size-5 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-foreground">{url}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">GitHub</div>
+                    <div className="truncate text-sm font-medium text-foreground">
+                        {url}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                        GitHub
+                    </div>
                 </div>
                 <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
             </a>
@@ -116,7 +120,9 @@ function LinkCard({ url }: { url: string }) {
     React.useEffect(() => {
         const fetchMetadata = async () => {
             try {
-                const response = await fetch(`/api/ogp?url=${encodeURIComponent(url)}`);
+                const response = await fetch(
+                    `/api/ogp?url=${encodeURIComponent(url)}`,
+                );
                 if (response.ok) {
                     const data = await response.json();
                     setMetadata(data);
@@ -160,8 +166,12 @@ function LinkCard({ url }: { url: string }) {
                 >
                     <ExternalLink className="mt-1 size-5 shrink-0 text-muted-foreground" />
                     <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-foreground">{url}</div>
-                        <div className="mt-1 text-xs text-muted-foreground">{domain}</div>
+                        <div className="truncate text-sm font-medium text-foreground">
+                            {url}
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                            {domain}
+                        </div>
                     </div>
                 </a>
             </div>

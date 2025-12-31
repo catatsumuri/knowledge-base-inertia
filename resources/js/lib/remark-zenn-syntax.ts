@@ -6,7 +6,10 @@
  */
 export function preprocessZennSyntax(markdown: string): string {
     // :::message alert を :::message{.alert} に変換
-    let result = markdown.replace(/:::message\s+alert\b/g, ':::message{.alert}');
+    let result = markdown.replace(
+        /:::message\s+alert\b/g,
+        ':::message{.alert}',
+    );
 
     // :::details タイトル を :::details[タイトル] に変換
     // :::details の後にスペースと改行以外の文字がある場合
