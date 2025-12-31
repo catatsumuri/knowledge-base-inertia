@@ -1,7 +1,9 @@
+import { ChartWrapper } from '@/components/chart/chart-wrapper';
 import { CodeBlock } from '@/components/code-block';
 import { EmbedCard } from '@/components/embed-card';
 import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
+import { remarkChartDirective } from '@/lib/remark-chart-directive';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkLinkifyToCard } from '@/lib/remark-linkify-to-card';
@@ -21,7 +23,11 @@ interface MarkdownViewerProps {
 }
 
 // Markdown内のリンクをInertia Linkに変換するコンポーネント
-function MarkdownLink({ href, children, ...props }: React.ComponentPropsWithoutRef<'a'>) {
+function MarkdownLink({
+    href,
+    children,
+    ...props
+}: React.ComponentPropsWithoutRef<'a'>) {
     // 脚注リンク（/markdown/#で始まる）をフラグメントのみに変換
     if (href && href.startsWith('/markdown/#')) {
         return (
@@ -33,7 +39,11 @@ function MarkdownLink({ href, children, ...props }: React.ComponentPropsWithoutR
 
     // フラグメントのみのリンク（#で始まる）はそのまま
     if (href && href.startsWith('#')) {
-        return <a href={href} {...props}>{children}</a>;
+        return (
+            <a href={href} {...props}>
+                {children}
+            </a>
+        );
     }
 
     // 外部リンク（http://またはhttps://で始まる）かどうかを判定
@@ -61,12 +71,20 @@ function MarkdownLink({ href, children, ...props }: React.ComponentPropsWithoutR
 }
 
 // Zenn式messageボックスのカスタムコンポーネント
-function MessageBox({ children, className, ...props }: React.ComponentPropsWithoutRef<'aside'>) {
+function MessageBox({
+    children,
+    className,
+    ...props
+}: React.ComponentPropsWithoutRef<'aside'>) {
     const isMessage = className?.includes('message');
     const isAlert = className?.includes('alert');
 
     if (!isMessage && !isAlert) {
-        return <aside className={className} {...props}>{children}</aside>;
+        return (
+            <aside className={className} {...props}>
+                {children}
+            </aside>
+        );
     }
 
     const Icon = isAlert ? AlertCircle : Info;
@@ -81,7 +99,11 @@ function MessageBox({ children, className, ...props }: React.ComponentPropsWitho
 
 // 埋め込みカードコンポーネント
 function EmbedCardWrapper({ ...props }: React.ComponentPropsWithoutRef<'div'>) {
-    const embedType = props['data-embed-type'] as 'github' | 'tweet' | 'youtube' | 'card';
+    const embedType = props['data-embed-type'] as
+        | 'github'
+        | 'tweet'
+        | 'youtube'
+        | 'card';
     const embedUrl = props['data-embed-url'] as string;
 
     if (!embedType || !embedUrl) {
@@ -102,6 +124,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 remarkBreaks,
                 remarkDirective,
                 remarkZennDirective,
+                remarkChartDirective,
                 remarkImageSize,
                 remarkCodeMeta,
                 remarkLinkifyToCard,
@@ -113,7 +136,18 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 img: MarkdownImage,
                 aside: MessageBox,
                 a: MarkdownLink,
-                div: EmbedCardWrapper,
+                div: (props: any) => {
+                    // チャートの場合
+                    if (props['data-chart-type']) {
+                        return <ChartWrapper {...props} />;
+                    }
+                    // 埋め込みカードの場合
+                    if (props['data-embed-type']) {
+                        return <EmbedCardWrapper {...props} />;
+                    }
+                    // それ以外は通常のdiv
+                    return <div {...props} />;
+                },
                 h1: (props) => <MarkdownHeading level={1} {...props} />,
                 h2: (props) => <MarkdownHeading level={2} {...props} />,
                 h3: (props) => <MarkdownHeading level={3} {...props} />,
