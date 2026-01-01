@@ -26,9 +26,25 @@ class DatabaseSeeder extends Seeder
         );
 
         // ZennのMarkdown記法一覧ドキュメント
-        $zennContent = file_get_contents(base_path('zenn-editor/packages/zenn-cli/articles/100-example-markdown-guide.md'));
+        // $zennContent = file_get_contents(base_path('zenn-editor/packages/zenn-cli/articles/100-example-markdown-guide.md'));
         // Frontmatter（YAMLヘッダー）を除去
-        $zennContent = preg_replace('/^---\n.*?\n---\n/s', '', $zennContent);
+        // $zennContent = preg_replace('/^---\n.*?\n---\n/s', '', $zennContent);
+        // $zennContent .= <<<'MARKDOWN'
+
+:::code-tabs
+```bash:VueJS
+npm install @inertiajs/vue3@^2.0
+```
+
+```bash:React
+npm install @inertiajs/react@^2.0
+```
+
+```bash:Svelte
+npm install @inertiajs/svelte@^2.0
+```
+// :::
+// MARKDOWN;
 
         MarkdownDocument::firstOrCreate(
             ['slug' => 'zenn-syntax-test'],

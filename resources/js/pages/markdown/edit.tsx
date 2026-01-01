@@ -133,6 +133,8 @@ export default function Edit({
         setIsTranslating(true);
 
         try {
+            const baseErrorMessage = __('Translation failed. Please try again.');
+
             // CSRFトークンを取得
             const metaTag = window.document.querySelector(
                 'meta[name="csrf-token"]',
@@ -151,10 +153,40 @@ export default function Edit({
             });
 
             if (!response.ok) {
-                throw new Error('Translation failed');
+                let detailMessage = '';
+                const contentType = response.headers.get('content-type') ?? '';
+
+                if (contentType.includes('application/json')) {
+                    const data = (await response.json()) as {
+                        message?: string;
+                        errors?: Record<string, string[]>;
+                    };
+                    detailMessage =
+                        data?.message ??
+                        (data?.errors &&
+                            Object.values(data.errors).flat().at(0)) ??
+                        '';
+                } else {
+                    detailMessage = (await response.text()).trim();
+                }
+
+                const statusInfo = ` (status: ${response.status})`;
+                const message = detailMessage
+                    ? `${baseErrorMessage} ${detailMessage}${statusInfo}`
+                    : `${baseErrorMessage}${statusInfo}`;
+                throw new Error(message);
             }
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') ?? '';
+            if (!contentType.includes('application/json')) {
+                throw new Error(
+                    `${baseErrorMessage} Unexpected response type: ${contentType}`,
+                );
+            }
+
+            const data = (await response.json()) as {
+                translated: string;
+            };
             const { translated } = data;
 
             // Undo対応の置換（execCommandを使用）
@@ -195,7 +227,11 @@ export default function Edit({
             }
         } catch (error) {
             console.error('Translation error:', error);
-            alert(__('Translation failed. Please try again.'));
+            const message =
+                error instanceof Error && error.message
+                    ? error.message
+                    : __('Translation failed. Please try again.');
+            alert(message);
         } finally {
             setIsTranslating(false);
         }
@@ -216,6 +252,8 @@ export default function Edit({
         setIsConverting(true);
 
         try {
+            const baseErrorMessage = __('Conversion failed. Please try again.');
+
             // CSRFトークンを取得
             const metaTag = window.document.querySelector(
                 'meta[name="csrf-token"]',
@@ -234,10 +272,40 @@ export default function Edit({
             });
 
             if (!response.ok) {
-                throw new Error('Conversion failed');
+                let detailMessage = '';
+                const contentType = response.headers.get('content-type') ?? '';
+
+                if (contentType.includes('application/json')) {
+                    const data = (await response.json()) as {
+                        message?: string;
+                        errors?: Record<string, string[]>;
+                    };
+                    detailMessage =
+                        data?.message ??
+                        (data?.errors &&
+                            Object.values(data.errors).flat().at(0)) ??
+                        '';
+                } else {
+                    detailMessage = (await response.text()).trim();
+                }
+
+                const statusInfo = ` (status: ${response.status})`;
+                const message = detailMessage
+                    ? `${baseErrorMessage} ${detailMessage}${statusInfo}`
+                    : `${baseErrorMessage}${statusInfo}`;
+                throw new Error(message);
             }
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') ?? '';
+            if (!contentType.includes('application/json')) {
+                throw new Error(
+                    `${baseErrorMessage} Unexpected response type: ${contentType}`,
+                );
+            }
+
+            const data = (await response.json()) as {
+                markdown: string;
+            };
             const { markdown } = data;
 
             // Undo対応の置換（execCommandを使用）
@@ -278,7 +346,11 @@ export default function Edit({
             }
         } catch (error) {
             console.error('Conversion error:', error);
-            alert(__('Conversion failed. Please try again.'));
+            const message =
+                error instanceof Error && error.message
+                    ? error.message
+                    : __('Conversion failed. Please try again.');
+            alert(message);
         } finally {
             setIsConverting(false);
         }
@@ -390,28 +462,24 @@ export default function Edit({
                                 </div>
                             )}
 
-                            {!document && (
-                                <div className="grid gap-2">
-                                    <Label htmlFor="title">{__('Title')}</Label>
-                                    <Input
-                                        id="title"
-                                        name="title"
-                                        required
-                                        placeholder={__('Document title')}
-                                        defaultValue={
-                                            document?.title ??
-                                            (isIndexDocument
-                                                ? __('Top page')
-                                                : '')
-                                        }
-                                    />
-                                    {errors.title && (
-                                        <p className="text-sm text-red-600">
-                                            {errors.title}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
+                            <div className="grid gap-2">
+                                <Label htmlFor="title">{__('Title')}</Label>
+                                <Input
+                                    id="title"
+                                    name="title"
+                                    required
+                                    placeholder={__('Document title')}
+                                    defaultValue={
+                                        document?.title ??
+                                        (isIndexDocument ? __('Top page') : '')
+                                    }
+                                />
+                                {errors.title && (
+                                    <p className="text-sm text-red-600">
+                                        {errors.title}
+                                    </p>
+                                )}
+                            </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="content">{__('Content')}</Label>

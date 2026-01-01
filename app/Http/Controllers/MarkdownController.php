@@ -10,6 +10,7 @@ use App\Models\ShoutLink;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -70,7 +71,7 @@ class MarkdownController extends Controller
         if (! $document) {
             return Inertia::render('markdown/edit', [
                 'document' => null,
-                'isIndexDocument' => false,
+                'isIndexDocument' => $slug === 'index',
                 'slug' => $slug,
             ]);
         }
@@ -90,6 +91,7 @@ class MarkdownController extends Controller
         return Inertia::render('markdown/show', [
             'document' => $document,
             'relatedShouts' => $relatedShouts,
+            'canCreate' => true,
         ]);
     }
 
@@ -179,8 +181,25 @@ class MarkdownController extends Controller
         $sourceLang = $this->detectLanguage($text);
         $targetLang = $sourceLang === 'ja' ? 'en' : 'ja';
 
-        // OpenAI APIで翻訳
-        $translated = $this->translateWithOpenAI($text, $sourceLang, $targetLang);
+        try {
+            // OpenAI APIで翻訳
+            $translated = $this->translateWithOpenAI($text, $sourceLang, $targetLang);
+        } catch (\Throwable $exception) {
+            $errorId = (string) Str::uuid();
+
+            Log::error('Markdown translation failed.', [
+                'error_id' => $errorId,
+                'user_id' => $request->user()?->id,
+                'text_length' => mb_strlen($text),
+                'source_lang' => $sourceLang,
+                'target_lang' => $targetLang,
+                'exception_message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => "Translation failed. Error ID: {$errorId}. ".$exception->getMessage(),
+            ], 502);
+        }
 
         return response()->json([
             'original' => $text,
@@ -235,8 +254,23 @@ class MarkdownController extends Controller
     {
         $text = $request->validated()['text'];
 
-        // OpenAI APIでMarkdown構造に変換
-        $markdown = $this->convertToMarkdownWithOpenAI($text);
+        try {
+            // OpenAI APIでMarkdown構造に変換
+            $markdown = $this->convertToMarkdownWithOpenAI($text);
+        } catch (\Throwable $exception) {
+            $errorId = (string) Str::uuid();
+
+            Log::error('Markdown conversion failed.', [
+                'error_id' => $errorId,
+                'user_id' => $request->user()?->id,
+                'text_length' => mb_strlen($text),
+                'exception_message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => "Conversion failed. Error ID: {$errorId}. ".$exception->getMessage(),
+            ], 502);
+        }
 
         return response()->json([
             'original' => $text,

@@ -1,94 +1,111 @@
 <?php
 
+namespace Tests\Feature;
+
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses()->group('markdown');
+/**
+ * @group markdown
+ */
+class MarkdownTranslationTest extends TestCase
+{
+    use RefreshDatabase;
 
-test('翻訳APIは認証が必要', function () {
-    $response = $this->postJson('/api/markdown/translate', [
-        'text' => 'Hello World',
-    ]);
+    public function test_translation_api_requires_authentication(): void
+    {
+        $response = $this->postJson('/api/markdown/translate', [
+            'text' => 'Hello World',
+        ]);
 
-    $response->assertUnauthorized();
-});
+        $response->assertUnauthorized();
+    }
 
-test('日本語テキストを英語に翻訳できる', function () {
-    $user = User::factory()->create();
+    public function test_japanese_text_can_be_translated_to_english(): void
+    {
+        $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
-        'text' => 'こんにちは世界',
-    ]);
+        $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
+            'text' => 'こんにちは世界',
+        ]);
 
-    $response->assertOk();
-    $response->assertJsonStructure([
-        'original',
-        'translated',
-        'source_lang',
-        'target_lang',
-    ]);
-    $response->assertJson([
-        'original' => 'こんにちは世界',
-        'source_lang' => 'ja',
-        'target_lang' => 'en',
-    ]);
-    expect($response->json('translated'))->toBeString();
-    expect($response->json('translated'))->toContain('[EN]');
-});
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'original',
+            'translated',
+            'source_lang',
+            'target_lang',
+        ]);
+        $response->assertJson([
+            'original' => 'こんにちは世界',
+            'source_lang' => 'ja',
+            'target_lang' => 'en',
+        ]);
+        $this->assertIsString($response->json('translated'));
+        $this->assertStringContainsString('[EN]', $response->json('translated'));
+    }
 
-test('英語テキストを日本語に翻訳できる', function () {
-    $user = User::factory()->create();
+    public function test_english_text_can_be_translated_to_japanese(): void
+    {
+        $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
-        'text' => 'Hello World',
-    ]);
+        $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
+            'text' => 'Hello World',
+        ]);
 
-    $response->assertOk();
-    $response->assertJson([
-        'original' => 'Hello World',
-        'source_lang' => 'en',
-        'target_lang' => 'ja',
-    ]);
-    expect($response->json('translated'))->toContain('[日本語]');
-});
+        $response->assertOk();
+        $response->assertJson([
+            'original' => 'Hello World',
+            'source_lang' => 'en',
+            'target_lang' => 'ja',
+        ]);
+        $this->assertStringContainsString('[日本語]', $response->json('translated'));
+    }
 
-test('textフィールドが必須', function () {
-    $user = User::factory()->create();
+    public function test_text_field_is_required(): void
+    {
+        $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->postJson('/api/markdown/translate', []);
+        $response = $this->actingAs($user)->postJson('/api/markdown/translate', []);
 
-    $response->assertStatus(422);
-    $response->assertJsonValidationErrors('text');
-});
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('text');
+    }
 
-test('textフィールドは文字列でなければならない', function () {
-    $user = User::factory()->create();
+    public function test_text_field_must_be_a_string(): void
+    {
+        $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
-        'text' => 12345,
-    ]);
+        $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
+            'text' => 12345,
+        ]);
 
-    $response->assertStatus(422);
-    $response->assertJsonValidationErrors('text');
-});
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('text');
+    }
 
-test('textフィールドは10000文字以内でなければならない', function () {
-    $user = User::factory()->create();
+    public function test_text_field_must_be_within_10000_characters(): void
+    {
+        $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
-        'text' => str_repeat('a', 10001),
-    ]);
+        $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
+            'text' => str_repeat('a', 10001),
+        ]);
 
-    $response->assertStatus(422);
-    $response->assertJsonValidationErrors('text');
-});
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('text');
+    }
 
-test('空のテキストは翻訳できない', function () {
-    $user = User::factory()->create();
+    public function test_empty_text_cannot_be_translated(): void
+    {
+        $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
-        'text' => '',
-    ]);
+        $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
+            'text' => '',
+        ]);
 
-    $response->assertStatus(422);
-    $response->assertJsonValidationErrors('text');
-});
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('text');
+    }
+}

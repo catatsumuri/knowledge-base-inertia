@@ -1,10 +1,12 @@
 import { ChartWrapper } from '@/components/chart/chart-wrapper';
 import { CodeBlock } from '@/components/code-block';
+import { CodeTabsWrapper } from '@/components/code-tabs';
 import { EmbedCard } from '@/components/embed-card';
 import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
 import { remarkChartDirective } from '@/lib/remark-chart-directive';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
+import { remarkCodeTabs } from '@/lib/remark-code-tabs';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkLinkifyToCard } from '@/lib/remark-linkify-to-card';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
@@ -125,6 +127,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 remarkDirective,
                 remarkZennDirective,
                 remarkChartDirective,
+                remarkCodeTabs,
                 remarkImageSize,
                 remarkCodeMeta,
                 remarkLinkifyToCard,
@@ -137,6 +140,13 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                 aside: MessageBox,
                 a: MarkdownLink,
                 div: (props: any) => {
+                    // コードタブの場合
+                    if (
+                        props['data-code-tabs'] ||
+                        props['data-code-tabs-error']
+                    ) {
+                        return <CodeTabsWrapper {...props} />;
+                    }
                     // チャートの場合
                     if (props['data-chart-type']) {
                         return <ChartWrapper {...props} />;

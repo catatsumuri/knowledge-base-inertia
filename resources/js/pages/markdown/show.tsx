@@ -81,9 +81,11 @@ interface Shout {
 export default function Show({
     document,
     relatedShouts,
+    canCreate,
 }: {
     document: MarkdownDocument;
     relatedShouts: Shout[];
+    canCreate: boolean;
 }) {
     const { __ } = useLang();
     const getInitials = useInitials();
@@ -191,7 +193,7 @@ export default function Show({
                         {document.title || '新規ページ'}
                     </h1>
                     <div className="flex gap-2">
-                        {document.slug === 'index' && (
+                        {canCreate && (
                             <Button
                                 variant="outline"
                                 onClick={() =>
@@ -281,7 +283,7 @@ export default function Show({
                 </div>
 
                 {/* 新規作成フォーム */}
-                {showCreateForm && (
+                {canCreate && showCreateForm && (
                     <Card className="p-4">
                         <form
                             onSubmit={handleCreateSubmit}
