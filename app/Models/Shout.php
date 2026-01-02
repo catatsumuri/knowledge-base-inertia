@@ -16,10 +16,12 @@ class Shout extends Model
         'parent_id',
         'content',
         'images',
+        'image_metadata',
     ];
 
     protected $casts = [
         'images' => 'array',
+        'image_metadata' => 'array',
     ];
 
     public function user(): BelongsTo

@@ -6,7 +6,9 @@ use App\Http\Requests\MarkdownImageUploadRequest;
 use App\Http\Requests\MarkdownRequest;
 use App\Http\Requests\MarkdownTranslateRequest;
 use App\Models\MarkdownDocument;
+use App\Models\MarkdownImageUpload;
 use App\Models\ShoutLink;
+use App\Services\ImageMetadataService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -161,8 +163,15 @@ class MarkdownController extends Controller
     public function uploadImage(MarkdownImageUploadRequest $request): RedirectResponse
     {
         $file = $request->file('image');
-        $filename = Str::random(40).'.'.$file->getClientOriginalExtension();
-        $path = $file->storeAs('markdown-images', $filename, 'public');
+        $imageService = new ImageMetadataService;
+        $result = $imageService->storeUploadedImage($file, 'markdown-images');
+        $path = $result['path'];
+
+        MarkdownImageUpload::create([
+            'user_id' => $request->user()->id,
+            'path' => $path,
+            'metadata' => $result['metadata'],
+        ]);
 
         // 相対URLを生成
         $url = '/storage/'.$path;

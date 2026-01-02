@@ -31,30 +31,32 @@ class DatabaseSeeder extends Seeder
         // $zennContent = preg_replace('/^---\n.*?\n---\n/s', '', $zennContent);
         // $zennContent .= <<<'MARKDOWN'
 
-:::code-tabs
-```bash:VueJS
-npm install @inertiajs/vue3@^2.0
-```
+        /*
+        :::code-tabs
+        ```bash:VueJS
+        npm install @inertiajs/vue3@^2.0
+        ```
 
-```bash:React
-npm install @inertiajs/react@^2.0
-```
+        ```bash:React
+        npm install @inertiajs/react@^2.0
+        ```
 
-```bash:Svelte
-npm install @inertiajs/svelte@^2.0
-```
-// :::
-// MARKDOWN;
+        ```bash:Svelte
+        npm install @inertiajs/svelte@^2.0
+        ```
+        // :::
+        // MARKDOWN;
 
-        MarkdownDocument::firstOrCreate(
-            ['slug' => 'zenn-syntax-test'],
-            [
-                'title' => 'ZennのMarkdown記法一覧',
-                'content' => $zennContent,
-                'created_by' => $testUser->id,
-                'updated_by' => $testUser->id,
-            ]
-        );
+                MarkdownDocument::firstOrCreate(
+                    ['slug' => 'zenn-syntax-test'],
+                    [
+                        'title' => 'ZennのMarkdown記法一覧',
+                        'content' => $zennContent,
+                        'created_by' => $testUser->id,
+                        'updated_by' => $testUser->id,
+                    ]
+                );
+         */
 
         // はじめにページ
         MarkdownDocument::firstOrCreate(

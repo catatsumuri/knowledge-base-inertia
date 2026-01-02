@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Shout;
 use App\Models\ShoutLink;
+use App\Services\ImageMetadataService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -41,10 +42,14 @@ class ShoutboxController extends Controller
         }
 
         $imagePaths = [];
+        $imageMetadata = [];
 
         if ($request->hasFile('images')) {
+            $imageService = new ImageMetadataService;
             foreach ($request->file('images') as $image) {
-                $path = $image->store('shouts', 'public');
+                $result = $imageService->storeUploadedImage($image, 'shouts');
+                $path = $result['path'];
+                $imageMetadata[$path] = $result['metadata'];
                 $imagePaths[] = $path;
             }
         }
@@ -54,6 +59,7 @@ class ShoutboxController extends Controller
             'parent_id' => $validated['parent_id'] ?? null,
             'content' => $validated['content'],
             'images' => empty($imagePaths) ? null : $imagePaths,
+            'image_metadata' => empty($imageMetadata) ? null : $imageMetadata,
         ]);
 
         // @slug形式のリンクを抽出して保存
