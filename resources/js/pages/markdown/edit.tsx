@@ -133,7 +133,9 @@ export default function Edit({
         setIsTranslating(true);
 
         try {
-            const baseErrorMessage = __('Translation failed. Please try again.');
+            const baseErrorMessage = __(
+                'Translation failed. Please try again.',
+            );
 
             // CSRFトークンを取得
             const metaTag = window.document.querySelector(

@@ -1,7 +1,7 @@
+import { CodeBlock } from '@/components/code-block';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CodeBlock } from '@/components/code-block';
 
 const LANGUAGE_STORAGE_KEY = 'code-tabs-language';
 const LANGUAGE_CHANGE_EVENT = 'code-tabs:language-change';

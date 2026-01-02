@@ -1,7 +1,7 @@
-import type { Plugin } from 'unified';
-import { visit } from 'unist-util-visit';
 import type { ContainerDirective } from 'mdast-util-directive';
+import type { Plugin } from 'unified';
 import type { Node } from 'unist';
+import { visit } from 'unist-util-visit';
 
 /**
  * :::code-tabs ディレクティブを処理するプラグイン

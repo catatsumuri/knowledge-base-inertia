@@ -650,48 +650,58 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                     {getInitials(page.props.auth.user.name)}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="relative flex-1 space-y-3">
-                                <Textarea
-                                    ref={textareaRef}
-                                    value={data.content}
-                                    onChange={handleContentChange}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="いま何してる？ (@でページをメンション)"
-                                    className="min-h-[100px] resize-none border-none p-0 text-lg focus-visible:ring-0"
-                                    maxLength={1000}
-                                />
+                            <div className="flex-1 space-y-3">
+                                <div className="relative">
+                                    <Textarea
+                                        ref={textareaRef}
+                                        value={data.content}
+                                        onChange={handleContentChange}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="いま何してる？ (@でページをメンション)"
+                                        className="min-h-[100px] resize-none border-none p-0 text-lg focus-visible:ring-0"
+                                        maxLength={1000}
+                                    />
 
-                                {/* サジェストリスト */}
-                                {showSuggestions && suggestions.length > 0 && (
-                                    <Card className="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
-                                        {suggestions.map(
-                                            (suggestion, index) => (
-                                                <button
-                                                    key={suggestion.slug}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        insertMention(
-                                                            suggestion.slug,
-                                                        )
-                                                    }
-                                                    className={`w-full px-4 py-2 text-left hover:bg-muted ${
-                                                        index ===
-                                                        selectedSuggestionIndex
-                                                            ? 'bg-muted'
-                                                            : ''
-                                                    }`}
-                                                >
-                                                    <div className="font-medium">
-                                                        @{suggestion.slug}
-                                                    </div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {suggestion.title}
-                                                    </div>
-                                                </button>
-                                            ),
+                                    {/* サジェストリスト */}
+                                    {showSuggestions &&
+                                        suggestions.length > 0 && (
+                                            <Card className="absolute top-[calc(100%-56px)] left-0 z-50 mt-0 max-h-60 w-full gap-0 overflow-y-auto p-0">
+                                                {suggestions.map(
+                                                    (suggestion, index) => (
+                                                        <button
+                                                            key={
+                                                                suggestion.slug
+                                                            }
+                                                            type="button"
+                                                            onClick={() =>
+                                                                insertMention(
+                                                                    suggestion.slug,
+                                                                )
+                                                            }
+                                                            className={`w-full border-b px-4 py-2 text-left leading-none hover:bg-muted ${
+                                                                index ===
+                                                                selectedSuggestionIndex
+                                                                    ? 'bg-muted'
+                                                                    : ''
+                                                            }`}
+                                                        >
+                                                            <div className="leading-none font-medium">
+                                                                @
+                                                                {
+                                                                    suggestion.slug
+                                                                }
+                                                            </div>
+                                                            <div className="text-sm leading-none text-muted-foreground">
+                                                                {
+                                                                    suggestion.title
+                                                                }
+                                                            </div>
+                                                        </button>
+                                                    ),
+                                                )}
+                                            </Card>
                                         )}
-                                    </Card>
-                                )}
+                                </div>
 
                                 {/* 画像プレビュー */}
                                 {previewImages.length > 0 && (
@@ -858,7 +868,7 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                 {showEditSuggestions &&
                                                     editSuggestions.length >
                                                         0 && (
-                                                        <Card className="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                                        <Card className="absolute top-[calc(100%-56px)] left-0 z-50 mt-0 max-h-60 w-full gap-0 overflow-y-auto p-0">
                                                             {editSuggestions.map(
                                                                 (
                                                                     suggestion,
@@ -874,20 +884,20 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                                                 suggestion.slug,
                                                                             )
                                                                         }
-                                                                        className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                                        className={`w-full border-b px-4 py-2 text-left leading-none hover:bg-muted ${
                                                                             index ===
                                                                             selectedEditSuggestionIndex
                                                                                 ? 'bg-muted'
                                                                                 : ''
                                                                         }`}
                                                                     >
-                                                                        <div className="font-medium">
+                                                                        <div className="leading-none font-medium">
                                                                             @
                                                                             {
                                                                                 suggestion.slug
                                                                             }
                                                                         </div>
-                                                                        <div className="text-sm text-muted-foreground">
+                                                                        <div className="text-sm leading-none text-muted-foreground">
                                                                             {
                                                                                 suggestion.title
                                                                             }
@@ -983,25 +993,46 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                             </AvatarFallback>
                                                         </Avatar>
                                                         <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="text-sm font-semibold">
-                                                                    {
-                                                                        reply
-                                                                            .user
-                                                                            .name
-                                                                    }
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {format(
-                                                                        new Date(
-                                                                            reply.created_at,
-                                                                        ),
-                                                                        'PPP p',
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-sm font-semibold">
                                                                         {
-                                                                            locale: ja,
-                                                                        },
-                                                                    )}
-                                                                </p>
+                                                                            reply
+                                                                                .user
+                                                                                .name
+                                                                        }
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {format(
+                                                                            new Date(
+                                                                                reply.created_at,
+                                                                            ),
+                                                                            'PPP p',
+                                                                            {
+                                                                                locale: ja,
+                                                                            },
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                                {reply.user_id ===
+                                                                    page.props
+                                                                        .auth
+                                                                        .user
+                                                                        .id && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() =>
+                                                                            handleDelete(
+                                                                                reply.id,
+                                                                            )
+                                                                        }
+                                                                        className="size-7"
+                                                                        title="返信を削除"
+                                                                    >
+                                                                        <Trash2 className="size-4" />
+                                                                    </Button>
+                                                                )}
                                                             </div>
                                                             <p className="mt-1 text-sm break-words whitespace-pre-wrap">
                                                                 {renderContentWithLinks(
@@ -1101,7 +1132,7 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                         {showReplySuggestions &&
                                                             replySuggestions.length >
                                                                 0 && (
-                                                                <Card className="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto p-0">
+                                                                <Card className="absolute top-[calc(100%-56px)] left-0 z-50 mt-0 max-h-60 w-full gap-0 overflow-y-auto p-0">
                                                                     {replySuggestions.map(
                                                                         (
                                                                             suggestion,
@@ -1117,20 +1148,20 @@ export default function ShoutboxIndex({ shouts }: ShoutboxIndexProps) {
                                                                                         suggestion.slug,
                                                                                     )
                                                                                 }
-                                                                                className={`w-full px-4 py-2 text-left hover:bg-muted ${
+                                                                                className={`w-full border-b px-4 py-2 text-left leading-none hover:bg-muted ${
                                                                                     index ===
                                                                                     selectedReplySuggestionIndex
                                                                                         ? 'bg-muted'
                                                                                         : ''
                                                                                 }`}
                                                                             >
-                                                                                <div className="text-sm font-medium">
+                                                                                <div className="text-sm leading-none font-medium">
                                                                                     @
                                                                                     {
                                                                                         suggestion.slug
                                                                                     }
                                                                                 </div>
-                                                                                <div className="text-xs text-muted-foreground">
+                                                                                <div className="text-xs leading-none text-muted-foreground">
                                                                                     {
                                                                                         suggestion.title
                                                                                     }
