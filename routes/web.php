@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('api/markdown/search', [\App\Http\Controllers\MarkdownController::class, 'search'])->name('markdown.search');
     Route::post('api/markdown/translate', [\App\Http\Controllers\MarkdownController::class, 'translate'])->name('markdown.translate');
     Route::post('api/markdown/convert', [\App\Http\Controllers\MarkdownController::class, 'convertToMarkdown'])->name('markdown.convert');
+    Route::post('api/markdown/convert-table', [\App\Http\Controllers\MarkdownController::class, 'convertToTable'])->name('markdown.convert-table');
     Route::get('markdown/{slug}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->where('slug', '.*')->name('markdown.edit');
     Route::patch('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'update'])->where('slug', '.*')->name('markdown.update');
     Route::delete('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'destroy'])->where('slug', '.*')->name('markdown.destroy');

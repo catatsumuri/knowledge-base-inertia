@@ -17,7 +17,7 @@ import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head, router, usePage } from '@inertiajs/react';
-import { Languages, LoaderCircle, Wand2 } from 'lucide-react';
+import { Languages, LoaderCircle, Table2, Wand2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface MarkdownDocument {
@@ -45,6 +45,7 @@ export default function Edit({
     const [activeTab, setActiveTab] = useState('edit');
     const [isTranslating, setIsTranslating] = useState(false);
     const [isConverting, setIsConverting] = useState(false);
+    const [isTableConverting, setIsTableConverting] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { props } = usePage<{ imageUrl?: string }>();
     const previousImageUrlRef = useRef<string | undefined>();
@@ -358,6 +359,122 @@ export default function Edit({
         }
     };
 
+    const handleTableConvert = async () => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const { selectionStart, selectionEnd } = textarea;
+        const selectedText = content.substring(selectionStart, selectionEnd);
+
+        if (!selectedText.trim()) {
+            alert(__('Please select text to convert'));
+            return;
+        }
+
+        setIsTableConverting(true);
+
+        try {
+            const baseErrorMessage = __(
+                'Table conversion failed. Please try again.',
+            );
+
+            const metaTag = window.document.querySelector(
+                'meta[name="csrf-token"]',
+            );
+            const csrfToken = metaTag
+                ? metaTag.getAttribute('content') || ''
+                : '';
+
+            const response = await fetch('/api/markdown/convert-table', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ text: selectedText }),
+            });
+
+            if (!response.ok) {
+                let detailMessage = '';
+                const contentType = response.headers.get('content-type') ?? '';
+
+                if (contentType.includes('application/json')) {
+                    const data = (await response.json()) as {
+                        message?: string;
+                        errors?: Record<string, string[]>;
+                    };
+                    detailMessage =
+                        data?.message ??
+                        (data?.errors &&
+                            Object.values(data.errors).flat().at(0)) ??
+                        '';
+                } else {
+                    detailMessage = (await response.text()).trim();
+                }
+
+                const statusInfo = ` (status: ${response.status})`;
+                const message = detailMessage
+                    ? `${baseErrorMessage} ${detailMessage}${statusInfo}`
+                    : `${baseErrorMessage}${statusInfo}`;
+                throw new Error(message);
+            }
+
+            const contentType = response.headers.get('content-type') ?? '';
+            if (!contentType.includes('application/json')) {
+                throw new Error(
+                    `${baseErrorMessage} Unexpected response type: ${contentType}`,
+                );
+            }
+
+            const data = (await response.json()) as {
+                markdown: string;
+            };
+            const { markdown } = data;
+
+            textarea.focus();
+            textarea.setSelectionRange(selectionStart, selectionEnd);
+
+            const success = window.document.execCommand(
+                'insertText',
+                false,
+                markdown,
+            );
+
+            if (success) {
+                const newContent =
+                    content.substring(0, selectionStart) +
+                    markdown +
+                    content.substring(selectionEnd);
+                setContent(newContent);
+                textarea.setSelectionRange(
+                    selectionStart + markdown.length,
+                    selectionStart + markdown.length,
+                );
+            } else {
+                const newContent =
+                    content.substring(0, selectionStart) +
+                    markdown +
+                    content.substring(selectionEnd);
+                setContent(newContent);
+                setTimeout(() => {
+                    textarea.setSelectionRange(
+                        selectionStart + markdown.length,
+                        selectionStart + markdown.length,
+                    );
+                }, 0);
+            }
+        } catch (error) {
+            console.error('Table conversion error:', error);
+            const message =
+                error instanceof Error && error.message
+                    ? error.message
+                    : __('Table conversion failed. Please try again.');
+            alert(message);
+        } finally {
+            setIsTableConverting(false);
+        }
+    };
+
     // ネストしたパスの場合、階層的なbreadcrumbsを生成
     const generateBreadcrumbs = (): BreadcrumbItem[] => {
         const breadcrumbs: BreadcrumbItem[] = [
@@ -548,6 +665,30 @@ export default function Edit({
                                                         {__(
                                                             'Markdown Conversion',
                                                         )}
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleTableConvert}
+                                                disabled={
+                                                    isTableConverting ||
+                                                    processing
+                                                }
+                                            >
+                                                {isTableConverting ? (
+                                                    <>
+                                                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                                        {__(
+                                                            'Converting table...',
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Table2 className="mr-2 h-4 w-4" />
+                                                        {__('AI Table')}
                                                     </>
                                                 )}
                                             </Button>

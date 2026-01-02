@@ -288,6 +288,36 @@ class MarkdownController extends Controller
     }
 
     /**
+     * Convert plain text to a Markdown table.
+     */
+    public function convertToTable(MarkdownTranslateRequest $request): JsonResponse
+    {
+        $text = $request->validated()['text'];
+
+        try {
+            $markdown = $this->convertToTableWithOpenAI($text);
+        } catch (\Throwable $exception) {
+            $errorId = (string) Str::uuid();
+
+            Log::error('Markdown table conversion failed.', [
+                'error_id' => $errorId,
+                'user_id' => $request->user()?->id,
+                'text_length' => mb_strlen($text),
+                'exception_message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => "Table conversion failed. Error ID: {$errorId}. ".$exception->getMessage(),
+            ], 502);
+        }
+
+        return response()->json([
+            'original' => $text,
+            'markdown' => $markdown,
+        ]);
+    }
+
+    /**
      * Convert plain text to Markdown using OpenAI API.
      */
     private function convertToMarkdownWithOpenAI(string $text): string
@@ -314,6 +344,57 @@ Output: "# This is a title\n\nSome text here"
 
 Input: "Example:\nfunction test() { return true; }"
 Output: "Example:\n```javascript\nfunction test() { return true; }\n```"',
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $text,
+                ],
+            ],
+        ]);
+
+        return $result->choices[0]->message->content;
+    }
+
+    /**
+     * Convert plain text to a Markdown table using OpenAI API.
+     */
+    private function convertToTableWithOpenAI(string $text): string
+    {
+        $result = OpenAI::chat()->create([
+            'model' => 'gpt-4o-mini',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'You are a Markdown table expert. Convert the given text into a Markdown table.
+
+Rules:
+- If the input already contains a Markdown table, preserve its header and existing rows
+- If the input contains table rows but no header/separator, infer a header and treat all rows as data
+- If a separator row exists but the first row looks like data (dates, numbers, currency), treat it as data and infer a new header
+- Append new rows parsed from any following plain text lines
+- Keep column count and order exactly as the existing table
+- If a row has fewer columns, leave missing cells empty
+- If a row has more columns, merge extras into the last column
+- Infer column boundaries and headers from the text when there is no table
+- Always include a header row and separator row
+- Keep the original language (do not translate)
+- Preserve values exactly (currency symbols, units, punctuation)
+- Output ONLY the Markdown table, no explanations
+
+Example:
+Input:
+| 日付 | 項目 | 金額 | 支払い方法 |
+| --- | --- | --- | --- |
+| 1/1 | コーヒー | 150円 |  |
+1/2 カップ麺 250円 現金
+1/3 書籍 1200円 クレカ
+
+Output:
+| 日付 | 項目 | 金額 | 支払い方法 |
+| --- | --- | --- | --- |
+| 1/1 | コーヒー | 150円 |  |
+| 1/2 | カップ麺 | 250円 | 現金 |
+| 1/3 | 書籍 | 1200円 | クレカ |',
                 ],
                 [
                     'role' => 'user',

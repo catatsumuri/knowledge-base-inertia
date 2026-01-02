@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use OpenAI\Laravel\Facades\OpenAI;
+use OpenAI\Responses\Chat\CreateResponse;
 use Tests\TestCase;
 
 /**
@@ -185,6 +187,32 @@ class MarkdownControllerTest extends TestCase
             ->has('document')
             ->where('document.slug', 'parent/child')
         );
+    }
+
+    public function test_table_conversion_returns_markdown_table(): void
+    {
+        OpenAI::fake([
+            CreateResponse::fake([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => "| 日付 | 項目 | 金額 |\n| --- | --- | --- |\n| 1/1 | コーヒー | 150円 |",
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/api/markdown/convert-table', [
+            'text' => "1/1 コーヒー 150円\n1/2 カップ麺 250円",
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'markdown' => "| 日付 | 項目 | 金額 |\n| --- | --- | --- |\n| 1/1 | コーヒー | 150円 |",
+        ]);
     }
 
     public function test_edit_page_is_rendered_when_nested_document_is_missing(): void
