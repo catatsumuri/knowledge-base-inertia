@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\MarkdownDocument;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -51,6 +52,37 @@ class MarkdownRequest extends FormRequest
                 $isUpdate ? 'nullable' : 'nullable',
                 'string',
                 'max:255',
+                function (string $attribute, mixed $value, \Closure $fail) use ($isUpdate): void {
+                    if ($isUpdate || ! is_string($value) || $value === '') {
+                        return;
+                    }
+
+                    $hasChildren = MarkdownDocument::query()
+                        ->where('slug', 'like', $value.'/%')
+                        ->exists();
+
+                    if ($hasChildren) {
+                        $fail(__('The slug is unavailable because child pages already exist.'));
+
+                        return;
+                    }
+
+                    $parts = explode('/', $value);
+                    array_pop($parts);
+
+                    if ($parts === []) {
+                        return;
+                    }
+
+                    $parentSlug = implode('/', $parts);
+                    $parentExists = MarkdownDocument::query()
+                        ->where('slug', $parentSlug)
+                        ->exists();
+
+                    if ($parentExists) {
+                        $fail(__('The slug is unavailable because a parent page already exists.'));
+                    }
+                },
                 Rule::unique('markdown_documents', 'slug')->ignore($this->route('markdown')),
             ],
             'title' => [

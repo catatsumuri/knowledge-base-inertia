@@ -40,6 +40,8 @@ class SitemapController extends Controller
             $this->addToTree($tree, $parts, $document);
         }
 
+        $this->sortTree($tree);
+
         return $tree;
     }
 
@@ -91,5 +93,28 @@ class SitemapController extends Controller
 
         // 再帰的に次のレベルへ
         $this->addToTree($tree[$folderIndex]['children'], $parts, $document, $newPath);
+    }
+
+    /**
+     * Sort tree nodes to show folders first, then documents.
+     */
+    private function sortTree(array &$tree): void
+    {
+        usort($tree, function (array $first, array $second): int {
+            $firstWeight = ($first['type'] ?? '') === 'folder' ? 0 : 1;
+            $secondWeight = ($second['type'] ?? '') === 'folder' ? 0 : 1;
+
+            if ($firstWeight !== $secondWeight) {
+                return $firstWeight <=> $secondWeight;
+            }
+
+            return strcmp($first['slug'] ?? '', $second['slug'] ?? '');
+        });
+
+        foreach ($tree as &$node) {
+            if (($node['type'] ?? '') === 'folder' && isset($node['children'])) {
+                $this->sortTree($node['children']);
+            }
+        }
     }
 }

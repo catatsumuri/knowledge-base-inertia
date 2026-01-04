@@ -165,12 +165,12 @@ class SitemapControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('sitemap')
             ->has('tree', 3)
-            ->where('tree.0.type', 'document')
-            ->where('tree.0.slug', 'about')
-            ->where('tree.1.type', 'folder')
-            ->where('tree.1.slug', 'api')
-            ->has('tree.1.children', 1)
-            ->where('tree.1.children.0.slug', 'api/users')
+            ->where('tree.0.type', 'folder')
+            ->where('tree.0.slug', 'api')
+            ->has('tree.0.children', 1)
+            ->where('tree.0.children.0.slug', 'api/users')
+            ->where('tree.1.type', 'document')
+            ->where('tree.1.slug', 'about')
             ->where('tree.2.type', 'document')
             ->where('tree.2.slug', 'index')
         );

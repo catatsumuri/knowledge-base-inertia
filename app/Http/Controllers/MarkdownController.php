@@ -73,6 +73,16 @@ class MarkdownController extends Controller
         $document = MarkdownDocument::query()->where('slug', $slug)->first();
 
         if (! $document) {
+            $indexDocument = MarkdownDocument::query()
+                ->where('slug', $slug.'/index')
+                ->first();
+
+            if ($indexDocument) {
+                $document = $indexDocument;
+            }
+        }
+
+        if (! $document) {
             return Inertia::render('markdown/edit', [
                 'document' => null,
                 'isIndexDocument' => $slug === 'index',
@@ -84,7 +94,7 @@ class MarkdownController extends Controller
 
         // このページにメンションしているshoutを取得（返信も含む）
         $relatedShouts = ShoutLink::query()
-            ->where('slug', $slug)
+            ->where('slug', $document->slug)
             ->with(['shout.user', 'shout.links', 'shout.replies.user', 'shout.replies.links'])
             ->latest()
             ->limit(20)

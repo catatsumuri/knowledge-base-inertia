@@ -145,6 +145,24 @@ class MarkdownControllerTest extends TestCase
         );
     }
 
+    public function test_nested_index_document_is_rendered_when_parent_slug_is_requested(): void
+    {
+        $user = User::factory()->create();
+        $document = MarkdownDocument::factory()->create([
+            'slug' => 'getting-started/index',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('markdown.show', 'getting-started'));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/show')
+            ->where('document.slug', $document->slug)
+        );
+    }
+
     public function test_nested_slug_document_can_be_created(): void
     {
         $user = User::factory()->create();
@@ -173,6 +191,44 @@ class MarkdownControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('markdown.show', 'category/subcategory/page'));
+    }
+
+    public function test_document_cannot_be_created_when_child_pages_exist(): void
+    {
+        $user = User::factory()->create();
+
+        MarkdownDocument::factory()->create([
+            'slug' => 'getting-started/index',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->post('/markdown', [
+            'slug' => 'getting-started',
+            'title' => 'Getting Started',
+            'content' => '# Intro',
+        ]);
+
+        $response->assertSessionHasErrors(['slug']);
+    }
+
+    public function test_nested_document_cannot_be_created_when_parent_page_exists(): void
+    {
+        $user = User::factory()->create();
+
+        MarkdownDocument::factory()->create([
+            'slug' => 'welcome',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->post('/markdown', [
+            'slug' => 'welcome/test',
+            'title' => 'Welcome Child',
+            'content' => '# Child',
+        ]);
+
+        $response->assertSessionHasErrors(['slug']);
     }
 
     public function test_nested_slug_document_can_be_rendered(): void

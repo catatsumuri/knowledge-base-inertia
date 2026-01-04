@@ -438,11 +438,7 @@ export default function Edit({
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <input
-                                    type="hidden"
-                                    name="draft"
-                                    value="0"
-                                />
+                                <input type="hidden" name="draft" value="0" />
                                 <input
                                     id="draft"
                                     name="draft"

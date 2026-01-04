@@ -31,9 +31,9 @@ import { Form, Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
+    AlertTriangle,
     ChevronLeft,
     ChevronRight,
-    AlertTriangle,
     Image as ImageIcon,
     MessageSquare,
     Pencil,
@@ -195,9 +195,7 @@ export default function Show({
             {document.content ? (
                 <MarkdownViewer content={document.content} />
             ) : (
-                <p className="text-muted-foreground">
-                    {__('No content yet.')}
-                </p>
+                <p className="text-muted-foreground">{__('No content yet.')}</p>
             )}
         </div>
     );
@@ -213,9 +211,7 @@ export default function Show({
                             {document.title || '新規ページ'}
                         </h1>
                         {document.draft && (
-                            <Badge variant="secondary">
-                                {__('Draft')}
-                            </Badge>
+                            <Badge variant="secondary">{__('Draft')}</Badge>
                         )}
                     </div>
                     <div className="flex gap-2">
