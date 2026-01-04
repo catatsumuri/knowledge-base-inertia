@@ -1,4 +1,5 @@
 import { show } from '@/actions/App/Http/Controllers/MarkdownController';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -26,6 +27,7 @@ interface TreeNode {
     type: 'folder' | 'document';
     slug: string;
     title: string;
+    draft?: boolean;
     updated_at?: string;
     updated_by?: {
         name: string;
@@ -63,6 +65,14 @@ function TreeNodeComponent({
                         >
                             {node.title}
                         </Link>
+                        {node.draft && (
+                            <Badge
+                                variant="secondary"
+                                className="border-amber-200/70 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100"
+                            >
+                                {__('Draft')}
+                            </Badge>
+                        )}
                         <div className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
                             {node.updated_at && (
                                 <span>

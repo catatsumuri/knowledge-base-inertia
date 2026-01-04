@@ -20,10 +20,20 @@ class MarkdownRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $payload = [];
+
         if ($this->has('slug')) {
-            $this->merge([
-                'slug' => ltrim($this->slug, '/'),
-            ]);
+            $payload['slug'] = ltrim($this->slug, '/');
+        }
+
+        if ($this->has('draft')) {
+            $payload['draft'] = $this->boolean('draft');
+        } elseif ($this->isMethod('post')) {
+            $payload['draft'] = true;
+        }
+
+        if ($payload !== []) {
+            $this->merge($payload);
         }
     }
 
@@ -49,6 +59,7 @@ class MarkdownRequest extends FormRequest
                 'max:255',
             ],
             'content' => ['nullable', 'string'],
+            'draft' => ['nullable', 'boolean'],
         ];
     }
 }

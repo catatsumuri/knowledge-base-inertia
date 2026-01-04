@@ -26,6 +26,7 @@ interface MarkdownDocument {
     slug: string;
     title: string;
     content: string | null;
+    draft: boolean;
     created_by: number;
     updated_by: number;
     created_at: string;
@@ -434,6 +435,23 @@ export default function Edit({
                                         {errors.title}
                                     </p>
                                 )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="hidden"
+                                    name="draft"
+                                    value="0"
+                                />
+                                <input
+                                    id="draft"
+                                    name="draft"
+                                    type="checkbox"
+                                    value="1"
+                                    defaultChecked={document?.draft ?? true}
+                                    className="h-4 w-4 rounded border-input text-primary shadow-sm focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                />
+                                <Label htmlFor="draft">{__('Draft')}</Label>
                             </div>
 
                             <div className="grid gap-2">

@@ -71,6 +71,7 @@ class MarkdownControllerTest extends TestCase
             'slug' => 'index',
             'title' => 'Top page',
             'content' => '# Hello World',
+            'draft' => true,
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -101,6 +102,7 @@ class MarkdownControllerTest extends TestCase
             'slug' => 'test-document',
             'title' => 'Test Document',
             'content' => '# Hello World',
+            'draft' => true,
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -123,6 +125,7 @@ class MarkdownControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('markdown/show')
             ->has('document')
+            ->where('document.draft', true)
             ->where('canCreate', true)
         );
     }
@@ -164,6 +167,7 @@ class MarkdownControllerTest extends TestCase
             'slug' => 'category/subcategory/page',
             'title' => 'Nested Page',
             'content' => '# Nested content',
+            'draft' => true,
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -286,6 +290,7 @@ class MarkdownControllerTest extends TestCase
         $data = [
             'title' => 'Updated Title',
             'content' => 'Updated content',
+            'draft' => false,
         ];
 
         $response = $this->actingAs($user)->patch(route('markdown.update', $document->slug), $data);
@@ -294,6 +299,7 @@ class MarkdownControllerTest extends TestCase
             'id' => $document->id,
             'title' => 'Updated Title',
             'content' => 'Updated content',
+            'draft' => false,
             'updated_by' => $user->id,
         ]);
 

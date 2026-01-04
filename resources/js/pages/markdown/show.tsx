@@ -5,7 +5,9 @@ import {
 } from '@/actions/App/Http/Controllers/MarkdownController';
 import { MarkdownViewer } from '@/components/markdown-viewer';
 import { Toc } from '@/components/toc';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -31,6 +33,7 @@ import { ja } from 'date-fns/locale';
 import {
     ChevronLeft,
     ChevronRight,
+    AlertTriangle,
     Image as ImageIcon,
     MessageSquare,
     Pencil,
@@ -44,6 +47,7 @@ interface MarkdownDocument {
     slug: string;
     title: string;
     content: string | null;
+    draft: boolean;
     created_by: number;
     updated_by: number;
     created_at: string;
@@ -183,15 +187,37 @@ export default function Show({
         });
     };
 
+    const contentBody = (
+        <div
+            ref={contentRef}
+            className="prose prose-sm max-w-[900px] min-w-0 flex-1 rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert"
+        >
+            {document.content ? (
+                <MarkdownViewer content={document.content} />
+            ) : (
+                <p className="text-muted-foreground">
+                    {__('No content yet.')}
+                </p>
+            )}
+        </div>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={document.title} />
 
             <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">
-                        {document.title || '新規ページ'}
-                    </h1>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold">
+                            {document.title || '新規ページ'}
+                        </h1>
+                        {document.draft && (
+                            <Badge variant="secondary">
+                                {__('Draft')}
+                            </Badge>
+                        )}
+                    </div>
                     <div className="flex gap-2">
                         {canCreate && (
                             <Button
@@ -326,19 +352,22 @@ export default function Show({
                     </Card>
                 )}
 
-                <div className="flex gap-8 px-4">
-                    <div
-                        ref={contentRef}
-                        className="prose prose-sm max-w-[900px] min-w-0 flex-1 rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert"
-                    >
-                        {document.content ? (
-                            <MarkdownViewer content={document.content} />
-                        ) : (
-                            <p className="text-muted-foreground">
-                                {__('No content yet.')}
+                {document.draft && (
+                    <Alert className="border-amber-200/70 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100">
+                        <AlertTriangle />
+                        <AlertTitle>{__('Draft')}</AlertTitle>
+                        <AlertDescription>
+                            <p>
+                                {__(
+                                    'This page is marked as draft and may be incomplete.',
+                                )}
                             </p>
-                        )}
-                    </div>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                <div className="flex gap-8 px-4">
+                    {contentBody}
 
                     {toc.length > 0 && (
                         <aside className="w-60 shrink-0">
