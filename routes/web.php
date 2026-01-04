@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\MarkdownDocument;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -12,7 +13,24 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        $recentDocuments = MarkdownDocument::query()
+            ->with('updatedBy')
+            ->latest('updated_at')
+            ->limit(5)
+            ->get()
+            ->map(fn (MarkdownDocument $document) => [
+                'slug' => $document->slug,
+                'title' => $document->title,
+                'draft' => $document->draft,
+                'updated_at' => $document->updated_at?->toISOString(),
+                'updated_by' => $document->updatedBy ? [
+                    'name' => $document->updatedBy->name,
+                ] : null,
+            ]);
+
+        return Inertia::render('dashboard', [
+            'recentDocuments' => $recentDocuments,
+        ]);
     })->name('dashboard');
 
     Route::get('sitemap', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
@@ -32,6 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('api/markdown/convert-table', [\App\Http\Controllers\MarkdownController::class, 'convertToTable'])->name('markdown.convert-table');
     Route::get('markdown/{document:slug}/revisions', [\App\Http\Controllers\MarkdownController::class, 'revisions'])->name('markdown.revisions');
     Route::post('markdown/{document:slug}/revisions/{revision}/restore', [\App\Http\Controllers\MarkdownController::class, 'restore'])->name('markdown.restore');
+    Route::post('markdown/export', [\App\Http\Controllers\MarkdownController::class, 'exportBulk'])->name('markdown.export-bulk');
+    Route::get('markdown/{slug}/export', [\App\Http\Controllers\MarkdownController::class, 'export'])->where('slug', '.*')->name('markdown.export');
     Route::get('markdown/{slug}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->where('slug', '.*')->name('markdown.edit');
     Route::patch('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'update'])->where('slug', '.*')->name('markdown.update');
     Route::delete('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'destroy'])->where('slug', '.*')->name('markdown.destroy');

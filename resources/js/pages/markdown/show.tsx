@@ -35,6 +35,7 @@ import {
     AlertTriangle,
     ChevronLeft,
     ChevronRight,
+    Download,
     Image as ImageIcon,
     MessageSquare,
     Pencil,
@@ -435,9 +436,9 @@ export default function Show({
                                 className={cn(
                                     'z-20 w-full',
                                     isMobile && isTocFloating
-                                        ? 'fixed inset-x-0 top-0 bg-background/95 backdrop-blur shadow-sm'
+                                        ? 'fixed inset-x-0 top-0 bg-background/95 shadow-sm backdrop-blur'
                                         : 'relative',
-                                    'lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto lg:bg-transparent lg:backdrop-blur-0',
+                                    'lg:backdrop-blur-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto lg:bg-transparent',
                                 )}
                             >
                                 <Toc toc={toc} />
@@ -662,6 +663,15 @@ export default function Show({
                         </div>
                     </div>
                 )}
+
+                <div className="flex justify-end">
+                    <Button asChild variant="outline">
+                        <a href={`/markdown/${document.slug}/export`}>
+                            <Download className="h-4 w-4" />
+                            {__('Export')}
+                        </a>
+                    </Button>
+                </div>
 
                 {/* 画像ライトボックス */}
                 <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>

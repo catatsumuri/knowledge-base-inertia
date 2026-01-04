@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MarkdownExportRequest;
 use App\Http\Requests\MarkdownImageUploadRequest;
 use App\Http\Requests\MarkdownRequest;
 use App\Http\Requests\MarkdownRevisionRestoreRequest;
@@ -20,6 +21,8 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use OpenAI\Laravel\Facades\OpenAI;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use ZipArchive;
 
 class MarkdownController extends Controller
 {
@@ -70,17 +73,7 @@ class MarkdownController extends Controller
      */
     public function show(string $slug): Response
     {
-        $document = MarkdownDocument::query()->where('slug', $slug)->first();
-
-        if (! $document) {
-            $indexDocument = MarkdownDocument::query()
-                ->where('slug', $slug.'/index')
-                ->first();
-
-            if ($indexDocument) {
-                $document = $indexDocument;
-            }
-        }
+        $document = $this->resolveDocumentBySlug($slug);
 
         if (! $document) {
             return Inertia::render('markdown/edit', [
@@ -107,6 +100,84 @@ class MarkdownController extends Controller
             'relatedShouts' => $relatedShouts,
             'canCreate' => true,
         ]);
+    }
+
+    /**
+     * Export the specified markdown document with metadata.
+     */
+    public function export(string $slug): StreamedResponse
+    {
+        $document = $this->resolveDocumentBySlug($slug);
+
+        if (! $document) {
+            abort(404);
+        }
+
+        $document->load(['createdBy', 'updatedBy']);
+
+        $content = $this->buildExportContent($document);
+        $filename = str_replace('/', '-', $document->slug).'.md';
+
+        return response()->streamDownload(
+            static function () use ($content): void {
+                echo $content;
+            },
+            $filename,
+            ['Content-Type' => 'text/markdown; charset=UTF-8']
+        );
+    }
+
+    /**
+     * Export multiple markdown documents as a zip file.
+     */
+    public function exportBulk(MarkdownExportRequest $request): StreamedResponse
+    {
+        $slugs = $request->validated()['slugs'];
+
+        $documents = MarkdownDocument::query()
+            ->whereIn('slug', $slugs)
+            ->with(['createdBy', 'updatedBy'])
+            ->get()
+            ->keyBy('slug');
+
+        $path = tempnam(sys_get_temp_dir(), 'markdown-export-');
+        $zip = new ZipArchive;
+
+        if ($path === false || $zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            abort(500, 'Unable to create export archive.');
+        }
+
+        foreach ($slugs as $slug) {
+            $document = $documents->get($slug);
+
+            if (! $document) {
+                continue;
+            }
+
+            $zip->addFromString(
+                $document->slug.'.md',
+                $this->buildExportContent($document)
+            );
+        }
+
+        $zip->close();
+
+        $filename = 'markdown-export-'.now()->format('Ymd-His').'.zip';
+
+        return response()->streamDownload(
+            static function () use ($path): void {
+                $stream = fopen($path, 'rb');
+
+                if ($stream !== false) {
+                    fpassthru($stream);
+                    fclose($stream);
+                }
+
+                @unlink($path);
+            },
+            $filename,
+            ['Content-Type' => 'application/zip']
+        );
     }
 
     /**
@@ -482,5 +553,64 @@ Output:
         ]);
 
         return $result->choices[0]->message->content;
+    }
+
+    /**
+     * Resolve a markdown document by slug, falling back to slug/index.
+     */
+    private function resolveDocumentBySlug(string $slug): ?MarkdownDocument
+    {
+        $document = MarkdownDocument::query()->where('slug', $slug)->first();
+
+        if (! $document) {
+            $document = MarkdownDocument::query()
+                ->where('slug', $slug.'/index')
+                ->first();
+        }
+
+        return $document;
+    }
+
+    /**
+     * Build markdown export content with front matter metadata.
+     */
+    private function buildExportContent(MarkdownDocument $document): string
+    {
+        $lines = [
+            'title: '.$this->yamlString($document->title ?? ''),
+            'slug: '.$this->yamlString($document->slug),
+            'draft: '.($document->draft ? 'true' : 'false'),
+            'created_at: '.$this->yamlString($document->created_at?->toISOString() ?? ''),
+            'updated_at: '.$this->yamlString($document->updated_at?->toISOString() ?? ''),
+            'created_by_id: '.(string) ($document->created_by ?? ''),
+            'updated_by_id: '.(string) ($document->updated_by ?? ''),
+        ];
+
+        if ($document->createdBy) {
+            $lines[] = 'created_by:';
+            $lines[] = '  id: '.$document->createdBy->id;
+            $lines[] = '  name: '.$this->yamlString($document->createdBy->name);
+            $lines[] = '  email: '.$this->yamlString($document->createdBy->email);
+        }
+
+        if ($document->updatedBy) {
+            $lines[] = 'updated_by:';
+            $lines[] = '  id: '.$document->updatedBy->id;
+            $lines[] = '  name: '.$this->yamlString($document->updatedBy->name);
+            $lines[] = '  email: '.$this->yamlString($document->updatedBy->email);
+        }
+
+        $frontMatter = "---\n".implode("\n", $lines)."\n---\n\n";
+        $body = $document->content ?? '';
+
+        return $frontMatter.$body."\n";
+    }
+
+    /**
+     * Encode a YAML-safe string value.
+     */
+    private function yamlString(string $value): string
+    {
+        return (string) json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 }

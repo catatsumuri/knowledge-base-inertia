@@ -2,6 +2,7 @@ import { show } from '@/actions/App/Http/Controllers/MarkdownController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Collapsible,
     CollapsibleContent,
@@ -21,7 +22,7 @@ import {
     FolderOpen,
     Plus,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface TreeNode {
     type: 'folder' | 'document';
@@ -43,12 +44,26 @@ interface SitemapProps {
 function TreeNodeComponent({
     node,
     level = 0,
+    forceOpen = false,
+    selectionEnabled = false,
+    selectedSlugs,
+    onToggleSelect,
 }: {
     node: TreeNode;
     level?: number;
+    forceOpen?: boolean;
+    selectionEnabled?: boolean;
+    selectedSlugs: Set<string>;
+    onToggleSelect: (slug: string) => void;
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const { __ } = useLang();
+
+    useEffect(() => {
+        if (forceOpen) {
+            setIsOpen(true);
+        }
+    }, [forceOpen]);
 
     if (node.type === 'document') {
         return (
@@ -56,6 +71,16 @@ function TreeNodeComponent({
                 className="group flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-accent/50"
                 style={{ paddingLeft: `${level * 1.5 + 0.5}rem` }}
             >
+                {selectionEnabled && (
+                    <Checkbox
+                        checked={selectedSlugs.has(node.slug)}
+                        onCheckedChange={() => onToggleSelect(node.slug)}
+                        aria-label={__('Select {title}', {
+                            title: node.title,
+                        })}
+                        className="mt-0.5"
+                    />
+                )}
                 <File className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <div className="flex items-baseline gap-3">
@@ -98,7 +123,7 @@ function TreeNodeComponent({
     }
 
     return (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <Collapsible open={forceOpen ? true : isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger
                 className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent/50"
                 style={{ paddingLeft: `${level * 1.5 + 0.5}rem` }}
@@ -123,6 +148,10 @@ function TreeNodeComponent({
                         key={`${child.slug}-${index}`}
                         node={child}
                         level={level + 1}
+                        forceOpen={forceOpen}
+                        selectionEnabled={selectionEnabled}
+                        selectedSlugs={selectedSlugs}
+                        onToggleSelect={onToggleSelect}
                     />
                 ))}
             </CollapsibleContent>
@@ -134,6 +163,11 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
     const { __ } = useLang();
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newSlug, setNewSlug] = useState('');
+    const [selectionEnabled, setSelectionEnabled] = useState(false);
+    const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(
+        () => new Set(),
+    );
+    const [csrfToken, setCsrfToken] = useState('');
 
     const handleCreateSubmit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -141,6 +175,56 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
             router.visit(`/markdown/${newSlug.trim()}`);
         }
     };
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const token =
+            window.document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content') ?? '';
+        setCsrfToken(token);
+    }, []);
+
+    const toggleSelection = () => {
+        setSelectionEnabled((prev) => !prev);
+        setSelectedSlugs(new Set());
+    };
+
+    const collectDocumentSlugs = (nodes: TreeNode[]): string[] => {
+        return nodes.flatMap((node) => {
+            if (node.type === 'document') {
+                return [node.slug];
+            }
+
+            return node.children ? collectDocumentSlugs(node.children) : [];
+        });
+    };
+
+    const handleSelectAll = () => {
+        const slugs = collectDocumentSlugs(tree);
+        setSelectedSlugs(new Set(slugs));
+    };
+
+    const handleClearAll = () => {
+        setSelectedSlugs(new Set());
+    };
+
+    const handleToggleSelect = (slug: string) => {
+        setSelectedSlugs((prev) => {
+            const next = new Set(prev);
+            if (next.has(slug)) {
+                next.delete(slug);
+            } else {
+                next.add(slug);
+            }
+            return next;
+        });
+    };
+
+    const selectedList = Array.from(selectedSlugs);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -157,6 +241,30 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{__('Sitemap')}</h1>
                     <div className="flex gap-2">
+                        <Button
+                            variant={selectionEnabled ? 'default' : 'outline'}
+                            onClick={toggleSelection}
+                        >
+                            {selectionEnabled
+                                ? __('Selection on')
+                                : __('Selection off')}
+                        </Button>
+                        {selectionEnabled && (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleSelectAll}
+                                >
+                                    {__('Select all')}
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleClearAll}
+                                >
+                                    {__('Clear selection')}
+                                </Button>
+                            </>
+                        )}
                         {canCreate && (
                             <Button
                                 variant="outline"
@@ -227,11 +335,49 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                                 <TreeNodeComponent
                                     key={`${node.slug}-${index}`}
                                     node={node}
+                                    forceOpen={selectionEnabled}
+                                    selectionEnabled={selectionEnabled}
+                                    selectedSlugs={selectedSlugs}
+                                    onToggleSelect={handleToggleSelect}
                                 />
                             ))
                         )}
                     </div>
                 </div>
+
+                {selectionEnabled && (
+                    <div className="flex flex-col gap-3 rounded-xl border border-sidebar-border/70 bg-card p-4 dark:border-sidebar-border">
+                        <div className="text-sm text-muted-foreground">
+                            {__('Selected pages')}: {selectedList.length}
+                        </div>
+                        <form
+                            method="post"
+                            action="/markdown/export"
+                            className="flex items-center justify-end gap-2"
+                        >
+                            <input
+                                type="hidden"
+                                name="_token"
+                                value={csrfToken}
+                            />
+                            {selectedList.map((slug) => (
+                                <input
+                                    key={slug}
+                                    type="hidden"
+                                    name="slugs[]"
+                                    value={slug}
+                                />
+                            ))}
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                disabled={selectedList.length === 0}
+                            >
+                                {__('Export selected')}
+                            </Button>
+                        </form>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

@@ -387,6 +387,74 @@ class MarkdownControllerTest extends TestCase
         $response->assertRedirect(route('markdown.show', $document->slug));
     }
 
+    public function test_document_can_be_exported_with_metadata(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Exporter',
+            'email' => 'exporter@example.com',
+        ]);
+
+        $document = MarkdownDocument::factory()->create([
+            'slug' => 'welcome',
+            'title' => 'Welcome',
+            'content' => '# Hello',
+            'draft' => true,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('markdown.export', $document->slug));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/markdown; charset=UTF-8');
+        $response->assertHeader('content-disposition', 'attachment; filename=welcome.md');
+
+        $content = $response->streamedContent();
+
+        $this->assertStringContainsString("---\n", $content);
+        $this->assertStringContainsString('title: "Welcome"', $content);
+        $this->assertStringContainsString('slug: "welcome"', $content);
+        $this->assertStringContainsString('draft: true', $content);
+        $this->assertStringContainsString('created_by_id: '.$user->id, $content);
+        $this->assertStringContainsString('updated_by_id: '.$user->id, $content);
+        $this->assertStringContainsString('created_by:', $content);
+        $this->assertStringContainsString('  name: "Exporter"', $content);
+        $this->assertStringContainsString('  email: "exporter@example.com"', $content);
+        $this->assertStringContainsString("# Hello\n", $content);
+    }
+
+    public function test_multiple_documents_can_be_exported_as_zip(): void
+    {
+        $user = User::factory()->create();
+
+        $first = MarkdownDocument::factory()->create([
+            'slug' => 'welcome',
+            'title' => 'Welcome',
+            'content' => '# Welcome',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $second = MarkdownDocument::factory()->create([
+            'slug' => 'guides/getting-started',
+            'title' => 'Getting Started',
+            'content' => '# Getting Started',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('markdown.export-bulk'), [
+            'slugs' => [$first->slug, $second->slug],
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/zip');
+
+        $content = $response->streamedContent();
+
+        $this->assertStringStartsWith('PK', $content);
+    }
+
     public function test_revision_list_page_can_be_rendered(): void
     {
         $user = User::factory()->create();
