@@ -1,6 +1,6 @@
 import { TocNode } from '@/lib/parse-toc';
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface TocListProps {
     toc: TocNode[];
@@ -69,6 +69,22 @@ interface TocProps {
  */
 export function Toc({ toc, maxDepth = 3 }: TocProps) {
     const [isOpen, setIsOpen] = useState(true);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const mediaQuery = window.matchMedia('(min-width: 1024px)');
+        const updateState = () => setIsOpen(mediaQuery.matches);
+
+        updateState();
+        mediaQuery.addEventListener('change', updateState);
+
+        return () => {
+            mediaQuery.removeEventListener('change', updateState);
+        };
+    }, []);
 
     if (toc.length === 0) {
         return null;

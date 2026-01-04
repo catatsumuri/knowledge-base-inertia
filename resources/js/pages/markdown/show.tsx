@@ -26,6 +26,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { parseToc, type TocNode } from '@/lib/parse-toc';
+import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type User } from '@/types';
 import { Form, Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
@@ -101,6 +102,10 @@ export default function Show({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newSlug, setNewSlug] = useState('');
+    const tocWrapperRef = useRef<HTMLDivElement>(null);
+    const tocOffsetTopRef = useRef(0);
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTocFloating, setIsTocFloating] = useState(false);
 
     useEffect(() => {
         if (contentRef.current && document.content) {
@@ -108,6 +113,66 @@ export default function Show({
             setToc(tocNodes);
         }
     }, [document.content]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const mediaQuery = window.matchMedia('(max-width: 1023px)');
+        const updateMobile = () => setIsMobile(mediaQuery.matches);
+
+        updateMobile();
+        mediaQuery.addEventListener('change', updateMobile);
+
+        return () => {
+            mediaQuery.removeEventListener('change', updateMobile);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || !tocWrapperRef.current) {
+            return;
+        }
+
+        const updateMetrics = () => {
+            if (!tocWrapperRef.current) {
+                return;
+            }
+
+            const rect = tocWrapperRef.current.getBoundingClientRect();
+            tocOffsetTopRef.current = rect.top + window.scrollY;
+        };
+
+        updateMetrics();
+        window.addEventListener('resize', updateMetrics);
+
+        return () => {
+            window.removeEventListener('resize', updateMetrics);
+        };
+    }, [toc.length]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        if (!isMobile) {
+            setIsTocFloating(false);
+            return;
+        }
+
+        const onScroll = () => {
+            setIsTocFloating(window.scrollY >= tocOffsetTopRef.current);
+        };
+
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+        };
+    }, [isMobile]);
 
     // ネストしたパスの場合、階層的なbreadcrumbsを生成
     const generateBreadcrumbs = (): BreadcrumbItem[] => {
@@ -362,16 +427,32 @@ export default function Show({
                     </Alert>
                 )}
 
-                <div className="flex gap-8 px-4">
-                    {contentBody}
-
+                <div className="flex flex-col gap-6 px-3 lg:flex-row lg:gap-8">
                     {toc.length > 0 && (
-                        <aside className="w-60 shrink-0">
-                            <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto">
+                        <aside className="order-1 w-full shrink-0 lg:order-2 lg:w-60">
+                            <div
+                                ref={tocWrapperRef}
+                                className={cn(
+                                    'z-20 w-full',
+                                    isMobile && isTocFloating
+                                        ? 'fixed inset-x-0 top-0 bg-background/95 backdrop-blur shadow-sm'
+                                        : 'relative',
+                                    'lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto lg:bg-transparent lg:backdrop-blur-0',
+                                )}
+                            >
                                 <Toc toc={toc} />
                             </div>
                         </aside>
                     )}
+
+                    <div
+                        className={cn(
+                            'order-2 lg:order-1',
+                            isMobile && isTocFloating ? 'pt-14' : '',
+                        )}
+                    >
+                        {contentBody}
+                    </div>
                 </div>
 
                 {document.updated_by && (
