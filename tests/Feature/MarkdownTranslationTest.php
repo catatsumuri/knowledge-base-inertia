@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use OpenAI\Laravel\Facades\OpenAI;
+use OpenAI\Responses\Chat\CreateResponse;
 use Tests\TestCase;
 
 /**
@@ -24,6 +26,18 @@ class MarkdownTranslationTest extends TestCase
 
     public function test_japanese_text_can_be_translated_to_english(): void
     {
+        OpenAI::fake([
+            CreateResponse::fake([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => '[EN] Hello World',
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->postJson('/api/markdown/translate', [
@@ -48,6 +62,18 @@ class MarkdownTranslationTest extends TestCase
 
     public function test_english_text_can_be_translated_to_japanese(): void
     {
+        OpenAI::fake([
+            CreateResponse::fake([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => '[日本語] こんにちは世界',
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->postJson('/api/markdown/translate', [

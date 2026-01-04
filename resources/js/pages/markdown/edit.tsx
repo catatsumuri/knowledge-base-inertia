@@ -1,5 +1,6 @@
 import {
     convertToMarkdown,
+    convertToTable,
     edit,
     show,
     store,
@@ -81,6 +82,44 @@ export default function Edit({
         }
     }, [props.imageUrl]);
 
+    const replaceSelectedText = (
+        selectionStart: number,
+        selectionEnd: number,
+        nextText: string,
+    ) => {
+        const textarea = textareaRef.current;
+        if (!textarea) {
+            return;
+        }
+
+        textarea.focus();
+        textarea.setSelectionRange(selectionStart, selectionEnd);
+
+        const inserted = window.document.execCommand(
+            'insertText',
+            false,
+            nextText,
+        );
+
+        if (!inserted) {
+            textarea.setRangeText(
+                nextText,
+                selectionStart,
+                selectionEnd,
+                'end',
+            );
+        }
+
+        setContent(textarea.value);
+    };
+
+    const getCsrfToken = () => {
+        const metaTag = window.document.querySelector(
+            'meta[name="csrf-token"]',
+        );
+        return metaTag ? metaTag.getAttribute('content') || '' : '';
+    };
+
     const handleImageUpload = (file: File) => {
         if (!file.type.startsWith('image/')) {
             return;
@@ -119,40 +158,54 @@ export default function Edit({
         }
     };
 
-    const handleTranslate = async () => {
+    const submitAiRequest = async ({
+        url,
+        emptyMessage,
+        errorMessage,
+        resultKey,
+        onStart,
+        onFinish,
+    }: {
+        url: string;
+        emptyMessage: string;
+        errorMessage: string;
+        resultKey: 'translated' | 'markdown';
+        onStart: () => void;
+        onFinish: () => void;
+    }) => {
         const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        const { selectionStart, selectionEnd } = textarea;
-        const selectedText = content.substring(selectionStart, selectionEnd);
-
-        if (!selectedText.trim()) {
-            alert(__('Please select text to translate'));
+        if (!textarea) {
             return;
         }
 
-        setIsTranslating(true);
+        const { selectionStart, selectionEnd } = textarea;
+        const selectedText = textarea.value.substring(
+            selectionStart,
+            selectionEnd,
+        );
+
+        if (!selectedText.trim()) {
+            alert(emptyMessage);
+            return;
+        }
+
+        onStart();
 
         try {
-            const baseErrorMessage = __(
-                'Translation failed. Please try again.',
-            );
-
-            // CSRFトークンを取得
-            const metaTag = window.document.querySelector(
-                'meta[name="csrf-token"]',
-            );
-            const csrfToken = metaTag
-                ? metaTag.getAttribute('content') || ''
-                : '';
-
-            const response = await fetch(translate.url(), {
+            const token = getCsrfToken();
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
+                    Accept: 'application/json',
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': token,
                 },
-                body: JSON.stringify({ text: selectedText }),
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    text: selectedText,
+                    _token: token,
+                }),
             });
 
             if (!response.ok) {
@@ -175,304 +228,75 @@ export default function Edit({
 
                 const statusInfo = ` (status: ${response.status})`;
                 const message = detailMessage
-                    ? `${baseErrorMessage} ${detailMessage}${statusInfo}`
-                    : `${baseErrorMessage}${statusInfo}`;
+                    ? `${errorMessage} ${detailMessage}${statusInfo}`
+                    : `${errorMessage}${statusInfo}`;
                 throw new Error(message);
             }
 
             const contentType = response.headers.get('content-type') ?? '';
             if (!contentType.includes('application/json')) {
                 throw new Error(
-                    `${baseErrorMessage} Unexpected response type: ${contentType}`,
+                    `${errorMessage} Unexpected response type: ${contentType}`,
                 );
             }
 
-            const data = (await response.json()) as {
-                translated: string;
-            };
-            const { translated } = data;
-
-            // Undo対応の置換（execCommandを使用）
-            textarea.focus();
-            textarea.setSelectionRange(selectionStart, selectionEnd);
-
-            // execCommandを試す
-            const success = window.document.execCommand(
-                'insertText',
-                false,
-                translated,
-            );
-
-            if (success) {
-                // execCommandが成功した場合、Reactのステートを更新
-                const newContent =
-                    content.substring(0, selectionStart) +
-                    translated +
-                    content.substring(selectionEnd);
-                setContent(newContent);
-                textarea.setSelectionRange(
-                    selectionStart + translated.length,
-                    selectionStart + translated.length,
+            const data = (await response.json()) as Record<string, string>;
+            let result = data[resultKey];
+            if (!result) {
+                throw new Error(
+                    `${errorMessage} Missing ${resultKey} in response.`,
                 );
-            } else {
-                // フォールバック
-                const newContent =
-                    content.substring(0, selectionStart) +
-                    translated +
-                    content.substring(selectionEnd);
-                setContent(newContent);
-                setTimeout(() => {
-                    textarea.setSelectionRange(
-                        selectionStart + translated.length,
-                        selectionStart + translated.length,
-                    );
-                }, 0);
             }
+
+            const trailingNewlines = selectedText.match(/\n+$/)?.[0];
+            if (trailingNewlines) {
+                result = result.replace(/\n+$/, '') + trailingNewlines;
+            }
+
+            replaceSelectedText(selectionStart, selectionEnd, result);
         } catch (error) {
-            console.error('Translation error:', error);
+            console.error('AI request error:', error);
             const message =
                 error instanceof Error && error.message
                     ? error.message
-                    : __('Translation failed. Please try again.');
+                    : errorMessage;
             alert(message);
         } finally {
-            setIsTranslating(false);
+            onFinish();
         }
     };
 
-    const handleConvert = async () => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        const { selectionStart, selectionEnd } = textarea;
-        const selectedText = content.substring(selectionStart, selectionEnd);
-
-        if (!selectedText.trim()) {
-            alert(__('Please select text to convert'));
-            return;
-        }
-
-        setIsConverting(true);
-
-        try {
-            const baseErrorMessage = __('Conversion failed. Please try again.');
-
-            // CSRFトークンを取得
-            const metaTag = window.document.querySelector(
-                'meta[name="csrf-token"]',
-            );
-            const csrfToken = metaTag
-                ? metaTag.getAttribute('content') || ''
-                : '';
-
-            const response = await fetch(convertToMarkdown.url(), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                },
-                body: JSON.stringify({ text: selectedText }),
-            });
-
-            if (!response.ok) {
-                let detailMessage = '';
-                const contentType = response.headers.get('content-type') ?? '';
-
-                if (contentType.includes('application/json')) {
-                    const data = (await response.json()) as {
-                        message?: string;
-                        errors?: Record<string, string[]>;
-                    };
-                    detailMessage =
-                        data?.message ??
-                        (data?.errors &&
-                            Object.values(data.errors).flat().at(0)) ??
-                        '';
-                } else {
-                    detailMessage = (await response.text()).trim();
-                }
-
-                const statusInfo = ` (status: ${response.status})`;
-                const message = detailMessage
-                    ? `${baseErrorMessage} ${detailMessage}${statusInfo}`
-                    : `${baseErrorMessage}${statusInfo}`;
-                throw new Error(message);
-            }
-
-            const contentType = response.headers.get('content-type') ?? '';
-            if (!contentType.includes('application/json')) {
-                throw new Error(
-                    `${baseErrorMessage} Unexpected response type: ${contentType}`,
-                );
-            }
-
-            const data = (await response.json()) as {
-                markdown: string;
-            };
-            const { markdown } = data;
-
-            // Undo対応の置換（execCommandを使用）
-            textarea.focus();
-            textarea.setSelectionRange(selectionStart, selectionEnd);
-
-            // execCommandを試す
-            const success = window.document.execCommand(
-                'insertText',
-                false,
-                markdown,
-            );
-
-            if (success) {
-                // execCommandが成功した場合、Reactのステートを更新
-                const newContent =
-                    content.substring(0, selectionStart) +
-                    markdown +
-                    content.substring(selectionEnd);
-                setContent(newContent);
-                textarea.setSelectionRange(
-                    selectionStart + markdown.length,
-                    selectionStart + markdown.length,
-                );
-            } else {
-                // フォールバック
-                const newContent =
-                    content.substring(0, selectionStart) +
-                    markdown +
-                    content.substring(selectionEnd);
-                setContent(newContent);
-                setTimeout(() => {
-                    textarea.setSelectionRange(
-                        selectionStart + markdown.length,
-                        selectionStart + markdown.length,
-                    );
-                }, 0);
-            }
-        } catch (error) {
-            console.error('Conversion error:', error);
-            const message =
-                error instanceof Error && error.message
-                    ? error.message
-                    : __('Conversion failed. Please try again.');
-            alert(message);
-        } finally {
-            setIsConverting(false);
-        }
+    const handleTranslate = () => {
+        submitAiRequest({
+            url: translate.url(),
+            emptyMessage: __('Please select text to translate'),
+            errorMessage: __('Translation failed. Please try again.'),
+            resultKey: 'translated',
+            onStart: () => setIsTranslating(true),
+            onFinish: () => setIsTranslating(false),
+        });
     };
 
-    const handleTableConvert = async () => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
+    const handleConvert = () => {
+        submitAiRequest({
+            url: convertToMarkdown.url(),
+            emptyMessage: __('Please select text to convert'),
+            errorMessage: __('Conversion failed. Please try again.'),
+            resultKey: 'markdown',
+            onStart: () => setIsConverting(true),
+            onFinish: () => setIsConverting(false),
+        });
+    };
 
-        const { selectionStart, selectionEnd } = textarea;
-        const selectedText = content.substring(selectionStart, selectionEnd);
-
-        if (!selectedText.trim()) {
-            alert(__('Please select text to convert'));
-            return;
-        }
-
-        setIsTableConverting(true);
-
-        try {
-            const baseErrorMessage = __(
-                'Table conversion failed. Please try again.',
-            );
-
-            const metaTag = window.document.querySelector(
-                'meta[name="csrf-token"]',
-            );
-            const csrfToken = metaTag
-                ? metaTag.getAttribute('content') || ''
-                : '';
-
-            const response = await fetch('/api/markdown/convert-table', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                },
-                body: JSON.stringify({ text: selectedText }),
-            });
-
-            if (!response.ok) {
-                let detailMessage = '';
-                const contentType = response.headers.get('content-type') ?? '';
-
-                if (contentType.includes('application/json')) {
-                    const data = (await response.json()) as {
-                        message?: string;
-                        errors?: Record<string, string[]>;
-                    };
-                    detailMessage =
-                        data?.message ??
-                        (data?.errors &&
-                            Object.values(data.errors).flat().at(0)) ??
-                        '';
-                } else {
-                    detailMessage = (await response.text()).trim();
-                }
-
-                const statusInfo = ` (status: ${response.status})`;
-                const message = detailMessage
-                    ? `${baseErrorMessage} ${detailMessage}${statusInfo}`
-                    : `${baseErrorMessage}${statusInfo}`;
-                throw new Error(message);
-            }
-
-            const contentType = response.headers.get('content-type') ?? '';
-            if (!contentType.includes('application/json')) {
-                throw new Error(
-                    `${baseErrorMessage} Unexpected response type: ${contentType}`,
-                );
-            }
-
-            const data = (await response.json()) as {
-                markdown: string;
-            };
-            const { markdown } = data;
-
-            textarea.focus();
-            textarea.setSelectionRange(selectionStart, selectionEnd);
-
-            const success = window.document.execCommand(
-                'insertText',
-                false,
-                markdown,
-            );
-
-            if (success) {
-                const newContent =
-                    content.substring(0, selectionStart) +
-                    markdown +
-                    content.substring(selectionEnd);
-                setContent(newContent);
-                textarea.setSelectionRange(
-                    selectionStart + markdown.length,
-                    selectionStart + markdown.length,
-                );
-            } else {
-                const newContent =
-                    content.substring(0, selectionStart) +
-                    markdown +
-                    content.substring(selectionEnd);
-                setContent(newContent);
-                setTimeout(() => {
-                    textarea.setSelectionRange(
-                        selectionStart + markdown.length,
-                        selectionStart + markdown.length,
-                    );
-                }, 0);
-            }
-        } catch (error) {
-            console.error('Table conversion error:', error);
-            const message =
-                error instanceof Error && error.message
-                    ? error.message
-                    : __('Table conversion failed. Please try again.');
-            alert(message);
-        } finally {
-            setIsTableConverting(false);
-        }
+    const handleTableConvert = () => {
+        submitAiRequest({
+            url: convertToTable.url(),
+            emptyMessage: __('Please select text to convert'),
+            errorMessage: __('Table conversion failed. Please try again.'),
+            resultKey: 'markdown',
+            onStart: () => setIsTableConverting(true),
+            onFinish: () => setIsTableConverting(false),
+        });
     };
 
     // ネストしたパスの場合、階層的なbreadcrumbsを生成
