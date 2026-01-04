@@ -22,6 +22,7 @@ class SitemapController extends Controller
 
         return Inertia::render('sitemap', [
             'tree' => $tree,
+            'canCreate' => true,
         ]);
     }
 

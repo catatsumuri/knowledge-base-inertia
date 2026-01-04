@@ -1,19 +1,24 @@
 import { show } from '@/actions/App/Http/Controllers/MarkdownController';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ChevronDown,
     ChevronRight,
     File,
     Folder,
     FolderOpen,
+    Plus,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,6 +35,7 @@ interface TreeNode {
 
 interface SitemapProps {
     tree: TreeNode[];
+    canCreate: boolean;
 }
 
 function TreeNodeComponent({
@@ -114,8 +120,17 @@ function TreeNodeComponent({
     );
 }
 
-export default function Sitemap({ tree }: SitemapProps) {
+export default function Sitemap({ tree, canCreate }: SitemapProps) {
     const { __ } = useLang();
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newSlug, setNewSlug] = useState('');
+
+    const handleCreateSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        if (newSlug.trim()) {
+            router.visit(`/markdown/${newSlug.trim()}`);
+        }
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -131,7 +146,65 @@ export default function Sitemap({ tree }: SitemapProps) {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{__('Sitemap')}</h1>
+                    <div className="flex gap-2">
+                        {canCreate && (
+                            <Button
+                                variant="outline"
+                                onClick={() =>
+                                    setShowCreateForm(!showCreateForm)
+                                }
+                            >
+                                <Plus className="h-4 w-4" />
+                                新規作成
+                            </Button>
+                        )}
+                    </div>
                 </div>
+
+                {canCreate && showCreateForm && (
+                    <Card className="p-4">
+                        <form
+                            onSubmit={handleCreateSubmit}
+                            className="space-y-4"
+                        >
+                            <div className="space-y-2">
+                                <Label htmlFor="slug">ページスラッグ</Label>
+                                <Input
+                                    id="slug"
+                                    type="text"
+                                    value={newSlug}
+                                    onChange={(event) =>
+                                        setNewSlug(event.target.value)
+                                    }
+                                    placeholder="例: getting-started, api/introduction"
+                                    autoFocus
+                                    className="font-mono"
+                                />
+                                <p className="text-sm text-muted-foreground">
+                                    URL: /markdown/{newSlug || '...'}
+                                </p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowCreateForm(false);
+                                        setNewSlug('');
+                                    }}
+                                >
+                                    キャンセル
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={!newSlug.trim()}
+                                >
+                                    作成
+                                </Button>
+                            </div>
+                        </form>
+                    </Card>
+                )}
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div className="space-y-1">

@@ -24,6 +24,7 @@ class SitemapControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('sitemap')
             ->has('tree')
+            ->where('canCreate', true)
         );
     }
 
