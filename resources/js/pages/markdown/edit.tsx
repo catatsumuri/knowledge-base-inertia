@@ -17,8 +17,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Form, Head, router, usePage } from '@inertiajs/react';
-import { Languages, LoaderCircle, Table2, Wand2 } from 'lucide-react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { History, Languages, LoaderCircle, Table2, Wand2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface MarkdownDocument {
@@ -367,9 +367,21 @@ export default function Edit({
             <Head title={document ? __('Edit') : __('Create')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <h1 className="text-2xl font-bold">
-                    {document ? __('Edit document') : __('Create new document')}
-                </h1>
+                <div className="flex items-center justify-between gap-3">
+                    <h1 className="text-2xl font-bold">
+                        {document
+                            ? __('Edit document')
+                            : __('Create new document')}
+                    </h1>
+                    {document && (
+                        <Button asChild variant="outline">
+                            <Link href={`/markdown/${document.slug}/revisions`}>
+                                <History className="h-4 w-4" />
+                                編集履歴
+                            </Link>
+                        </Button>
+                    )}
+                </div>
 
                 <Form
                     action={document ? update(document.slug) : store()}

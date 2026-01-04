@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\MarkdownDocument;
+use App\Models\MarkdownDocumentRevision;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -297,6 +298,94 @@ class MarkdownControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('markdown.show', $document->slug));
+    }
+
+    public function test_document_update_creates_revision(): void
+    {
+        $user = User::factory()->create();
+        $document = MarkdownDocument::factory()->create([
+            'title' => 'Original Title',
+            'content' => 'Original content',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->patch(route('markdown.update', $document->slug), [
+            'title' => 'Next Title',
+            'content' => 'Next content',
+        ]);
+
+        $this->assertDatabaseHas('markdown_document_revisions', [
+            'markdown_document_id' => $document->id,
+            'title' => 'Original Title',
+            'content' => 'Original content',
+            'edited_by' => $user->id,
+        ]);
+
+        $response->assertRedirect(route('markdown.show', $document->slug));
+    }
+
+    public function test_revision_list_page_can_be_rendered(): void
+    {
+        $user = User::factory()->create();
+        $document = MarkdownDocument::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        MarkdownDocumentRevision::factory()->create([
+            'markdown_document_id' => $document->id,
+            'edited_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('markdown.revisions', $document->slug));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/revisions')
+            ->has('document')
+            ->has('revisions', 1)
+            ->has('revisions.0.content')
+        );
+    }
+
+    public function test_revision_can_be_restored(): void
+    {
+        $user = User::factory()->create();
+        $document = MarkdownDocument::factory()->create([
+            'title' => 'Current Title',
+            'content' => 'Current content',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $revision = MarkdownDocumentRevision::factory()->create([
+            'markdown_document_id' => $document->id,
+            'title' => 'Previous Title',
+            'content' => 'Previous content',
+            'edited_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('markdown.restore', [
+            'document' => $document->slug,
+            'revision' => $revision->id,
+        ]));
+
+        $this->assertDatabaseHas('markdown_documents', [
+            'id' => $document->id,
+            'title' => 'Previous Title',
+            'content' => 'Previous content',
+            'updated_by' => $user->id,
+        ]);
+
+        $this->assertDatabaseHas('markdown_document_revisions', [
+            'markdown_document_id' => $document->id,
+            'title' => 'Current Title',
+            'content' => 'Current content',
+            'edited_by' => $user->id,
+        ]);
+
+        $response->assertRedirect(route('markdown.revisions', $document->slug));
     }
 
     public function test_guests_cannot_access_markdown_routes(): void

@@ -5,6 +5,7 @@
 - playwright MCPでログインが必要な場合で指示がなければ以下を利用してください。
   - email: `test@example.com`
   - password: `password`
+- view fileは resources/js/pages/**/*.tsx に配置してください
 
 
 <laravel-boost-guidelines>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MarkdownDocument extends Model
 {
@@ -46,5 +47,13 @@ class MarkdownDocument extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Get the revisions for this document.
+     */
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(MarkdownDocumentRevision::class, 'markdown_document_id');
     }
 }

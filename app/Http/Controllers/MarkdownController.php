@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MarkdownImageUploadRequest;
 use App\Http\Requests\MarkdownRequest;
+use App\Http\Requests\MarkdownRevisionRestoreRequest;
 use App\Http\Requests\MarkdownTranslateRequest;
 use App\Models\MarkdownDocument;
+use App\Models\MarkdownDocumentRevision;
 use App\Models\MarkdownImageUpload;
 use App\Models\ShoutLink;
 use App\Services\ImageMetadataService;
@@ -115,13 +117,79 @@ class MarkdownController extends Controller
     public function update(MarkdownRequest $request, string $slug): RedirectResponse
     {
         $document = MarkdownDocument::query()->where('slug', $slug)->firstOrFail();
+        $data = $request->validated();
+        $hasChanges = $document->title !== ($data['title'] ?? null)
+            || $document->content !== ($data['content'] ?? null);
+
+        if ($hasChanges) {
+            $document->revisions()->create([
+                'title' => $document->title,
+                'content' => $document->content,
+                'edited_by' => $request->user()->id,
+            ]);
+        }
 
         $document->update([
-            ...$request->validated(),
+            ...$data,
             'updated_by' => $request->user()->id,
         ]);
 
         return to_route('markdown.show', $document->slug);
+    }
+
+    /**
+     * Display the revision list for the specified document.
+     */
+    public function revisions(MarkdownDocument $document): Response
+    {
+        $revisions = $document->revisions()
+            ->with('editedBy')
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(fn (MarkdownDocumentRevision $revision) => [
+                'id' => $revision->id,
+                'title' => $revision->title,
+                'content' => $revision->content,
+                'created_at' => $revision->created_at->toISOString(),
+                'edited_by' => $revision->editedBy ? [
+                    'id' => $revision->editedBy->id,
+                    'name' => $revision->editedBy->name,
+                    'email' => $revision->editedBy->email,
+                ] : null,
+            ]);
+
+        return Inertia::render('markdown/revisions', [
+            'document' => [
+                'id' => $document->id,
+                'slug' => $document->slug,
+                'title' => $document->title,
+            ],
+            'revisions' => $revisions,
+        ]);
+    }
+
+    /**
+     * Restore a specific revision of the markdown document.
+     */
+    public function restore(
+        MarkdownRevisionRestoreRequest $request,
+        MarkdownDocument $document,
+        MarkdownDocumentRevision $revision
+    ): RedirectResponse {
+        $document->revisions()->create([
+            'title' => $document->title,
+            'content' => $document->content,
+            'edited_by' => $request->user()->id,
+        ]);
+
+        $document->update([
+            'title' => $revision->title,
+            'content' => $revision->content,
+            'updated_by' => $request->user()->id,
+        ]);
+
+        return to_route('markdown.revisions', $document->slug);
     }
 
     /**
