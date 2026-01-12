@@ -1,5 +1,5 @@
-import AppLogo from '@/components/app-logo';
 import { AppContent } from '@/components/app-content';
+import AppLogo from '@/components/app-logo';
 import { AppShell } from '@/components/app-shell';
 import { type BreadcrumbItem } from '@/types';
 import { Link } from '@inertiajs/react';

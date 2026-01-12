@@ -22,12 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
@@ -64,8 +59,9 @@ export default function HomePageEdit({
     const [content, setContent] = useState(document?.content ?? '');
     const [activeTab, setActiveTab] = useState('edit');
     const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-    const [selectedTemplate, setSelectedTemplate] =
-        useState<string | null>(null);
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(
+        null,
+    );
 
     const templateMap = Object.fromEntries(
         templates.map((template) => [template.key, template]),
@@ -108,9 +104,7 @@ export default function HomePageEdit({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head
-                title={
-                    document ? __('Edit home page') : __('Create home page')
-                }
+                title={document ? __('Edit home page') : __('Create home page')}
             />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <HeadingSmall
@@ -157,7 +151,9 @@ export default function HomePageEdit({
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                disabled={templates.length === 0}
+                                                disabled={
+                                                    templates.length === 0
+                                                }
                                             >
                                                 <FileText className="h-4 w-4" />
                                                 {__('Insert template')}

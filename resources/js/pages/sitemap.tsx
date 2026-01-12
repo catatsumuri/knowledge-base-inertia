@@ -483,10 +483,9 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                                             {__(
                                                 'Change status of selected pages to {status}.',
                                                 {
-                                                    status:
-                                                        statusLabels[
-                                                            selectedStatus
-                                                        ],
+                                                    status: statusLabels[
+                                                        selectedStatus
+                                                    ],
                                                 },
                                             )}
                                         </DialogDescription>
