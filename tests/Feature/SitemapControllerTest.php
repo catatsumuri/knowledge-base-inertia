@@ -47,7 +47,7 @@ class SitemapControllerTest extends TestCase
         MarkdownDocument::factory()->create([
             'slug' => 'index',
             'title' => 'Home',
-            'draft' => true,
+            'status' => 'draft',
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -55,7 +55,7 @@ class SitemapControllerTest extends TestCase
         MarkdownDocument::factory()->create([
             'slug' => 'about',
             'title' => 'About',
-            'draft' => false,
+            'status' => 'published',
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -68,11 +68,11 @@ class SitemapControllerTest extends TestCase
             ->where('tree.0.type', 'document')
             ->where('tree.0.slug', 'about')
             ->where('tree.0.title', 'About')
-            ->where('tree.0.draft', false)
+            ->where('tree.0.status', 'published')
             ->where('tree.1.type', 'document')
             ->where('tree.1.slug', 'index')
             ->where('tree.1.title', 'Home')
-            ->where('tree.1.draft', true)
+            ->where('tree.1.status', 'draft')
         );
     }
 

@@ -8,6 +8,16 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLang } from '@/hooks/useLang';
@@ -21,6 +31,7 @@ import {
     Folder,
     FolderOpen,
     Plus,
+    Trash2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -28,7 +39,7 @@ interface TreeNode {
     type: 'folder' | 'document';
     slug: string;
     title: string;
-    draft?: boolean;
+    status?: 'draft' | 'private' | 'published';
     updated_at?: string;
     updated_by?: {
         name: string;
@@ -90,7 +101,7 @@ function TreeNodeComponent({
                         >
                             {node.title}
                         </Link>
-                        {node.draft && (
+                        {node.status === 'draft' && (
                             <Badge
                                 variant="secondary"
                                 className="border-amber-200/70 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100"
@@ -168,6 +179,7 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
         () => new Set(),
     );
     const [csrfToken, setCsrfToken] = useState('');
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const handleCreateSubmit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -246,8 +258,8 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                             onClick={toggleSelection}
                         >
                             {selectionEnabled
-                                ? __('Selection on')
-                                : __('Selection off')}
+                                ? __('Exit selection mode')
+                                : __('Enter selection mode')}
                         </Button>
                         {selectionEnabled && (
                             <>
@@ -273,7 +285,7 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                                 }
                             >
                                 <Plus className="h-4 w-4" />
-                                新規作成
+                                {__('Create new document')}
                             </Button>
                         )}
                     </div>
@@ -286,7 +298,7 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                             className="space-y-4"
                         >
                             <div className="space-y-2">
-                                <Label htmlFor="slug">ページスラッグ</Label>
+                                <Label htmlFor="slug">{__('Slug')}</Label>
                                 <Input
                                     id="slug"
                                     type="text"
@@ -294,12 +306,16 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                                     onChange={(event) =>
                                         setNewSlug(event.target.value)
                                     }
-                                    placeholder="例: getting-started, api/introduction"
+                                    placeholder={__(
+                                        'Example: getting-started, api/introduction',
+                                    )}
                                     autoFocus
                                     className="font-mono"
                                 />
                                 <p className="text-sm text-muted-foreground">
-                                    URL: /markdown/{newSlug || '...'}
+                                    {__('URL: /markdown/{slug}', {
+                                        slug: newSlug || '...',
+                                    })}
                                 </p>
                             </div>
                             <div className="flex gap-2">
@@ -311,13 +327,13 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                                         setNewSlug('');
                                     }}
                                 >
-                                    キャンセル
+                                    {__('Cancel')}
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={!newSlug.trim()}
                                 >
-                                    作成
+                                    {__('Create')}
                                 </Button>
                             </div>
                         </form>
@@ -350,32 +366,97 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                         <div className="text-sm text-muted-foreground">
                             {__('Selected pages')}: {selectedList.length}
                         </div>
-                        <form
-                            method="post"
-                            action="/markdown/export"
-                            className="flex items-center justify-end gap-2"
-                        >
-                            <input
-                                type="hidden"
-                                name="_token"
-                                value={csrfToken}
-                            />
-                            {selectedList.map((slug) => (
-                                <input
-                                    key={slug}
-                                    type="hidden"
-                                    name="slugs[]"
-                                    value={slug}
-                                />
-                            ))}
-                            <Button
-                                type="submit"
-                                variant="outline"
-                                disabled={selectedList.length === 0}
+                        <div className="flex items-center justify-end gap-2">
+                            <form
+                                method="post"
+                                action="/markdown/export"
+                                className="flex items-center"
                             >
-                                {__('Export selected')}
-                            </Button>
-                        </form>
+                                <input
+                                    type="hidden"
+                                    name="_token"
+                                    value={csrfToken}
+                                />
+                                {selectedList.map((slug) => (
+                                    <input
+                                        key={`export-${slug}`}
+                                        type="hidden"
+                                        name="slugs[]"
+                                        value={slug}
+                                    />
+                                ))}
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    disabled={selectedList.length === 0}
+                                >
+                                    {__('Export selected')}
+                                </Button>
+                            </form>
+                            <Dialog
+                                open={isDeleteDialogOpen}
+                                onOpenChange={setIsDeleteDialogOpen}
+                            >
+                                <DialogTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        disabled={selectedList.length === 0}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        {__('Delete selected')}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            {__('Delete selected pages')}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            {__(
+                                                'This action cannot be undone.',
+                                            )}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter className="gap-2">
+                                        <DialogClose asChild>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                            >
+                                                {__('Cancel')}
+                                            </Button>
+                                        </DialogClose>
+                                        <form
+                                            id="bulk-delete-form"
+                                            method="post"
+                                            action="/markdown/delete"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="_token"
+                                                value={csrfToken}
+                                            />
+                                            {selectedList.map((slug) => (
+                                                <input
+                                                    key={`delete-${slug}`}
+                                                    type="hidden"
+                                                    name="slugs[]"
+                                                    value={slug}
+                                                />
+                                            ))}
+                                        </form>
+                                        <Button
+                                            type="submit"
+                                            form="bulk-delete-form"
+                                            variant="destructive"
+                                        >
+                                            {__('Delete')}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </div>
                 )}
             </div>

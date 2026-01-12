@@ -10,7 +10,7 @@ import { Head, Link } from '@inertiajs/react';
 interface RecentDocument {
     slug: string;
     title: string;
-    draft: boolean;
+    status: 'draft' | 'private' | 'published';
     updated_at: string | null;
     updated_by?: {
         name: string;
@@ -60,7 +60,8 @@ export default function Dashboard({
                                                 >
                                                     {document.title}
                                                 </Link>
-                                                {document.draft && (
+                                                {document.status ===
+                                                    'draft' && (
                                                     <Badge
                                                         variant="secondary"
                                                         className="border-amber-200/70 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100"

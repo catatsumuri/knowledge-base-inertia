@@ -1,3 +1,4 @@
+import { index as appSettingsIndex } from '@/actions/App/Http/Controllers/AppSettingsController';
 import { index as markdownIndex } from '@/actions/App/Http/Controllers/MarkdownController';
 import { index as shoutboxIndex } from '@/actions/App/Http/Controllers/ShoutboxController';
 import { index as sitemapIndex } from '@/actions/App/Http/Controllers/SitemapController';
@@ -37,6 +38,7 @@ import {
     MessageSquare,
     Network,
     Search,
+    Settings,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
@@ -73,6 +75,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             title: __('Sitemap'),
             href: sitemapIndex(),
             icon: Network,
+        },
+        {
+            title: __('App Settings'),
+            href: appSettingsIndex(),
+            icon: Settings,
         },
     ];
 

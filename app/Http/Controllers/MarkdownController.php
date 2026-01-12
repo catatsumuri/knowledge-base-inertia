@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MarkdownBulkDeleteRequest;
 use App\Http\Requests\MarkdownExportRequest;
 use App\Http\Requests\MarkdownImageUploadRequest;
+use App\Http\Requests\MarkdownImportRequest;
 use App\Http\Requests\MarkdownRequest;
 use App\Http\Requests\MarkdownRevisionRestoreRequest;
 use App\Http\Requests\MarkdownTranslateRequest;
@@ -18,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use OpenAI\Laravel\Facades\OpenAI;
@@ -29,9 +32,18 @@ class MarkdownController extends Controller
     /**
      * Display the index markdown document.
      */
-    public function index(): Response
+    public function index(): Response|RedirectResponse
     {
-        return $this->show('index');
+        $document = MarkdownDocument::query()->where('slug', 'index')->first();
+
+        if ($document) {
+            return redirect()->route('markdown.show', 'index');
+        }
+
+        return Inertia::render('markdown/edit', [
+            'document' => null,
+            'isIndexDocument' => true,
+        ]);
     }
 
     /**
@@ -54,9 +66,10 @@ class MarkdownController extends Controller
 
         $data = $request->validated();
 
-        // indexドキュメントが存在せず、slugがindexの場合のみ強制
-        if (! $indexExists && ($data['slug'] ?? null) === 'index') {
+        // indexドキュメントが存在せず、slugが提供されていない場合は自動的にindexドキュメントとして作成
+        if (! $indexExists && empty($data['slug'])) {
             $data['slug'] = 'index';
+            $data['title'] = 'Top page';
         }
 
         $document = MarkdownDocument::query()->create([
@@ -69,17 +82,59 @@ class MarkdownController extends Controller
     }
 
     /**
+     * Import a markdown document from an uploaded file.
+     */
+    public function import(MarkdownImportRequest $request): RedirectResponse
+    {
+        $file = $request->file('markdown');
+        $contents = $file->get();
+        $contents = preg_replace('/^\xEF\xBB\xBF/', '', $contents ?? '') ?? '';
+
+        [$frontMatter, $body] = $this->extractFrontMatter($contents);
+
+        $slug = $this->resolveImportSlug($frontMatter, $file->getClientOriginalName());
+
+        if (MarkdownDocument::query()->where('slug', $slug)->exists()) {
+            throw ValidationException::withMessages([
+                'markdown' => __('A document with this slug already exists.'),
+            ]);
+        }
+
+        $status = $this->resolveImportStatus($frontMatter);
+        $title = $this->resolveImportTitle($frontMatter, $slug);
+
+        $document = MarkdownDocument::query()->create([
+            'slug' => $slug,
+            'title' => $title,
+            'content' => $body === '' ? null : $body,
+            'status' => $status,
+            'created_by' => $request->user()->id,
+            'updated_by' => $request->user()->id,
+        ]);
+
+        return to_route('markdown.show', $document->slug);
+    }
+
+    /**
      * Display the specified markdown document or show create form if not exists.
      */
-    public function show(string $slug): Response
+    public function show(Request $request, string $slug): Response
     {
+        $hasTrailingSlash = $request->attributes->get('has_trailing_slash', false);
+        $slug = trim($slug, '/');
         $document = $this->resolveDocumentBySlug($slug);
 
         if (! $document) {
+            $formSlug = $slug;
+
+            if ($hasTrailingSlash && $slug !== '' && $slug !== 'index') {
+                $formSlug = $slug.'/index';
+            }
+
             return Inertia::render('markdown/edit', [
                 'document' => null,
                 'isIndexDocument' => $slug === 'index',
-                'slug' => $slug,
+                'slug' => $formSlug,
             ]);
         }
 
@@ -178,6 +233,20 @@ class MarkdownController extends Controller
             $filename,
             ['Content-Type' => 'application/zip']
         );
+    }
+
+    /**
+     * Delete multiple markdown documents.
+     */
+    public function destroyBulk(MarkdownBulkDeleteRequest $request): RedirectResponse
+    {
+        $slugs = $request->validated()['slugs'];
+
+        MarkdownDocument::query()
+            ->whereIn('slug', $slugs)
+            ->delete();
+
+        return to_route('sitemap');
     }
 
     /**
@@ -560,11 +629,13 @@ Output:
      */
     private function resolveDocumentBySlug(string $slug): ?MarkdownDocument
     {
-        $document = MarkdownDocument::query()->where('slug', $slug)->first();
+        $normalizedSlug = trim($slug, '/');
+
+        $document = MarkdownDocument::query()->where('slug', $normalizedSlug)->first();
 
         if (! $document) {
             $document = MarkdownDocument::query()
-                ->where('slug', $slug.'/index')
+                ->where('slug', $normalizedSlug.'/index')
                 ->first();
         }
 
@@ -579,7 +650,7 @@ Output:
         $lines = [
             'title: '.$this->yamlString($document->title ?? ''),
             'slug: '.$this->yamlString($document->slug),
-            'draft: '.($document->draft ? 'true' : 'false'),
+            'status: '.$this->yamlString($document->status ?? 'draft'),
             'created_at: '.$this->yamlString($document->created_at?->toISOString() ?? ''),
             'updated_at: '.$this->yamlString($document->updated_at?->toISOString() ?? ''),
             'created_by_id: '.(string) ($document->created_by ?? ''),
@@ -604,6 +675,106 @@ Output:
         $body = $document->content ?? '';
 
         return $frontMatter.$body."\n";
+    }
+
+    /**
+     * Extract front matter (if present) and return parsed data and body.
+     *
+     * @return array{0: array<string, mixed>, 1: string}
+     */
+    private function extractFrontMatter(string $contents): array
+    {
+        if (! preg_match('/\A---\R(.*?)\R---\R?/s', $contents, $matches)) {
+            return [[], $contents];
+        }
+
+        $frontMatter = $this->parseFrontMatterLines($matches[1]);
+        $body = substr($contents, strlen($matches[0]));
+        $body = ltrim($body, "\r\n");
+
+        return [$frontMatter, $body];
+    }
+
+    /**
+     * Parse front matter lines into key/value pairs.
+     *
+     * @return array<string, mixed>
+     */
+    private function parseFrontMatterLines(string $frontMatter): array
+    {
+        $data = [];
+
+        foreach (preg_split('/\R/', $frontMatter) as $line) {
+            $line = trim((string) $line);
+
+            if ($line === '' || ! str_contains($line, ':')) {
+                continue;
+            }
+
+            [$key, $value] = explode(':', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+
+            if ($key === '') {
+                continue;
+            }
+
+            if ($value === '') {
+                $data[$key] = '';
+
+                continue;
+            }
+
+            $decoded = json_decode($value, true);
+
+            $data[$key] = json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Resolve slug for imported markdown.
+     */
+    private function resolveImportSlug(array $frontMatter, string $originalName): string
+    {
+        $slug = $frontMatter['slug'] ?? pathinfo($originalName, PATHINFO_FILENAME);
+        $slug = is_string($slug) ? trim($slug) : '';
+        $slug = ltrim($slug, '/');
+
+        if ($slug === '') {
+            throw ValidationException::withMessages([
+                'markdown' => __('Slug is required in front matter or filename.'),
+            ]);
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Resolve status for imported markdown.
+     */
+    private function resolveImportStatus(array $frontMatter): string
+    {
+        $status = $frontMatter['status'] ?? 'draft';
+
+        if (! is_string($status)) {
+            return 'draft';
+        }
+
+        return in_array($status, ['draft', 'private', 'published'], true)
+            ? $status
+            : 'draft';
+    }
+
+    /**
+     * Resolve title for imported markdown.
+     */
+    private function resolveImportTitle(array $frontMatter, string $slug): string
+    {
+        $title = $frontMatter['title'] ?? $slug;
+
+        return is_string($title) && $title !== '' ? $title : $slug;
     }
 
     /**

@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\AppSettingsController;
 use App\Models\MarkdownDocument;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    if (! config('app.public_views') && ! auth()->check()) {
+        return redirect()->route('login');
+    }
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
@@ -21,7 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->map(fn (MarkdownDocument $document) => [
                 'slug' => $document->slug,
                 'title' => $document->title,
-                'draft' => $document->draft,
+                'status' => $document->status,
                 'updated_at' => $document->updated_at?->toISOString(),
                 'updated_by' => $document->updatedBy ? [
                     'name' => $document->updatedBy->name,
@@ -33,6 +38,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     })->name('dashboard');
 
+    Route::get('app-settings', [AppSettingsController::class, 'index'])
+        ->name('app-settings');
+    Route::get('app-settings/markdown/export', [AppSettingsController::class, 'exportMarkdown'])
+        ->name('app-settings.markdown-export');
+    Route::post('app-settings/markdown/import/preview', [AppSettingsController::class, 'previewZipImport'])
+        ->name('app-settings.markdown-import-preview');
+    Route::post('app-settings/markdown/import/execute', [AppSettingsController::class, 'executeZipImport'])
+        ->name('app-settings.markdown-import-execute');
+    Route::post('app-settings/markdown/import/cancel', [AppSettingsController::class, 'cancelZipImport'])
+        ->name('app-settings.markdown-import-cancel');
+
     Route::get('sitemap', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
     Route::get('shoutbox', [\App\Http\Controllers\ShoutboxController::class, 'index'])->name('shoutbox.index');
@@ -43,6 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('markdown', [\App\Http\Controllers\MarkdownController::class, 'index'])->name('markdown.index');
     Route::get('markdown/create', [\App\Http\Controllers\MarkdownController::class, 'create'])->name('markdown.create');
     Route::post('markdown', [\App\Http\Controllers\MarkdownController::class, 'store'])->name('markdown.store');
+    Route::post('markdown/import', [\App\Http\Controllers\MarkdownController::class, 'import'])->name('markdown.import');
     Route::post('markdown/upload-image', [\App\Http\Controllers\MarkdownController::class, 'uploadImage'])->name('markdown.upload-image');
     Route::get('api/markdown/search', [\App\Http\Controllers\MarkdownController::class, 'search'])->name('markdown.search');
     Route::post('api/markdown/translate', [\App\Http\Controllers\MarkdownController::class, 'translate'])->name('markdown.translate');
@@ -51,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('markdown/{document:slug}/revisions', [\App\Http\Controllers\MarkdownController::class, 'revisions'])->name('markdown.revisions');
     Route::post('markdown/{document:slug}/revisions/{revision}/restore', [\App\Http\Controllers\MarkdownController::class, 'restore'])->name('markdown.restore');
     Route::post('markdown/export', [\App\Http\Controllers\MarkdownController::class, 'exportBulk'])->name('markdown.export-bulk');
+    Route::post('markdown/delete', [\App\Http\Controllers\MarkdownController::class, 'destroyBulk'])->name('markdown.destroy-bulk');
     Route::get('markdown/{slug}/export', [\App\Http\Controllers\MarkdownController::class, 'export'])->where('slug', '.*')->name('markdown.export');
     Route::get('markdown/{slug}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->where('slug', '.*')->name('markdown.edit');
     Route::patch('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'update'])->where('slug', '.*')->name('markdown.update');

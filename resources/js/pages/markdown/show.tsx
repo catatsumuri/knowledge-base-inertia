@@ -41,6 +41,7 @@ import {
     Pencil,
     Plus,
     Trash2,
+    Upload,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -49,7 +50,7 @@ interface MarkdownDocument {
     slug: string;
     title: string;
     content: string | null;
-    draft: boolean;
+    status: 'draft' | 'private' | 'published';
     created_by: number;
     updated_by: number;
     created_at: string;
@@ -103,6 +104,7 @@ export default function Show({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newSlug, setNewSlug] = useState('');
+    const importInputRef = useRef<HTMLInputElement>(null);
     const tocWrapperRef = useRef<HTMLDivElement>(null);
     const tocOffsetTopRef = useRef(0);
     const [isMobile, setIsMobile] = useState(false);
@@ -256,7 +258,7 @@ export default function Show({
     const contentBody = (
         <div
             ref={contentRef}
-            className="prose prose-sm max-w-[900px] min-w-0 flex-1 rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert"
+            className="prose prose-sm w-full max-w-[900px] min-w-0 rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert"
         >
             {document.content ? (
                 <MarkdownViewer content={document.content} />
@@ -276,7 +278,7 @@ export default function Show({
                         <h1 className="text-2xl font-bold">
                             {document.title || '新規ページ'}
                         </h1>
-                        {document.draft && (
+                        {document.status === 'draft' && (
                             <Badge variant="secondary">{__('Draft')}</Badge>
                         )}
                     </div>
@@ -300,6 +302,44 @@ export default function Show({
                                         {__('Edit')}
                                     </Link>
                                 </Button>
+
+                                <div>
+                                    <input
+                                        ref={importInputRef}
+                                        type="file"
+                                        accept=".md,text/markdown,text/plain"
+                                        className="hidden"
+                                        onChange={(event) => {
+                                            const file =
+                                                event.target.files?.[0];
+
+                                            if (!file) {
+                                                return;
+                                            }
+
+                                            router.post(
+                                                '/markdown/import',
+                                                {
+                                                    markdown: file,
+                                                },
+                                                {
+                                                    onFinish: () => {
+                                                        event.target.value = '';
+                                                    },
+                                                },
+                                            );
+                                        }}
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        onClick={() =>
+                                            importInputRef.current?.click()
+                                        }
+                                    >
+                                        <Upload className="h-4 w-4" />
+                                        {__('Import')}
+                                    </Button>
+                                </div>
 
                                 <Dialog
                                     open={isDeleteDialogOpen}
@@ -414,7 +454,7 @@ export default function Show({
                     </Card>
                 )}
 
-                {document.draft && (
+                {document.status === 'draft' && (
                     <Alert className="border-amber-200/70 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100">
                         <AlertTriangle />
                         <AlertTitle>{__('Draft')}</AlertTitle>
@@ -448,7 +488,7 @@ export default function Show({
 
                     <div
                         className={cn(
-                            'order-2 lg:order-1',
+                            'order-2 min-w-0 flex-1 lg:order-1',
                             isMobile && isTocFloating ? 'pt-14' : '',
                         )}
                     >

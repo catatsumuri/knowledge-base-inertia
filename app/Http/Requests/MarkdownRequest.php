@@ -27,10 +27,10 @@ class MarkdownRequest extends FormRequest
             $payload['slug'] = ltrim($this->slug, '/');
         }
 
-        if ($this->has('draft')) {
-            $payload['draft'] = $this->boolean('draft');
+        if ($this->has('status')) {
+            $payload['status'] = $this->input('status');
         } elseif ($this->isMethod('post')) {
-            $payload['draft'] = true;
+            $payload['status'] = 'draft';
         }
 
         if ($payload !== []) {
@@ -91,7 +91,7 @@ class MarkdownRequest extends FormRequest
                 'max:255',
             ],
             'content' => ['nullable', 'string'],
-            'draft' => ['nullable', 'boolean'],
+            'status' => ['nullable', 'string', Rule::in(['draft', 'private', 'published'])],
         ];
     }
 }

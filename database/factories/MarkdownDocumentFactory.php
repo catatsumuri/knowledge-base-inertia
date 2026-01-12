@@ -20,7 +20,7 @@ class MarkdownDocumentFactory extends Factory
             'slug' => fake()->unique()->slug(),
             'title' => fake()->sentence(),
             'content' => fake()->paragraphs(3, true),
-            'draft' => true,
+            'status' => 'draft',
             'created_by' => \App\Models\User::factory(),
             'updated_by' => \App\Models\User::factory(),
         ];

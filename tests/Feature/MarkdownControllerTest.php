@@ -71,7 +71,7 @@ class MarkdownControllerTest extends TestCase
             'slug' => 'index',
             'title' => 'Top page',
             'content' => '# Hello World',
-            'draft' => true,
+            'status' => 'draft',
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -102,7 +102,7 @@ class MarkdownControllerTest extends TestCase
             'slug' => 'test-document',
             'title' => 'Test Document',
             'content' => '# Hello World',
-            'draft' => true,
+            'status' => 'draft',
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -125,7 +125,7 @@ class MarkdownControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('markdown/show')
             ->has('document')
-            ->where('document.draft', true)
+            ->where('document.status', 'draft')
             ->where('canCreate', true)
         );
     }
@@ -163,6 +163,24 @@ class MarkdownControllerTest extends TestCase
         );
     }
 
+    public function test_nested_index_document_is_rendered_when_trailing_slash_is_provided(): void
+    {
+        $user = User::factory()->create();
+        $document = MarkdownDocument::factory()->create([
+            'slug' => 'core-concepts/index',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get('/markdown/core-concepts/');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/show')
+            ->where('document.slug', $document->slug)
+        );
+    }
+
     public function test_nested_slug_document_can_be_created(): void
     {
         $user = User::factory()->create();
@@ -185,7 +203,7 @@ class MarkdownControllerTest extends TestCase
             'slug' => 'category/subcategory/page',
             'title' => 'Nested Page',
             'content' => '# Nested content',
-            'draft' => true,
+            'status' => 'draft',
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -346,7 +364,7 @@ class MarkdownControllerTest extends TestCase
         $data = [
             'title' => 'Updated Title',
             'content' => 'Updated content',
-            'draft' => false,
+            'status' => 'published',
         ];
 
         $response = $this->actingAs($user)->patch(route('markdown.update', $document->slug), $data);
@@ -355,7 +373,7 @@ class MarkdownControllerTest extends TestCase
             'id' => $document->id,
             'title' => 'Updated Title',
             'content' => 'Updated content',
-            'draft' => false,
+            'status' => 'published',
             'updated_by' => $user->id,
         ]);
 
@@ -398,7 +416,7 @@ class MarkdownControllerTest extends TestCase
             'slug' => 'welcome',
             'title' => 'Welcome',
             'content' => '# Hello',
-            'draft' => true,
+            'status' => 'draft',
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -414,13 +432,42 @@ class MarkdownControllerTest extends TestCase
         $this->assertStringContainsString("---\n", $content);
         $this->assertStringContainsString('title: "Welcome"', $content);
         $this->assertStringContainsString('slug: "welcome"', $content);
-        $this->assertStringContainsString('draft: true', $content);
+        $this->assertStringContainsString('status: "draft"', $content);
         $this->assertStringContainsString('created_by_id: '.$user->id, $content);
         $this->assertStringContainsString('updated_by_id: '.$user->id, $content);
         $this->assertStringContainsString('created_by:', $content);
         $this->assertStringContainsString('  name: "Exporter"', $content);
         $this->assertStringContainsString('  email: "exporter@example.com"', $content);
         $this->assertStringContainsString("# Hello\n", $content);
+    }
+
+    public function test_markdown_document_can_be_imported(): void
+    {
+        $user = User::factory()->create();
+
+        $contents = "---\n".
+            "title: \"Imported\"\n".
+            "slug: \"imports/welcome\"\n".
+            "status: \"private\"\n".
+            "---\n\n".
+            "# Hello\n";
+
+        $file = UploadedFile::fake()->createWithContent('welcome.md', $contents);
+
+        $response = $this->actingAs($user)->post(route('markdown.import'), [
+            'markdown' => $file,
+        ]);
+
+        $response->assertRedirect(route('markdown.show', 'imports/welcome'));
+
+        $this->assertDatabaseHas('markdown_documents', [
+            'slug' => 'imports/welcome',
+            'title' => 'Imported',
+            'status' => 'private',
+            'content' => "# Hello\n",
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
     }
 
     public function test_multiple_documents_can_be_exported_as_zip(): void
@@ -453,6 +500,28 @@ class MarkdownControllerTest extends TestCase
         $content = $response->streamedContent();
 
         $this->assertStringStartsWith('PK', $content);
+    }
+
+    public function test_export_uses_document_status(): void
+    {
+        $user = User::factory()->create();
+
+        $document = MarkdownDocument::factory()->create([
+            'slug' => 'public-doc',
+            'title' => 'Public Doc',
+            'content' => '# Public',
+            'status' => 'published',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('markdown.export', $document->slug));
+
+        $response->assertOk();
+
+        $content = $response->streamedContent();
+
+        $this->assertStringContainsString('status: "published"', $content);
     }
 
     public function test_revision_list_page_can_be_rendered(): void
@@ -622,6 +691,52 @@ class MarkdownControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('markdown.index'));
+    }
+
+    public function test_documents_can_be_deleted_in_bulk(): void
+    {
+        $user = User::factory()->create();
+
+        $first = MarkdownDocument::factory()->create([
+            'slug' => 'bulk-one',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $second = MarkdownDocument::factory()->create([
+            'slug' => 'bulk-two',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('markdown.destroy-bulk'), [
+            'slugs' => [$first->slug, $second->slug],
+        ]);
+
+        $this->assertDatabaseMissing('markdown_documents', [
+            'id' => $first->id,
+        ]);
+
+        $this->assertDatabaseMissing('markdown_documents', [
+            'id' => $second->id,
+        ]);
+
+        $response->assertRedirect(route('sitemap'));
+    }
+
+    public function test_guests_cannot_bulk_delete_documents(): void
+    {
+        $document = MarkdownDocument::factory()->create();
+
+        $response = $this->post(route('markdown.destroy-bulk'), [
+            'slugs' => [$document->slug],
+        ]);
+
+        $this->assertDatabaseHas('markdown_documents', [
+            'id' => $document->id,
+        ]);
+
+        $response->assertRedirect(route('login'));
     }
 
     public function test_guests_cannot_delete_documents(): void

@@ -26,7 +26,7 @@ interface MarkdownDocument {
     slug: string;
     title: string;
     content: string | null;
-    draft: boolean;
+    status: 'draft' | 'private' | 'published';
     created_by: number;
     updated_by: number;
     created_at: string;
@@ -44,6 +44,9 @@ export default function Edit({
 }) {
     const { __ } = useLang();
     const [content, setContent] = useState(document?.content ?? '');
+    const [status, setStatus] = useState<'draft' | 'private' | 'published'>(
+        document?.status ?? 'draft',
+    );
     const [activeTab, setActiveTab] = useState('edit');
     const [isTranslating, setIsTranslating] = useState(false);
     const [isConverting, setIsConverting] = useState(false);
@@ -401,7 +404,9 @@ export default function Edit({
                                         defaultValue={
                                             slug ??
                                             document?.slug ??
-                                            (isIndexDocument ? 'index' : '')
+                                            (isIndexDocument
+                                                ? 'index'
+                                                : 'core-concepts/index')
                                         }
                                         readOnly={isIndexDocument}
                                         className={
@@ -437,17 +442,27 @@ export default function Edit({
                                 )}
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <input type="hidden" name="draft" value="0" />
-                                <input
-                                    id="draft"
-                                    name="draft"
-                                    type="checkbox"
-                                    value="1"
-                                    defaultChecked={document?.draft ?? true}
-                                    className="h-4 w-4 rounded border-input text-primary shadow-sm focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                                />
-                                <Label htmlFor="draft">{__('Draft')}</Label>
+                            <div className="grid gap-2">
+                                <Label htmlFor="status">{__('Status')}</Label>
+                                <select
+                                    id="status"
+                                    name="status"
+                                    value={status}
+                                    onChange={(event) =>
+                                        setStatus(
+                                            event.target.value as typeof status,
+                                        )
+                                    }
+                                    className="h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                                >
+                                    <option value="draft">{__('Draft')}</option>
+                                    <option value="private">
+                                        {__('Private')}
+                                    </option>
+                                    <option value="published">
+                                        {__('Published')}
+                                    </option>
+                                </select>
                             </div>
 
                             <div className="grid gap-2">

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('parent_id')->nullable()->constrained('shouts')->onDelete('cascade');
             $table->text('content')->nullable();
             $table->json('images')->nullable();
+            $table->json('image_metadata')->nullable();
             $table->timestamps();
         });
 

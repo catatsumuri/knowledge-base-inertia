@@ -21,22 +21,10 @@ class MarkdownDocument extends Model
         'slug',
         'title',
         'content',
-        'draft',
+        'status',
         'created_by',
         'updated_by',
     ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'draft' => 'boolean',
-        ];
-    }
 
     /**
      * Get the route key for the model.

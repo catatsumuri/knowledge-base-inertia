@@ -61,7 +61,7 @@ class SitemapController extends Controller
                 'type' => 'document',
                 'slug' => $document->slug,
                 'title' => $document->title,
-                'draft' => $document->draft,
+                'status' => $document->status,
                 'updated_at' => $document->updated_at->toISOString(),
                 'updated_by' => $document->updatedBy ? [
                     'name' => $document->updatedBy->name,
