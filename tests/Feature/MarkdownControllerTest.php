@@ -724,6 +724,44 @@ class MarkdownControllerTest extends TestCase
         $response->assertRedirect(route('sitemap'));
     }
 
+    public function test_documents_can_be_updated_in_bulk_status(): void
+    {
+        $user = User::factory()->create();
+
+        $first = MarkdownDocument::factory()->create([
+            'slug' => 'bulk-status-one',
+            'status' => 'draft',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $second = MarkdownDocument::factory()->create([
+            'slug' => 'bulk-status-two',
+            'status' => 'draft',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('markdown.status-bulk'), [
+            'slugs' => [$first->slug, $second->slug],
+            'status' => 'published',
+        ]);
+
+        $this->assertDatabaseHas('markdown_documents', [
+            'id' => $first->id,
+            'status' => 'published',
+            'updated_by' => $user->id,
+        ]);
+
+        $this->assertDatabaseHas('markdown_documents', [
+            'id' => $second->id,
+            'status' => 'published',
+            'updated_by' => $user->id,
+        ]);
+
+        $response->assertRedirect(route('sitemap'));
+    }
+
     public function test_guests_cannot_bulk_delete_documents(): void
     {
         $document = MarkdownDocument::factory()->create();

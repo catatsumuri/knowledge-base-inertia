@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label';
 import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
+import PublicLayout from '@/layouts/public-layout';
 import { parseToc, type TocNode } from '@/lib/parse-toc';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type User } from '@/types';
@@ -89,10 +90,14 @@ export default function Show({
     document,
     relatedShouts,
     canCreate,
+    isPublic = false,
+    isHomePage = false,
 }: {
     document: MarkdownDocument;
     relatedShouts: Shout[];
     canCreate: boolean;
+    isPublic?: boolean;
+    isHomePage?: boolean;
 }) {
     const { __ } = useLang();
     const getInitials = useInitials();
@@ -109,6 +114,8 @@ export default function Show({
     const tocOffsetTopRef = useRef(0);
     const [isMobile, setIsMobile] = useState(false);
     const [isTocFloating, setIsTocFloating] = useState(false);
+    const isPublicView = Boolean(isPublic);
+    const canManage = canCreate && !isPublicView;
 
     useEffect(() => {
         if (contentRef.current && document.content) {
@@ -206,7 +213,7 @@ export default function Show({
         return breadcrumbs;
     };
 
-    const breadcrumbs = generateBreadcrumbs();
+    const breadcrumbs = isPublicView || isHomePage ? [] : generateBreadcrumbs();
 
     const handleCreateSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -232,6 +239,8 @@ export default function Show({
         );
     };
 
+    const mentionBasePath = isPublicView ? '/pages' : '/markdown';
+
     const renderContentWithLinks = (content: string) => {
         if (!content) return null;
 
@@ -244,7 +253,7 @@ export default function Show({
                 return (
                     <Link
                         key={index}
-                        href={`/markdown/${slug}`}
+                        href={`${mentionBasePath}/${slug}`}
                         className="font-medium text-primary hover:underline"
                     >
                         {part}
@@ -268,8 +277,10 @@ export default function Show({
         </div>
     );
 
+    const Layout = isPublicView ? PublicLayout : AppLayout;
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <Layout breadcrumbs={breadcrumbs}>
             <Head title={document.title} />
 
             <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
@@ -283,7 +294,7 @@ export default function Show({
                         )}
                     </div>
                     <div className="flex gap-2">
-                        {canCreate && (
+                        {canManage && (
                             <Button
                                 variant="outline"
                                 onClick={() =>
@@ -294,7 +305,7 @@ export default function Show({
                                 新規作成
                             </Button>
                         )}
-                        {document.id && (
+                        {canManage && document.id && (
                             <>
                                 <Button asChild>
                                     <Link href={edit(document.slug).url}>
@@ -411,7 +422,7 @@ export default function Show({
                 </div>
 
                 {/* 新規作成フォーム */}
-                {canCreate && showCreateForm && (
+                {canManage && showCreateForm && (
                     <Card className="p-4">
                         <form
                             onSubmit={handleCreateSubmit}
@@ -496,7 +507,7 @@ export default function Show({
                     </div>
                 </div>
 
-                {document.updated_by && (
+                {!isPublicView && document.updated_by && (
                     <div className="text-sm text-muted-foreground">
                         {__('Last updated by')}: {document.updated_by.name}
                     </div>
@@ -704,14 +715,16 @@ export default function Show({
                     </div>
                 )}
 
-                <div className="flex justify-end">
-                    <Button asChild variant="outline">
-                        <a href={`/markdown/${document.slug}/export`}>
-                            <Download className="h-4 w-4" />
-                            {__('Export')}
-                        </a>
-                    </Button>
-                </div>
+                {canManage && (
+                    <div className="flex justify-end">
+                        <Button asChild variant="outline">
+                            <a href={`/markdown/${document.slug}/export`}>
+                                <Download className="h-4 w-4" />
+                                {__('Export')}
+                            </a>
+                        </Button>
+                    </div>
+                )}
 
                 {/* 画像ライトボックス */}
                 <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
@@ -750,6 +763,6 @@ export default function Show({
                     </DialogContent>
                 </Dialog>
             </div>
-        </AppLayout>
+        </Layout>
     );
 }

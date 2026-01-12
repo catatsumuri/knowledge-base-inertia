@@ -19,11 +19,15 @@ class AppSettingsTest extends TestCase
     public function test_authenticated_users_can_view_app_settings(): void
     {
         $user = User::factory()->create();
+        config(['app.public_views' => true]);
 
         $response = $this->actingAs($user)->get(route('app-settings'));
 
         $response->assertOk();
-        $response->assertInertia(fn ($page) => $page->component('app-settings'));
+        $response->assertInertia(fn ($page) => $page
+            ->component('app-settings')
+            ->where('publicViews', true)
+        );
     }
 
     public function test_authenticated_users_can_export_all_markdown_documents(): void
@@ -50,5 +54,94 @@ class AppSettingsTest extends TestCase
         $content = $response->streamedContent();
 
         $this->assertStringStartsWith('PK', $content);
+    }
+
+    public function test_authenticated_users_can_create_home_page_document(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('app-settings.home-page.store'), [
+            'title' => 'New Home Page',
+            'content' => '# Welcome',
+        ]);
+
+        $response->assertRedirect(route('app-settings'));
+        $this->assertDatabaseHas('markdown_documents', [
+            'title' => 'New Home Page',
+            'is_home_page' => true,
+        ]);
+    }
+
+    public function test_creating_new_home_page_unsets_existing_home_page(): void
+    {
+        $user = User::factory()->create();
+        $oldHomeDocument = MarkdownDocument::factory()->create([
+            'is_home_page' => true,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)->post(route('app-settings.home-page.store'), [
+            'title' => 'New Home Page',
+            'content' => '# New Welcome',
+        ]);
+
+        $oldHomeDocument->refresh();
+        $this->assertFalse($oldHomeDocument->is_home_page);
+
+        // 新しいホームページドキュメントが作成されたことを確認
+        $newHomeDocument = MarkdownDocument::getHomePage();
+        $this->assertNotNull($newHomeDocument);
+        $this->assertEquals('New Home Page', $newHomeDocument->title);
+    }
+
+    public function test_authenticated_users_can_update_home_page_document(): void
+    {
+        $user = User::factory()->create();
+        $homeDocument = MarkdownDocument::factory()->create([
+            'title' => 'Original Title',
+            'content' => '# Original Content',
+            'is_home_page' => true,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->patch(route('app-settings.home-page.update'), [
+            'title' => 'Updated Title',
+            'content' => '# Updated Content',
+        ]);
+
+        $response->assertRedirect(route('app-settings'));
+
+        $homeDocument->refresh();
+        $this->assertEquals('Updated Title', $homeDocument->title);
+        $this->assertEquals('# Updated Content', $homeDocument->content);
+    }
+
+    public function test_authenticated_users_can_delete_home_page_document(): void
+    {
+        $user = User::factory()->create();
+        $homeDocument = MarkdownDocument::factory()->create([
+            'is_home_page' => true,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('app-settings.home-page.destroy'));
+
+        $response->assertRedirect(route('app-settings'));
+        $this->assertDatabaseMissing('markdown_documents', [
+            'id' => $homeDocument->id,
+        ]);
+    }
+
+    public function test_unauthenticated_users_cannot_create_home_page_document(): void
+    {
+        $response = $this->post(route('app-settings.home-page.store'), [
+            'title' => 'New Home Page',
+            'content' => '# Welcome',
+        ]);
+
+        $response->assertRedirect(route('login'));
     }
 }

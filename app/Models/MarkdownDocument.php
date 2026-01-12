@@ -22,6 +22,7 @@ class MarkdownDocument extends Model
         'title',
         'content',
         'status',
+        'is_home_page',
         'created_by',
         'updated_by',
     ];
@@ -56,5 +57,37 @@ class MarkdownDocument extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(MarkdownDocumentRevision::class, 'markdown_document_id');
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_home_page' => 'boolean',
+        ];
+    }
+
+    /**
+     * Get the home page document.
+     */
+    public static function getHomePage(): ?self
+    {
+        return static::query()
+            ->where('is_home_page', true)
+            ->first();
+    }
+
+    /**
+     * Check if a home page document exists.
+     */
+    public static function hasHomePage(): bool
+    {
+        return static::query()
+            ->where('is_home_page', true)
+            ->exists();
     }
 }

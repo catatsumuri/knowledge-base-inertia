@@ -7,6 +7,7 @@ use App\Models\MarkdownDocument;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -23,7 +24,17 @@ class AppSettingsController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('app-settings');
+        $homeDocument = MarkdownDocument::getHomePage();
+
+        return Inertia::render('app-settings', [
+            'publicViews' => config('app.public_views'),
+            'homeDocument' => $homeDocument ? [
+                'id' => $homeDocument->id,
+                'slug' => $homeDocument->slug,
+                'title' => $homeDocument->title,
+                'updated_at' => $homeDocument->updated_at?->toISOString(),
+            ] : null,
+        ]);
     }
 
     /**
@@ -111,6 +122,81 @@ class AppSettingsController extends Controller
     private function yamlString(string $value): string
     {
         return (string) json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Load home page templates from local markdown files.
+     *
+     * @return array<int, array{key: string, title: string, content: string}>
+     */
+    private function loadHomePageTemplates(): array
+    {
+        $templatesPath = base_path('templates');
+
+        if (! File::isDirectory($templatesPath)) {
+            return [];
+        }
+
+        $templates = [];
+
+        foreach (File::files($templatesPath) as $file) {
+            if ($file->getExtension() !== 'md') {
+                continue;
+            }
+
+            $key = $file->getBasename('.md');
+            $contents = File::get($file->getPathname());
+
+            $templates[] = $this->parseHomePageTemplate($key, $contents);
+        }
+
+        usort(
+            $templates,
+            fn (array $first, array $second): int => strcmp($first['key'], $second['key'])
+        );
+
+        return $templates;
+    }
+
+    /**
+     * Parse a home page template for title and content.
+     *
+     * @return array{key: string, title: string, content: string}
+     */
+    private function parseHomePageTemplate(string $key, string $contents): array
+    {
+        $title = null;
+        $body = $contents;
+
+        if (preg_match('/^---\\s*\\R(.*?)\\R---\\s*\\R/s', $contents, $matches) === 1) {
+            $frontMatter = $matches[1];
+            $body = substr($contents, strlen($matches[0]));
+
+            foreach (preg_split('/\\R/', $frontMatter) as $line) {
+                if (! str_contains($line, ':')) {
+                    continue;
+                }
+
+                [$field, $value] = explode(':', $line, 2);
+
+                if (trim($field) === 'title') {
+                    $title = trim($value);
+                    break;
+                }
+            }
+        }
+
+        if ($title === null || $title === '') {
+            $title = Str::title(str_replace(['-', '_'], ' ', $key));
+        }
+
+        $title = trim($title, " \t\n\r\0\x0B\"'");
+
+        return [
+            'key' => $key,
+            'title' => $title,
+            'content' => ltrim($body),
+        ];
     }
 
     /**
@@ -531,5 +617,94 @@ class AppSettingsController extends Controller
         }
 
         rmdir($dir);
+    }
+
+    /**
+     * Show the form for editing the home page document.
+     */
+    public function editHomePage(): Response
+    {
+        $document = MarkdownDocument::getHomePage();
+
+        return Inertia::render('app-settings/home-page-edit', [
+            'document' => $document,
+            'templates' => $this->loadHomePageTemplates(),
+        ]);
+    }
+
+    /**
+     * Store a newly created home page document in storage.
+     */
+    public function storeHomePage(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'nullable|string',
+        ]);
+
+        DB::transaction(function () use ($request, $validated) {
+            // 既存のホームページドキュメントのフラグを解除
+            MarkdownDocument::query()
+                ->where('is_home_page', true)
+                ->update(['is_home_page' => false]);
+
+            // 新しいホームページドキュメントを作成
+            MarkdownDocument::query()->create([
+                'slug' => 'home-'.Str::random(8),
+                'title' => $validated['title'],
+                'content' => $validated['content'] ?? null,
+                'status' => 'published',
+                'is_home_page' => true,
+                'created_by' => $request->user()->id,
+                'updated_by' => $request->user()->id,
+            ]);
+        });
+
+        return redirect()->route('app-settings')
+            ->with('success', __('Home page document created successfully.'));
+    }
+
+    /**
+     * Update the home page document in storage.
+     */
+    public function updateHomePage(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'nullable|string',
+        ]);
+
+        $document = MarkdownDocument::getHomePage();
+
+        if (! $document) {
+            abort(404, 'Home page document not found.');
+        }
+
+        $document->update([
+            'title' => $validated['title'],
+            'content' => $validated['content'] ?? null,
+            'updated_by' => $request->user()->id,
+        ]);
+
+        return redirect()->route('app-settings')
+            ->with('success', __('Home page document updated successfully.'));
+    }
+
+    /**
+     * Remove the home page document from storage.
+     */
+    public function destroyHomePage(): RedirectResponse
+    {
+        $document = MarkdownDocument::getHomePage();
+
+        if (! $document) {
+            return redirect()->route('app-settings')
+                ->with('error', __('Home page document not found.'));
+        }
+
+        $document->delete();
+
+        return redirect()->route('app-settings')
+            ->with('success', __('Home page document deleted successfully. The default welcome page will be shown.'));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MarkdownBulkDeleteRequest;
+use App\Http\Requests\MarkdownBulkStatusRequest;
 use App\Http\Requests\MarkdownExportRequest;
 use App\Http\Requests\MarkdownImageUploadRequest;
 use App\Http\Requests\MarkdownImportRequest;
@@ -154,6 +155,7 @@ class MarkdownController extends Controller
             'document' => $document,
             'relatedShouts' => $relatedShouts,
             'canCreate' => true,
+            'isPublic' => false,
         ]);
     }
 
@@ -245,6 +247,23 @@ class MarkdownController extends Controller
         MarkdownDocument::query()
             ->whereIn('slug', $slugs)
             ->delete();
+
+        return to_route('sitemap');
+    }
+
+    /**
+     * Update the status for multiple markdown documents.
+     */
+    public function updateStatusBulk(MarkdownBulkStatusRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+
+        MarkdownDocument::query()
+            ->whereIn('slug', $data['slugs'])
+            ->update([
+                'status' => $data['status'],
+                'updated_by' => $request->user()->id,
+            ]);
 
         return to_route('sitemap');
     }

@@ -1,20 +1,19 @@
 <?php
 
 use App\Http\Controllers\AppSettingsController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PublicPagesController;
 use App\Models\MarkdownDocument;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
-Route::get('/', function () {
-    if (! config('app.public_views') && ! auth()->check()) {
-        return redirect()->route('login');
-    }
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
+Route::get('pages', [PublicPagesController::class, 'index'])
+    ->name('pages.index');
+Route::get('pages/{slug}', [PublicPagesController::class, 'show'])
+    ->where('slug', '.*')
+    ->name('pages.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
@@ -40,6 +39,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('app-settings', [AppSettingsController::class, 'index'])
         ->name('app-settings');
+    Route::get('app-settings/home-page/edit', [AppSettingsController::class, 'editHomePage'])
+        ->name('app-settings.home-page.edit');
+    Route::post('app-settings/home-page', [AppSettingsController::class, 'storeHomePage'])
+        ->name('app-settings.home-page.store');
+    Route::patch('app-settings/home-page', [AppSettingsController::class, 'updateHomePage'])
+        ->name('app-settings.home-page.update');
+    Route::delete('app-settings/home-page', [AppSettingsController::class, 'destroyHomePage'])
+        ->name('app-settings.home-page.destroy');
     Route::get('app-settings/markdown/export', [AppSettingsController::class, 'exportMarkdown'])
         ->name('app-settings.markdown-export');
     Route::post('app-settings/markdown/import/preview', [AppSettingsController::class, 'previewZipImport'])
@@ -69,6 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('markdown/{document:slug}/revisions/{revision}/restore', [\App\Http\Controllers\MarkdownController::class, 'restore'])->name('markdown.restore');
     Route::post('markdown/export', [\App\Http\Controllers\MarkdownController::class, 'exportBulk'])->name('markdown.export-bulk');
     Route::post('markdown/delete', [\App\Http\Controllers\MarkdownController::class, 'destroyBulk'])->name('markdown.destroy-bulk');
+    Route::post('markdown/status', [\App\Http\Controllers\MarkdownController::class, 'updateStatusBulk'])->name('markdown.status-bulk');
     Route::get('markdown/{slug}/export', [\App\Http\Controllers\MarkdownController::class, 'export'])->where('slug', '.*')->name('markdown.export');
     Route::get('markdown/{slug}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->where('slug', '.*')->name('markdown.edit');
     Route::patch('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'update'])->where('slug', '.*')->name('markdown.update');

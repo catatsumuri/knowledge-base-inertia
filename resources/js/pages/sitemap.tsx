@@ -20,6 +20,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -109,6 +116,22 @@ function TreeNodeComponent({
                                 {__('Draft')}
                             </Badge>
                         )}
+                        {node.status === 'private' && (
+                            <Badge
+                                variant="secondary"
+                                className="border-slate-200/70 bg-slate-50 text-slate-900 dark:border-slate-400/30 dark:bg-slate-950/30 dark:text-slate-100"
+                            >
+                                {__('Private')}
+                            </Badge>
+                        )}
+                        {node.status === 'published' && (
+                            <Badge
+                                variant="secondary"
+                                className="border-emerald-200/70 bg-emerald-50 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-950/30 dark:text-emerald-100"
+                            >
+                                {__('Published')}
+                            </Badge>
+                        )}
                         <div className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
                             {node.updated_at && (
                                 <span>
@@ -180,6 +203,10 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
     );
     const [csrfToken, setCsrfToken] = useState('');
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState<
+        'draft' | 'private' | 'published' | ''
+    >('');
 
     const handleCreateSubmit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -237,6 +264,11 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
     };
 
     const selectedList = Array.from(selectedSlugs);
+    const statusLabels: Record<string, string> = {
+        draft: __('Draft'),
+        private: __('Private'),
+        published: __('Published'),
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -366,6 +398,39 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                         <div className="text-sm text-muted-foreground">
                             {__('Selected pages')}: {selectedList.length}
                         </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <Label className="text-xs text-muted-foreground sm:w-24">
+                                {__('Status')}
+                            </Label>
+                            <Select
+                                value={selectedStatus}
+                                onValueChange={(value) =>
+                                    setSelectedStatus(
+                                        value as
+                                            | 'draft'
+                                            | 'private'
+                                            | 'published',
+                                    )
+                                }
+                            >
+                                <SelectTrigger className="sm:max-w-xs">
+                                    <SelectValue
+                                        placeholder={__('Select status')}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="draft">
+                                        {__('Draft')}
+                                    </SelectItem>
+                                    <SelectItem value="private">
+                                        {__('Private')}
+                                    </SelectItem>
+                                    <SelectItem value="published">
+                                        {__('Published')}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="flex items-center justify-end gap-2">
                             <form
                                 method="post"
@@ -393,6 +458,81 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                                     {__('Export selected')}
                                 </Button>
                             </form>
+                            <Dialog
+                                open={isStatusDialogOpen}
+                                onOpenChange={setIsStatusDialogOpen}
+                            >
+                                <DialogTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={
+                                            selectedList.length === 0 ||
+                                            !selectedStatus
+                                        }
+                                    >
+                                        {__('Update status')}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            {__('Change status')}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            {__(
+                                                'Change status of selected pages to {status}.',
+                                                {
+                                                    status:
+                                                        statusLabels[
+                                                            selectedStatus
+                                                        ],
+                                                },
+                                            )}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter className="gap-2">
+                                        <DialogClose asChild>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                            >
+                                                {__('Cancel')}
+                                            </Button>
+                                        </DialogClose>
+                                        <form
+                                            id="bulk-status-form"
+                                            method="post"
+                                            action="/markdown/status"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="_token"
+                                                value={csrfToken}
+                                            />
+                                            <input
+                                                type="hidden"
+                                                name="status"
+                                                value={selectedStatus}
+                                            />
+                                            {selectedList.map((slug) => (
+                                                <input
+                                                    key={`status-${slug}`}
+                                                    type="hidden"
+                                                    name="slugs[]"
+                                                    value={slug}
+                                                />
+                                            ))}
+                                        </form>
+                                        <Button
+                                            type="submit"
+                                            form="bulk-status-form"
+                                        >
+                                            {__('Update status')}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                             <Dialog
                                 open={isDeleteDialogOpen}
                                 onOpenChange={setIsDeleteDialogOpen}

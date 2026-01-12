@@ -11,9 +11,15 @@ class AppSettingsTranslationsTest extends TestCase
         $keys = [
             'Application settings',
             'Manage application-level configuration.',
+            'Public views',
+            'Allow unauthenticated users to view public pages.',
+            'Environment variable',
             'Markdown export',
             'Export all markdown documents as a zip file using their paths.',
             'Export all',
+            'Markdown import',
+            'Import multiple markdown documents from a zip file',
+            'Preview import',
         ];
 
         $this->assertTranslationKeysExist('en', $keys);

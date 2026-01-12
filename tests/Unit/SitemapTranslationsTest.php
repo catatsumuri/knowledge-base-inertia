@@ -20,6 +20,12 @@ class SitemapTranslationsTest extends TestCase
             'Select {title}',
             'Example: getting-started, api/introduction',
             'URL: /markdown/{slug}',
+            'Private',
+            'Published',
+            'Update status',
+            'Change status',
+            'Change status of selected pages to {status}.',
+            'Select status',
         ];
 
         $this->assertTranslationKeysExist('en', $keys);
