@@ -265,11 +265,17 @@ export default function Edit({
         setContent(textarea.value);
     };
 
-    const getCsrfToken = () => {
-        const metaTag = window.document.querySelector(
-            'meta[name="csrf-token"]',
+    const getCookieValue = (name: string) => {
+        if (typeof window === 'undefined') {
+            return '';
+        }
+
+        const escapedName = name.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const match = window.document.cookie.match(
+            new RegExp(`(?:^|; )${escapedName}=([^;]*)`),
         );
-        return metaTag ? metaTag.getAttribute('content') || '' : '';
+
+        return match ? decodeURIComponent(match[1]) : '';
     };
 
     const handleImageUpload = (file: File) => {
@@ -356,23 +362,34 @@ export default function Edit({
         onStart();
 
         try {
-            const token = getCsrfToken();
+            const xsrfToken = getCookieValue('XSRF-TOKEN');
+            const headers: HeadersInit = {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            };
+
+            if (xsrfToken) {
+                headers['X-XSRF-TOKEN'] = xsrfToken;
+            }
+
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': token,
-                },
+                headers,
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     text: selectedText,
-                    _token: token,
                 }),
             });
 
             if (!response.ok) {
+                if (response.status === 419) {
+                    throw new Error(
+                        __(
+                            'Session expired. Please reload the page and try again.',
+                        ),
+                    );
+                }
                 let detailMessage = '';
                 const contentType = response.headers.get('content-type') ?? '';
 
@@ -895,28 +912,6 @@ export default function Edit({
                                                         </>
                                                     )}
                                                 </Button>
-                                            </div>
-                                            <div className="rounded-md border border-muted bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="font-semibold text-foreground">
-                                                        {__('AI tools')}
-                                                    </span>
-                                                    <span>
-                                                        {__(
-                                                            'Translate selection with AI',
-                                                        )}
-                                                    </span>
-                                                    <span>
-                                                        {__(
-                                                            'Convert selection to Markdown',
-                                                        )}
-                                                    </span>
-                                                    <span>
-                                                        {__(
-                                                            'Convert selection to AI table',
-                                                        )}
-                                                    </span>
-                                                </div>
                                             </div>
                                         </div>
 

@@ -134,4 +134,40 @@ class MarkdownTranslationTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('text');
     }
+
+    public function test_translation_api_accepts_xsrf_token_header_from_cookie(): void
+    {
+        OpenAI::fake([
+            CreateResponse::fake([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => '[日本語] こんにちは世界',
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->withMiddleware();
+
+        $pageResponse = $this->actingAs($user)->get('/markdown/create');
+        $cookieJar = [];
+        foreach ($pageResponse->headers->getCookies() as $cookie) {
+            $cookieJar[$cookie->getName()] = $cookie->getValue();
+        }
+
+        $this->assertArrayHasKey('XSRF-TOKEN', $cookieJar);
+
+        $response = $this->actingAs($user)
+            ->withCookies($cookieJar)
+            ->withHeader('X-XSRF-TOKEN', $cookieJar['XSRF-TOKEN'])
+            ->postJson('/api/markdown/translate', [
+                'text' => 'Hello World',
+            ]);
+
+        $response->assertOk();
+    }
 }
