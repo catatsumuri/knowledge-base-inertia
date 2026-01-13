@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\MarkdownDocument;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use ZipArchive;
 
 class AppSettingsTest extends TestCase
 {
@@ -32,9 +36,10 @@ class AppSettingsTest extends TestCase
 
     public function test_authenticated_users_can_export_all_markdown_documents(): void
     {
+        Storage::fake('markdown-media');
         $user = User::factory()->create();
 
-        MarkdownDocument::factory()->create([
+        $document = MarkdownDocument::factory()->create([
             'slug' => 'index',
             'created_by' => $user->id,
             'updated_by' => $user->id,
@@ -46,6 +51,19 @@ class AppSettingsTest extends TestCase
             'updated_by' => $user->id,
         ]);
 
+        $topic = Topic::factory()->create([
+            'name' => 'Guides',
+            'slug' => 'guides',
+        ]);
+        $document->topics()->attach($topic->id);
+        $document->addMedia(UploadedFile::fake()->image('hero.jpg'))
+            ->toMediaCollection('eyecatch');
+        $contentMedia = $document->addMedia(UploadedFile::fake()->image('content.jpg'))
+            ->toMediaCollection('content-images');
+        $document->update([
+            'content' => '![Hero](/markdown/content-media/'.$contentMedia->uuid.')',
+        ]);
+
         $response = $this->actingAs($user)->get(route('app-settings.markdown-export'));
 
         $response->assertOk();
@@ -54,6 +72,103 @@ class AppSettingsTest extends TestCase
         $content = $response->streamedContent();
 
         $this->assertStringStartsWith('PK', $content);
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'markdown-export-');
+        $this->assertIsString($tempPath);
+        file_put_contents($tempPath, $content);
+
+        $zip = new ZipArchive;
+        $zip->open($tempPath);
+        $exported = $zip->getFromName('index.md');
+        $imageContent = $zip->getFromName('assets/index/eyecatch.jpg');
+        $contentImagePath = 'assets/index/content/'.$contentMedia->uuid.'.jpg';
+        $contentImageContent = $zip->getFromName($contentImagePath);
+        $zip->close();
+        @unlink($tempPath);
+
+        $this->assertIsString($exported);
+        $this->assertStringContainsString('topics: ["Guides"]', $exported);
+        $this->assertStringContainsString($contentImagePath, $exported);
+        $this->assertIsString($imageContent);
+        $this->assertIsString($contentImageContent);
+    }
+
+    public function test_zip_import_supports_topics(): void
+    {
+        Storage::fake('markdown-media');
+        $user = User::factory()->create();
+
+        $contents = "---\n".
+            "title: \"Imported\"\n".
+            "slug: \"docs/intro\"\n".
+            "status: \"published\"\n".
+            "topics: [\"Guides\", \"Intro\"]\n".
+            "eyecatch: \"assets/docs/intro/eyecatch.jpg\"\n".
+            "---\n\n".
+            "![Hero](assets/docs/intro/content/hero.jpg)\n\n".
+            "# Hello\n";
+
+        $zipPath = tempnam(sys_get_temp_dir(), 'markdown-import-');
+        $this->assertIsString($zipPath);
+
+        $zip = new ZipArchive;
+        $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $zip->addFromString('docs/intro.md', $contents);
+        $image = UploadedFile::fake()->image('eyecatch.jpg');
+        $zip->addFromString(
+            'assets/docs/intro/eyecatch.jpg',
+            (string) file_get_contents($image->getPathname())
+        );
+        $contentImage = UploadedFile::fake()->image('hero.jpg');
+        $zip->addFromString(
+            'assets/docs/intro/content/hero.jpg',
+            (string) file_get_contents($contentImage->getPathname())
+        );
+        $zip->close();
+
+        $file = new UploadedFile($zipPath, 'import.zip', 'application/zip', null, true);
+
+        $response = $this->actingAs($user)->post(route('app-settings.markdown-import-preview'), [
+            'zip_file' => $file,
+        ]);
+
+        $response->assertOk();
+
+        $preview = session('markdown_zip_import_preview');
+        $this->assertIsArray($preview);
+        $this->assertArrayHasKey('session_key', $preview);
+
+        $response = $this->actingAs($user)->post(route('app-settings.markdown-import-execute'), [
+            'session_key' => $preview['session_key'],
+            'conflict_resolutions' => [],
+        ]);
+
+        $response->assertRedirect(route('app-settings'));
+
+        $document = MarkdownDocument::query()->where('slug', 'docs/intro')->first();
+        $this->assertNotNull($document);
+        $this->assertStringContainsString('/markdown/content-media/', (string) $document->content);
+        $this->assertDatabaseHas('topics', [
+            'name' => 'Guides',
+        ]);
+        $guidesTopic = Topic::query()->where('name', 'Guides')->first();
+        $this->assertNotNull($guidesTopic);
+        $this->assertDatabaseHas('markdown_document_topic', [
+            'markdown_document_id' => $document->id,
+            'topic_id' => $guidesTopic->id,
+        ]);
+        $this->assertDatabaseHas('media', [
+            'model_type' => MarkdownDocument::class,
+            'model_id' => $document->id,
+            'collection_name' => 'eyecatch',
+        ]);
+        $this->assertDatabaseHas('media', [
+            'model_type' => MarkdownDocument::class,
+            'model_id' => $document->id,
+            'collection_name' => 'content-images',
+        ]);
+
+        @unlink($zipPath);
     }
 
     public function test_authenticated_users_can_create_home_page_document(): void

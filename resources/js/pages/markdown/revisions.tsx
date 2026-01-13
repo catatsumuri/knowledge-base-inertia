@@ -20,6 +20,7 @@ interface Revision {
         name: string;
         email: string;
     };
+    is_current?: boolean;
 }
 
 interface MarkdownDocument {
@@ -134,27 +135,31 @@ export default function Revisions({
                                     )}
                                 </span>
                             </div>
-                            <pre className="max-h-[420px] overflow-auto text-xs leading-relaxed">
+                            <div className="max-h-[420px] overflow-auto font-mono text-xs leading-relaxed">
                                 {diffLines.map((line, index) => (
                                     <div
                                         key={`${line.type}-${index}`}
-                                        className={
+                                        className={`grid grid-cols-[1.25rem_minmax(0,1fr)] items-start gap-1 ${
                                             line.type === 'add'
                                                 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
                                                 : line.type === 'remove'
                                                   ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
                                                   : 'text-muted-foreground'
-                                        }
+                                        }`}
                                     >
-                                        {line.type === 'add'
-                                            ? '+ '
-                                            : line.type === 'remove'
-                                              ? '- '
-                                              : '  '}
-                                        {line.text || ' '}
+                                        <span className="text-center">
+                                            {line.type === 'add'
+                                                ? '+'
+                                                : line.type === 'remove'
+                                                  ? '-'
+                                                  : ' '}
+                                        </span>
+                                        <span className="break-words whitespace-pre-wrap">
+                                            {line.text || ' '}
+                                        </span>
                                     </div>
                                 ))}
-                            </pre>
+                            </div>
                         </div>
                     )}
                 </Card>
@@ -185,6 +190,11 @@ export default function Revisions({
                                         <span className="truncate font-medium">
                                             {revision.title || '無題'}
                                         </span>
+                                        {revision.is_current && (
+                                            <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                                                現在
+                                            </span>
+                                        )}
                                     </label>
                                     <p className="text-xs text-muted-foreground">
                                         {format(
@@ -203,20 +213,22 @@ export default function Revisions({
                                         )}
                                     </p>
                                 </div>
-                                <Form
-                                    action={`/markdown/${document.slug}/revisions/${revision.id}/restore`}
-                                    method="post"
-                                >
-                                    {({ processing }) => (
-                                        <Button
-                                            type="submit"
-                                            variant="outline"
-                                            disabled={processing}
-                                        >
-                                            復元
-                                        </Button>
-                                    )}
-                                </Form>
+                                {!revision.is_current && (
+                                    <Form
+                                        action={`/markdown/${document.slug}/revisions/${revision.id}/restore`}
+                                        method="post"
+                                    >
+                                        {({ processing }) => (
+                                            <Button
+                                                type="submit"
+                                                variant="outline"
+                                                disabled={processing}
+                                            >
+                                                復元
+                                            </Button>
+                                        )}
+                                    </Form>
+                                )}
                             </div>
                         ))
                     )}

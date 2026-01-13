@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\MarkdownDocument;
+use App\Models\Shout;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -50,6 +51,22 @@ class DashboardTest extends TestCase
             ->has('recentDocuments', 2)
             ->where('recentDocuments.0.slug', 'newer')
             ->where('recentDocuments.1.slug', 'older')
+        );
+    }
+
+    public function test_shouts_are_included_on_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $shout = Shout::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('dashboard')
+            ->has('shouts.data', 1)
+            ->where('shouts.data.0.id', $shout->id)
         );
     }
 }

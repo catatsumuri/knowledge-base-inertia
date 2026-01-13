@@ -1,15 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/hooks/useLang';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowRight, Brain, Sparkles, Zap } from 'lucide-react';
 
-export default function Welcome({
-    canRegister = true,
-}: {
-    canRegister?: boolean;
-}) {
+export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
     const { __ } = useLang();
 
@@ -34,21 +30,12 @@ export default function Welcome({
                                 {__('Dashboard')}
                             </Link>
                         ) : (
-                            <>
-                                <Link
-                                    href={login()}
-                                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                                >
-                                    {__('Log in')}
-                                </Link>
-                                {canRegister && (
-                                    <Button size="sm" variant="outline" asChild>
-                                        <Link href={register()}>
-                                            {__('Register')}
-                                        </Link>
-                                    </Button>
-                                )}
-                            </>
+                            <Link
+                                href={login()}
+                                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                                {__('Log in')}
+                            </Link>
                         )}
                     </nav>
                 </div>
@@ -173,14 +160,6 @@ export default function Welcome({
                         >
                             {__('Log in')}
                         </Link>
-                        {canRegister && (
-                            <Link
-                                href={register()}
-                                className="transition-colors hover:text-foreground"
-                            >
-                                {__('Register')}
-                            </Link>
-                        )}
                     </nav>
                 </div>
             </footer>

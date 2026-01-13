@@ -14,9 +14,9 @@ class ImageMetadataUploadTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_shoutbox_stores_metadata_for_jpeg_uploads(): void
+    public function test_shoutbox_stores_images_in_media_library(): void
     {
-        Storage::fake('public');
+        Storage::fake('shoutbox-media');
 
         $user = User::factory()->create();
         $image = UploadedFile::fake()->image('photo.jpg');
@@ -30,31 +30,47 @@ class ImageMetadataUploadTest extends TestCase
 
         $shout = Shout::query()->first();
         $this->assertNotNull($shout);
-        $this->assertIsArray($shout->images);
-        $this->assertIsArray($shout->image_metadata);
-        $this->assertCount(1, $shout->images);
+        $this->assertNull($shout->images);
+        $this->assertNull($shout->image_metadata);
 
-        $path = $shout->images[0];
-        $this->assertArrayHasKey($path, $shout->image_metadata);
-        Storage::disk('public')->assertExists($path);
+        $media = $shout->getFirstMedia('images');
+        $this->assertNotNull($media);
+        $this->assertDatabaseHas('media', [
+            'model_type' => Shout::class,
+            'model_id' => $shout->id,
+            'collection_name' => 'images',
+        ]);
+        Storage::disk('shoutbox-media')->assertExists(
+            $media->getPathRelativeToRoot()
+        );
     }
 
     public function test_markdown_upload_records_metadata_entry(): void
     {
-        Storage::fake('public');
+        Storage::fake('markdown-media');
 
         $user = User::factory()->create();
         $image = UploadedFile::fake()->image('paste.jpg');
 
         $response = $this->actingAs($user)->post('/markdown/upload-image', [
+            'slug' => 'test-page',
             'image' => $image,
         ]);
 
         $response->assertRedirect();
         $response->assertSessionHas('imageUrl');
 
-        $upload = MarkdownImageUpload::query()->first();
-        $this->assertNotNull($upload);
-        Storage::disk('public')->assertExists($upload->path);
+        // MediaLibraryを使用しているため、media テーブルを確認
+        $this->assertDatabaseHas('media', [
+            'collection_name' => 'content-images',
+        ]);
+
+        // ドキュメントが作成されたことを確認
+        $document = \App\Models\MarkdownDocument::query()->where('slug', 'test-page')->first();
+        $this->assertNotNull($document);
+
+        $media = $document->getFirstMedia('content-images');
+        $this->assertNotNull($media);
+        Storage::disk('markdown-media')->assertExists($media->getPathRelativeToRoot());
     }
 }

@@ -1,5 +1,4 @@
 import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -8,15 +7,13 @@ import { Spinner } from '@/components/ui/spinner';
 import { useLang } from '@/hooks/useLang';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
 
 interface LoginProps {
     status?: string;
-    canResetPassword: boolean;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status }: LoginProps) {
     const { __ } = useLang();
 
     return (
@@ -52,20 +49,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             </div>
 
                             <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">
-                                        {__('Password')}
-                                    </Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                            tabIndex={5}
-                                        >
-                                            {__('Forgot your password?')}
-                                        </TextLink>
-                                    )}
-                                </div>
+                                <Label htmlFor="password">
+                                    {__('Password')}
+                                </Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -100,7 +86,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 {__('Log in')}
                             </Button>
                         </div>
-
                     </>
                 )}
             </Form>

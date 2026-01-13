@@ -22,6 +22,7 @@ import remarkGfm from 'remark-gfm';
 
 interface MarkdownViewerProps {
     content: string;
+    onEditHeading?: (payload: { level: number; text: string }) => void;
 }
 
 // Markdown内のリンクをInertia Linkに変換するコンポーネント
@@ -115,7 +116,10 @@ function EmbedCardWrapper({ ...props }: React.ComponentPropsWithoutRef<'div'>) {
     return <EmbedCard type={embedType} url={embedUrl} />;
 }
 
-export function MarkdownViewer({ content }: MarkdownViewerProps) {
+export function MarkdownViewer({
+    content,
+    onEditHeading,
+}: MarkdownViewerProps) {
     // Zenn式構文を標準remark-directive構文に変換してから画像サイズを処理
     const processedContent = preprocessImageSize(preprocessZennSyntax(content));
 
@@ -158,12 +162,48 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
                     // それ以外は通常のdiv
                     return <div {...props} />;
                 },
-                h1: (props) => <MarkdownHeading level={1} {...props} />,
-                h2: (props) => <MarkdownHeading level={2} {...props} />,
-                h3: (props) => <MarkdownHeading level={3} {...props} />,
-                h4: (props) => <MarkdownHeading level={4} {...props} />,
-                h5: (props) => <MarkdownHeading level={5} {...props} />,
-                h6: (props) => <MarkdownHeading level={6} {...props} />,
+                h1: (props) => (
+                    <MarkdownHeading
+                        level={1}
+                        onEditHeading={onEditHeading}
+                        {...props}
+                    />
+                ),
+                h2: (props) => (
+                    <MarkdownHeading
+                        level={2}
+                        onEditHeading={onEditHeading}
+                        {...props}
+                    />
+                ),
+                h3: (props) => (
+                    <MarkdownHeading
+                        level={3}
+                        onEditHeading={onEditHeading}
+                        {...props}
+                    />
+                ),
+                h4: (props) => (
+                    <MarkdownHeading
+                        level={4}
+                        onEditHeading={onEditHeading}
+                        {...props}
+                    />
+                ),
+                h5: (props) => (
+                    <MarkdownHeading
+                        level={5}
+                        onEditHeading={onEditHeading}
+                        {...props}
+                    />
+                ),
+                h6: (props) => (
+                    <MarkdownHeading
+                        level={6}
+                        onEditHeading={onEditHeading}
+                        {...props}
+                    />
+                ),
             }}
         >
             {processedContent}

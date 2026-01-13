@@ -33,14 +33,10 @@ const filters: { name: string; type: FilterType }[] = [
     { name: 'オリジナル', type: 'normal' },
     { name: 'グレースケール', type: 'grayscale' },
     { name: 'セピア', type: 'sepia' },
-    { name: 'ビンテージ', type: 'vintage' },
     { name: '明るく', type: 'brighten' },
-    { name: 'コントラスト', type: 'contrast' },
     { name: 'クール', type: 'cool' },
-    { name: 'ウォーム', type: 'warm' },
     { name: 'ビネット', type: 'vignette' },
     { name: 'グレイン', type: 'grain' },
-    { name: 'ドラマ', type: 'drama' },
 ];
 
 export function ImageFilter({

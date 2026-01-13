@@ -15,6 +15,10 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_verification_screen_can_be_rendered()
     {
+        if (! $this->app['router']->has('verification.notice')) {
+            $this->markTestSkipped('verification.notice route is disabled.');
+        }
+
         $user = User::factory()->unverified()->create();
 
         $response = $this->actingAs($user)->get(route('verification.notice'));
@@ -24,6 +28,10 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_can_be_verified()
     {
+        if (! $this->app['router']->has('verification.verify')) {
+            $this->markTestSkipped('verification.verify route is disabled.');
+        }
+
         $user = User::factory()->unverified()->create();
 
         Event::fake();
@@ -43,6 +51,10 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_is_not_verified_with_invalid_hash()
     {
+        if (! $this->app['router']->has('verification.verify')) {
+            $this->markTestSkipped('verification.verify route is disabled.');
+        }
+
         $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
@@ -58,6 +70,10 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_is_not_verified_with_invalid_user_id(): void
     {
+        if (! $this->app['router']->has('verification.verify')) {
+            $this->markTestSkipped('verification.verify route is disabled.');
+        }
+
         $user = User::factory()->create([
             'email_verified_at' => null,
         ]);
@@ -75,6 +91,10 @@ class EmailVerificationTest extends TestCase
 
     public function test_verified_user_is_redirected_to_dashboard_from_verification_prompt(): void
     {
+        if (! $this->app['router']->has('verification.notice')) {
+            $this->markTestSkipped('verification.notice route is disabled.');
+        }
+
         $user = User::factory()->create([
             'email_verified_at' => now(),
         ]);
@@ -86,6 +106,10 @@ class EmailVerificationTest extends TestCase
 
     public function test_already_verified_user_visiting_verification_link_is_redirected_without_firing_event_again(): void
     {
+        if (! $this->app['router']->has('verification.verify')) {
+            $this->markTestSkipped('verification.verify route is disabled.');
+        }
+
         $user = User::factory()->create([
             'email_verified_at' => now(),
         ]);

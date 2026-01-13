@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MarkdownZipImportRequest;
 use App\Models\MarkdownDocument;
+use App\Models\Topic;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use ZipArchive;
 
@@ -25,9 +27,11 @@ class AppSettingsController extends Controller
     public function index(): Response
     {
         $homeDocument = MarkdownDocument::getHomePage();
+        $openAiConfigured = filled(config('openai.api_key'));
 
         return Inertia::render('app-settings', [
             'publicViews' => config('app.public_views'),
+            'openAiConfigured' => $openAiConfigured,
             'homeDocument' => $homeDocument ? [
                 'id' => $homeDocument->id,
                 'slug' => $homeDocument->slug,
@@ -43,7 +47,7 @@ class AppSettingsController extends Controller
     public function exportMarkdown(): StreamedResponse
     {
         $documents = MarkdownDocument::query()
-            ->with(['createdBy', 'updatedBy'])
+            ->with(['createdBy', 'updatedBy', 'topics', 'media'])
             ->orderBy('slug')
             ->get();
 
@@ -57,8 +61,9 @@ class AppSettingsController extends Controller
         foreach ($documents as $document) {
             $zip->addFromString(
                 $document->slug.'.md',
-                $this->buildExportContent($document)
+                $this->buildExportContent($document, $zip)
             );
+            $this->addEyecatchToZip($zip, $document);
         }
 
         $zip->close();
@@ -84,8 +89,10 @@ class AppSettingsController extends Controller
     /**
      * Build markdown export content with front matter metadata.
      */
-    private function buildExportContent(MarkdownDocument $document): string
-    {
+    private function buildExportContent(
+        MarkdownDocument $document,
+        ?ZipArchive $zip = null
+    ): string {
         $lines = [
             'title: '.$this->yamlString($document->title ?? ''),
             'slug: '.$this->yamlString($document->slug),
@@ -110,10 +117,86 @@ class AppSettingsController extends Controller
             $lines[] = '  email: '.$this->yamlString($document->updatedBy->email);
         }
 
+        $eyecatchPath = $this->eyecatchExportPath($document);
+        if ($eyecatchPath) {
+            $lines[] = 'eyecatch: '.$this->yamlString($eyecatchPath);
+        }
+
+        if ($document->relationLoaded('topics') && $document->topics->isNotEmpty()) {
+            $topicNames = $document->topics->pluck('name')->toArray();
+            $lines[] = 'topics: '.(string) json_encode($topicNames, JSON_UNESCAPED_UNICODE);
+        }
+
         $frontMatter = "---\n".implode("\n", $lines)."\n---\n\n";
         $body = $document->content ?? '';
 
+        if ($zip !== null) {
+            $body = $this->replaceContentImagesForExport($document, $body, $zip);
+        }
+
         return $frontMatter.$body."\n";
+    }
+
+    private function replaceContentImagesForExport(
+        MarkdownDocument $document,
+        string $content,
+        ZipArchive $zip
+    ): string {
+        if ($content === '') {
+            return $content;
+        }
+
+        $contentMedia = $document->media
+            ->where('collection_name', 'content-images')
+            ->keyBy('uuid');
+
+        return preg_replace_callback(
+            '/!\\[[^\\]]*\\]\\(([^)]+)\\)/',
+            function (array $matches) use ($document, $contentMedia, $zip): string {
+                $url = $matches[1];
+                $path = parse_url($url, PHP_URL_PATH) ?? $url;
+
+                if (! preg_match('#/markdown/content-media/([0-9a-fA-F-]{36})#', $path, $idMatch)) {
+                    return $matches[0];
+                }
+
+                $mediaId = $idMatch[1];
+                $media = $contentMedia->get($mediaId);
+
+                if (! $media) {
+                    return $matches[0];
+                }
+
+                $exportPath = $this->contentImageExportPath($document, $media);
+
+                if ($exportPath === null) {
+                    return $matches[0];
+                }
+
+                $pathOnDisk = $media->getPath();
+
+                if ($pathOnDisk === '' || ! is_file($pathOnDisk)) {
+                    return $matches[0];
+                }
+
+                $zip->addFile($pathOnDisk, $exportPath);
+
+                return str_replace($url, $exportPath, $matches[0]);
+            },
+            $content
+        ) ?? $content;
+    }
+
+    private function contentImageExportPath(
+        MarkdownDocument $document,
+        Media $media
+    ): ?string {
+        $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
+        $suffix = $extension !== '' ? '.'.$extension : '';
+
+        $identifier = $media->uuid ?: (string) Str::uuid();
+
+        return 'assets/'.$document->slug.'/content/'.$identifier.$suffix;
     }
 
     /**
@@ -217,12 +300,13 @@ class AppSettingsController extends Controller
 
         foreach ($extraction['markdown_files'] as $filePath) {
             $relativePath = str_replace($extraction['temp_dir'].'/', '', $filePath);
-            $fileData = $this->parseMarkdownFile($filePath, $relativePath);
+            $fileData = $this->parseMarkdownFile(
+                $filePath,
+                $relativePath,
+                $extraction['temp_dir']
+            );
             $files[] = $fileData;
         }
-
-        // Clean up temp directory
-        $this->removeDirectory($extraction['temp_dir']);
 
         // Check for duplicates
         $files = $this->checkDuplicates($files);
@@ -243,6 +327,7 @@ class AppSettingsController extends Controller
             'markdown_zip_import_preview' => [
                 'session_key' => $sessionKey,
                 'uploaded_at' => now()->toISOString(),
+                'temp_dir' => $extraction['temp_dir'],
                 'files' => $files,
             ],
         ]);
@@ -282,10 +367,11 @@ class AppSettingsController extends Controller
         }
 
         $files = $previewData['files'];
+        $tempDir = $previewData['temp_dir'] ?? null;
         $imported = 0;
         $skipped = 0;
 
-        DB::transaction(function () use ($files, $conflictResolutions, $request, &$imported, &$skipped) {
+        DB::transaction(function () use ($files, $conflictResolutions, $request, $tempDir, &$imported, &$skipped) {
             foreach ($files as $fileData) {
                 // Skip files with validation errors
                 if (! empty($fileData['validation_errors'])) {
@@ -313,11 +399,22 @@ class AppSettingsController extends Controller
                             'status' => $fileData['status'],
                             'updated_by' => $request->user()->id,
                         ]);
+                        $this->syncTopics($document, $fileData['topics'] ?? []);
+                        $this->attachEyecatchFromImport($document, $fileData, $tempDir);
+                        $updatedContent = $this->attachContentImagesFromImport(
+                            $document,
+                            $fileData['content'] ?? null,
+                            $fileData['content_images'] ?? [],
+                            $tempDir
+                        );
+                        if ($updatedContent !== $document->content) {
+                            $document->update(['content' => $updatedContent]);
+                        }
                         $imported++;
                     }
                 } else {
                     // Create new document
-                    MarkdownDocument::query()->create([
+                    $document = MarkdownDocument::query()->create([
                         'slug' => $slug,
                         'title' => $fileData['title'],
                         'content' => $fileData['content'],
@@ -325,10 +422,25 @@ class AppSettingsController extends Controller
                         'created_by' => $request->user()->id,
                         'updated_by' => $request->user()->id,
                     ]);
+                    $this->syncTopics($document, $fileData['topics'] ?? []);
+                    $this->attachEyecatchFromImport($document, $fileData, $tempDir);
+                    $updatedContent = $this->attachContentImagesFromImport(
+                        $document,
+                        $fileData['content'] ?? null,
+                        $fileData['content_images'] ?? [],
+                        $tempDir
+                    );
+                    if ($updatedContent !== $document->content) {
+                        $document->update(['content' => $updatedContent]);
+                    }
                     $imported++;
                 }
             }
         });
+
+        if (is_string($tempDir) && $tempDir !== '') {
+            $this->removeDirectory($tempDir);
+        }
 
         // Clear session
         session()->forget('markdown_zip_import_preview');
@@ -349,6 +461,13 @@ class AppSettingsController extends Controller
      */
     public function cancelZipImport(Request $request): RedirectResponse
     {
+        $previewData = session('markdown_zip_import_preview');
+        $tempDir = is_array($previewData) ? ($previewData['temp_dir'] ?? null) : null;
+
+        if (is_string($tempDir) && $tempDir !== '') {
+            $this->removeDirectory($tempDir);
+        }
+
         session()->forget('markdown_zip_import_preview');
 
         $message = __('Import cancelled');
@@ -434,8 +553,11 @@ class AppSettingsController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function parseMarkdownFile(string $path, string $relativePath): array
-    {
+    private function parseMarkdownFile(
+        string $path,
+        string $relativePath,
+        string $tempDir
+    ): array {
         $contents = file_get_contents($path);
         if ($contents === false) {
             return [
@@ -476,12 +598,18 @@ class AppSettingsController extends Controller
             'title' => $title,
             'status' => $status,
             'content' => $body === '' ? null : $body,
+            'topics' => $this->normalizeTopics($frontMatter['topics'] ?? []),
+            'eyecatch' => $this->normalizeEyecatchPath($frontMatter['eyecatch'] ?? null),
+            'content_images' => $this->extractContentImagePaths($body),
             'is_duplicate' => false,
             'validation_errors' => [],
         ];
 
         // Validate
-        $fileData['validation_errors'] = $this->validateParsedFile($fileData);
+        $fileData['validation_errors'] = $this->validateParsedFile(
+            $fileData,
+            $tempDir
+        );
 
         return $fileData;
     }
@@ -492,7 +620,7 @@ class AppSettingsController extends Controller
      * @param  array<string, mixed>  $fileData
      * @return array<string>
      */
-    private function validateParsedFile(array $fileData): array
+    private function validateParsedFile(array $fileData, string $tempDir): array
     {
         $errors = [];
 
@@ -500,7 +628,64 @@ class AppSettingsController extends Controller
             $errors[] = __('Slug is required in front matter or filename.');
         }
 
+        if (! empty($fileData['eyecatch']) && ! is_string($fileData['eyecatch'])) {
+            $errors[] = __('Eyecatch must be a string path.');
+        }
+
+        if (
+            is_string($fileData['eyecatch']) &&
+            $fileData['eyecatch'] !== ''
+        ) {
+            $eyecatchPath = $tempDir.'/'.ltrim($fileData['eyecatch'], '/');
+            if (! is_file($eyecatchPath)) {
+                $errors[] = __('Eyecatch file not found in zip.');
+            }
+        }
+
+        if (! empty($fileData['content_images']) && is_array($fileData['content_images'])) {
+            foreach ($fileData['content_images'] as $imagePath) {
+                if (! is_string($imagePath) || $imagePath === '') {
+                    continue;
+                }
+
+                $path = $tempDir.'/'.ltrim($imagePath, '/');
+                if (! is_file($path)) {
+                    $errors[] = __('Content image file not found in zip.');
+                    break;
+                }
+            }
+        }
+
         return $errors;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function extractContentImagePaths(string $content): array
+    {
+        if ($content === '') {
+            return [];
+        }
+
+        preg_match_all('/!\\[[^\\]]*\\]\\(([^)]+)\\)/', $content, $matches);
+
+        $paths = [];
+
+        foreach ($matches[1] ?? [] as $url) {
+            if (! is_string($url) || $url === '') {
+                continue;
+            }
+
+            $path = parse_url($url, PHP_URL_PATH) ?? $url;
+            $path = ltrim($path, '/');
+
+            if (str_starts_with($path, 'assets/')) {
+                $paths[] = $path;
+            }
+        }
+
+        return array_values(array_unique($paths));
     }
 
     /**
@@ -592,6 +777,206 @@ class AppSettingsController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * Normalize front matter topics into a list of strings.
+     *
+     * @return array<int, string>
+     */
+    private function normalizeTopics(mixed $topics): array
+    {
+        if (is_string($topics)) {
+            $topics = trim($topics);
+
+            if ($topics === '') {
+                return [];
+            }
+
+            $topics = array_map('trim', explode(',', $topics));
+        }
+
+        if (! is_array($topics)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($topics as $topic) {
+            if (! is_string($topic)) {
+                continue;
+            }
+
+            $topic = trim($topic);
+
+            if ($topic !== '') {
+                $normalized[] = $topic;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    private function normalizeEyecatchPath(mixed $eyecatch): ?string
+    {
+        if (! is_string($eyecatch)) {
+            return null;
+        }
+
+        $eyecatch = trim($eyecatch);
+
+        return $eyecatch === '' ? null : ltrim($eyecatch, '/');
+    }
+
+    /**
+     * Sync topics for a markdown document.
+     *
+     * @param  array<int, string>  $topicNames
+     */
+    private function syncTopics(MarkdownDocument $document, array $topicNames): void
+    {
+        $topicIds = [];
+
+        foreach ($topicNames as $name) {
+            $name = trim($name);
+
+            if ($name === '') {
+                continue;
+            }
+
+            $topic = Topic::findOrCreateByName($name);
+            $topicIds[] = $topic->id;
+        }
+
+        $document->topics()->sync($topicIds);
+    }
+
+    /**
+     * Attach eyecatch file from zip import when available.
+     *
+     * @param  array<string, mixed>  $fileData
+     */
+    private function attachEyecatchFromImport(
+        MarkdownDocument $document,
+        array $fileData,
+        ?string $tempDir
+    ): void {
+        if (! $tempDir || empty($fileData['eyecatch'])) {
+            return;
+        }
+
+        $relativePath = $fileData['eyecatch'];
+
+        if (! is_string($relativePath)) {
+            return;
+        }
+
+        $path = $tempDir.'/'.ltrim($relativePath, '/');
+
+        if (! is_file($path)) {
+            return;
+        }
+
+        $document->clearMediaCollection('eyecatch');
+        $document->addMedia($path)->toMediaCollection('eyecatch');
+    }
+
+    /**
+     * @param  array<int, string>  $contentImages
+     */
+    private function attachContentImagesFromImport(
+        MarkdownDocument $document,
+        ?string $content,
+        array $contentImages,
+        ?string $tempDir
+    ): ?string {
+        if (! $tempDir || $content === null || $content === '' || empty($contentImages)) {
+            return $content;
+        }
+
+        $document->clearMediaCollection('content-images');
+
+        $replacements = [];
+
+        foreach ($contentImages as $relativePath) {
+            if (! is_string($relativePath) || $relativePath === '') {
+                continue;
+            }
+
+            $path = $tempDir.'/'.ltrim($relativePath, '/');
+
+            if (! is_file($path)) {
+                continue;
+            }
+
+            $media = $document->addMedia($path)->toMediaCollection('content-images');
+            $replacements[$relativePath] = route('markdown.content-media.show', $media);
+        }
+
+        return $this->replaceContentImagePaths($content, $replacements);
+    }
+
+    /**
+     * @param  array<string, string>  $replacements
+     */
+    private function replaceContentImagePaths(string $content, array $replacements): string
+    {
+        if ($content === '' || $replacements === []) {
+            return $content;
+        }
+
+        return preg_replace_callback(
+            '/!\\[[^\\]]*\\]\\(([^)]+)\\)/',
+            function (array $matches) use ($replacements): string {
+                $url = $matches[1];
+                $path = parse_url($url, PHP_URL_PATH) ?? $url;
+                $path = ltrim($path, '/');
+
+                if (! isset($replacements[$path])) {
+                    return $matches[0];
+                }
+
+                return str_replace($url, $replacements[$path], $matches[0]);
+            },
+            $content
+        ) ?? $content;
+    }
+
+    private function eyecatchExportPath(MarkdownDocument $document): ?string
+    {
+        $media = $document->getFirstMedia('eyecatch');
+
+        if (! $media) {
+            return null;
+        }
+
+        $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
+        $suffix = $extension !== '' ? '.'.$extension : '';
+
+        return 'assets/'.$document->slug.'/eyecatch'.$suffix;
+    }
+
+    private function addEyecatchToZip(ZipArchive $zip, MarkdownDocument $document): void
+    {
+        $media = $document->getFirstMedia('eyecatch');
+
+        if (! $media) {
+            return;
+        }
+
+        $path = $media->getPath();
+
+        if ($path === '') {
+            return;
+        }
+
+        $exportPath = $this->eyecatchExportPath($document);
+
+        if (! $exportPath) {
+            return;
+        }
+
+        $zip->addFile($path, $exportPath);
     }
 
     /**

@@ -213,3 +213,7 @@ details .details-content {
 .prose blockquote p::after {
     content: none;
 }
+
+.prose p > img + br + em {
+    @apply block text-center;
+}

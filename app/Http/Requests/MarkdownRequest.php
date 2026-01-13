@@ -92,6 +92,9 @@ class MarkdownRequest extends FormRequest
             ],
             'content' => ['nullable', 'string'],
             'status' => ['nullable', 'string', Rule::in(['draft', 'private', 'published'])],
+            'eyecatch' => ['nullable', 'image', 'max:5120'],
+            'topics' => ['nullable', 'array'],
+            'topics.*' => ['required', 'string', 'max:50'],
         ];
     }
 }

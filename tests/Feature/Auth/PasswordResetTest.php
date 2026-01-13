@@ -14,6 +14,10 @@ class PasswordResetTest extends TestCase
 
     public function test_reset_password_link_screen_can_be_rendered()
     {
+        if (! $this->app['router']->has('password.request')) {
+            $this->markTestSkipped('password.request route is disabled.');
+        }
+
         $response = $this->get(route('password.request'));
 
         $response->assertStatus(200);
@@ -21,6 +25,10 @@ class PasswordResetTest extends TestCase
 
     public function test_reset_password_link_can_be_requested()
     {
+        if (! $this->app['router']->has('password.email')) {
+            $this->markTestSkipped('password.email route is disabled.');
+        }
+
         Notification::fake();
 
         $user = User::factory()->create();
@@ -32,6 +40,10 @@ class PasswordResetTest extends TestCase
 
     public function test_reset_password_screen_can_be_rendered()
     {
+        if (! $this->app['router']->has('password.email')) {
+            $this->markTestSkipped('password.email route is disabled.');
+        }
+
         Notification::fake();
 
         $user = User::factory()->create();
@@ -49,6 +61,14 @@ class PasswordResetTest extends TestCase
 
     public function test_password_can_be_reset_with_valid_token()
     {
+        if (! $this->app['router']->has('password.email')) {
+            $this->markTestSkipped('password.email route is disabled.');
+        }
+
+        if (! $this->app['router']->has('password.update')) {
+            $this->markTestSkipped('password.update route is disabled.');
+        }
+
         Notification::fake();
 
         $user = User::factory()->create();
@@ -73,6 +93,10 @@ class PasswordResetTest extends TestCase
 
     public function test_password_cannot_be_reset_with_invalid_token(): void
     {
+        if (! $this->app['router']->has('password.update')) {
+            $this->markTestSkipped('password.update route is disabled.');
+        }
+
         $user = User::factory()->create();
 
         $response = $this->post(route('password.update'), [

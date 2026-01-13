@@ -18,6 +18,10 @@ class TwoFactorChallengeTest extends TestCase
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
+        if (! $this->app['router']->has('two-factor.login')) {
+            $this->markTestSkipped('two-factor.login route is disabled.');
+        }
+
         $response = $this->get(route('two-factor.login'));
 
         $response->assertRedirect(route('login'));
@@ -27,6 +31,10 @@ class TwoFactorChallengeTest extends TestCase
     {
         if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
+        }
+
+        if (! $this->app['router']->has('two-factor.login')) {
+            $this->markTestSkipped('two-factor.login route is disabled.');
         }
 
         Features::twoFactorAuthentication([

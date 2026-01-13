@@ -27,9 +27,11 @@ import { Download, Home, Pencil, Trash2, Upload } from 'lucide-react';
 
 export default function AppSettings({
     publicViews,
+    openAiConfigured,
     homeDocument,
 }: {
     publicViews: boolean;
+    openAiConfigured: boolean;
     homeDocument: {
         id: number;
         slug: string;
@@ -78,6 +80,44 @@ export default function AppSettings({
                         >
                             {publicViews ? __('Enabled') : __('Disabled')}
                         </Badge>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{__('AI settings')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                                {__('OpenAI API key configuration status.')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {__('Environment variable')}: OPENAI_API_KEY
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge
+                                variant={
+                                    openAiConfigured ? 'default' : 'destructive'
+                                }
+                            >
+                                {openAiConfigured
+                                    ? __('Configured')
+                                    : __('Not configured')}
+                            </Badge>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled
+                            >
+                                {__('Check connection (coming soon)')}
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {__('Connection check is not available yet.')}
+                        </p>
                     </CardContent>
                 </Card>
 

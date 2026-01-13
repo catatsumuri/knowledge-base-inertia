@@ -64,7 +64,7 @@ export function MarkdownImage({
                                     src={src}
                                     alt={alt}
                                     className="block"
-                                    onClick={(e) => e.stopPropagation()}
+                                    onClick={handleClose}
                                 />
                                 <button
                                     onClick={handleClose}

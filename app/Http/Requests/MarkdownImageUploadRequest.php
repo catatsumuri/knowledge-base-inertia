@@ -22,6 +22,8 @@ class MarkdownImageUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'document_id' => ['nullable', 'integer', 'exists:markdown_documents,id', 'required_without:slug'],
+            'slug' => ['nullable', 'string', 'max:255', 'required_without:document_id'],
             'image' => ['required', 'image', 'max:5120', 'mimes:jpg,jpeg,png,gif,webp,svg'],
         ];
     }

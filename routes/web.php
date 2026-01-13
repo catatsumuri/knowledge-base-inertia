@@ -4,10 +4,13 @@ use App\Http\Controllers\AppSettingsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicPagesController;
 use App\Models\MarkdownDocument;
+use App\Models\Shout;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('markdown/media/{media}/{conversion?}', [\App\Http\Controllers\MarkdownController::class, 'media'])
+    ->name('markdown.media.show');
 
 Route::get('pages', [PublicPagesController::class, 'index'])
     ->name('pages.index');
@@ -32,8 +35,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ] : null,
             ]);
 
+        $shouts = Shout::query()
+            ->with(['user', 'links', 'media', 'replies.user', 'replies.links', 'replies.media'])
+            ->whereNull('parent_id')
+            ->latest()
+            ->paginate(20)
+            ->through(fn (Shout $shout) => $shout->toInertiaArray());
+
         return Inertia::render('dashboard', [
             'recentDocuments' => $recentDocuments,
+            'shouts' => $shouts,
         ]);
     })->name('dashboard');
 
@@ -58,7 +69,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('sitemap', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
+    Route::get('topics', [\App\Http\Controllers\TopicController::class, 'index'])->name('topics.index');
+    Route::get('topics/{slug}', [\App\Http\Controllers\TopicController::class, 'show'])->name('topics.show');
+
     Route::get('shoutbox', [\App\Http\Controllers\ShoutboxController::class, 'index'])->name('shoutbox.index');
+    Route::get('shoutbox/media/{media}', [\App\Http\Controllers\ShoutboxController::class, 'media'])->name('shoutbox.media.show');
     Route::post('shoutbox', [\App\Http\Controllers\ShoutboxController::class, 'store'])->name('shoutbox.store');
     Route::patch('shoutbox/{shout}', [\App\Http\Controllers\ShoutboxController::class, 'update'])->name('shoutbox.update');
     Route::delete('shoutbox/{shout}', [\App\Http\Controllers\ShoutboxController::class, 'destroy'])->name('shoutbox.destroy');
@@ -68,18 +83,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('markdown', [\App\Http\Controllers\MarkdownController::class, 'store'])->name('markdown.store');
     Route::post('markdown/import', [\App\Http\Controllers\MarkdownController::class, 'import'])->name('markdown.import');
     Route::post('markdown/upload-image', [\App\Http\Controllers\MarkdownController::class, 'uploadImage'])->name('markdown.upload-image');
+    Route::get('markdown/content-media/{media:uuid}', [\App\Http\Controllers\MarkdownController::class, 'contentMedia'])
+        ->name('markdown.content-media.show');
     Route::get('api/markdown/search', [\App\Http\Controllers\MarkdownController::class, 'search'])->name('markdown.search');
+    Route::get('api/markdown/slug-availability', [\App\Http\Controllers\MarkdownController::class, 'slugAvailability'])
+        ->name('markdown.slug-availability');
+    Route::get('api/topics/search', [\App\Http\Controllers\MarkdownController::class, 'searchTopics'])->name('topics.search');
     Route::post('api/markdown/translate', [\App\Http\Controllers\MarkdownController::class, 'translate'])->name('markdown.translate');
     Route::post('api/markdown/convert', [\App\Http\Controllers\MarkdownController::class, 'convertToMarkdown'])->name('markdown.convert');
     Route::post('api/markdown/convert-table', [\App\Http\Controllers\MarkdownController::class, 'convertToTable'])->name('markdown.convert-table');
-    Route::get('markdown/{document:slug}/revisions', [\App\Http\Controllers\MarkdownController::class, 'revisions'])->name('markdown.revisions');
-    Route::post('markdown/{document:slug}/revisions/{revision}/restore', [\App\Http\Controllers\MarkdownController::class, 'restore'])->name('markdown.restore');
+    Route::get('markdown/{document:slug}/revisions', [\App\Http\Controllers\MarkdownController::class, 'revisions'])
+        ->where('document', '.*')
+        ->name('markdown.revisions');
+    Route::post('markdown/{document:slug}/revisions/{revision}/restore', [\App\Http\Controllers\MarkdownController::class, 'restore'])
+        ->where('document', '.*')
+        ->name('markdown.restore');
     Route::post('markdown/export', [\App\Http\Controllers\MarkdownController::class, 'exportBulk'])->name('markdown.export-bulk');
     Route::post('markdown/delete', [\App\Http\Controllers\MarkdownController::class, 'destroyBulk'])->name('markdown.destroy-bulk');
     Route::post('markdown/status', [\App\Http\Controllers\MarkdownController::class, 'updateStatusBulk'])->name('markdown.status-bulk');
     Route::get('markdown/{slug}/export', [\App\Http\Controllers\MarkdownController::class, 'export'])->where('slug', '.*')->name('markdown.export');
     Route::get('markdown/{slug}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->where('slug', '.*')->name('markdown.edit');
     Route::patch('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'update'])->where('slug', '.*')->name('markdown.update');
+    Route::match(['get', 'post'], 'markdown/{slug}/move', [\App\Http\Controllers\MarkdownController::class, 'move'])->where('slug', '.*')->name('markdown.move');
     Route::delete('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'destroy'])->where('slug', '.*')->name('markdown.destroy');
     Route::get('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'show'])->where('slug', '.*')->name('markdown.show');
 

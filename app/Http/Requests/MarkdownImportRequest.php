@@ -22,7 +22,7 @@ class MarkdownImportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'markdown' => ['required', 'file', 'max:10240', 'mimes:md,markdown,txt'],
+            'markdown' => ['required', 'file', 'max:10240', 'mimes:md,markdown,txt,zip'],
         ];
     }
 }

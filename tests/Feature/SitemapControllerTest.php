@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\MarkdownDocument;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -132,6 +134,30 @@ class SitemapControllerTest extends TestCase
             ->has('tree.0.updated_by')
             ->where('tree.0.updated_by.name', 'Updater')
             ->has('tree.0.updated_at')
+        );
+    }
+
+    public function test_eyecatch_thumbnail_is_included_in_tree(): void
+    {
+        Storage::fake('markdown-media');
+        $user = User::factory()->create();
+
+        $document = MarkdownDocument::factory()->create([
+            'slug' => 'index',
+            'title' => 'Home',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $document->addMedia(UploadedFile::fake()->image('eyecatch.jpg'))
+            ->toMediaCollection('eyecatch');
+
+        $response = $this->actingAs($user)->get('/sitemap');
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('sitemap')
+            ->has('tree.0.eyecatch_thumb_url')
+            ->where('tree.0.eyecatch_thumb_url', fn ($url) => is_string($url) && str_contains($url, '/markdown/media/'))
         );
     }
 

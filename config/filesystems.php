@@ -46,6 +46,18 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        'markdown-media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/markdown-media'),
+            'throw' => false,
+            'report' => false,
+        ],
+        'shoutbox-media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/shoutbox-media'),
+            'throw' => false,
+            'report' => false,
+        ],
 
         's3' => [
             'driver' => 's3',

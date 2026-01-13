@@ -47,6 +47,7 @@ interface TreeNode {
     slug: string;
     title: string;
     status?: 'draft' | 'private' | 'published';
+    eyecatch_thumb_url?: string | null;
     updated_at?: string;
     updated_by?: {
         name: string;
@@ -99,9 +100,17 @@ function TreeNodeComponent({
                         className="mt-0.5"
                     />
                 )}
-                <File className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                {node.eyecatch_thumb_url ? (
+                    <img
+                        src={node.eyecatch_thumb_url}
+                        alt={node.title}
+                        className="mt-0.5 h-[46px] w-[46px] shrink-0 rounded-md border border-border object-cover"
+                    />
+                ) : (
+                    <File className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                )}
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <div className="flex items-baseline gap-3">
+                    <div className="flex flex-wrap items-baseline gap-3">
                         <Link
                             href={show(node.slug).url}
                             className="font-medium text-foreground hover:underline"

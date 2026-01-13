@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('title');
             $table->longText('content')->nullable();
             $table->string('status')->default('draft');
+            $table->boolean('is_home_page')->default(false);
+            $table->index('is_home_page');
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
             $table->foreignId('updated_by')->constrained('users')->cascadeOnDelete();
             $table->timestamps();

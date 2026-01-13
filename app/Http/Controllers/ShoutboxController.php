@@ -4,21 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Models\Shout;
 use App\Models\ShoutLink;
-use App\Services\ImageMetadataService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ShoutboxController extends Controller
 {
     public function index(): Response
     {
-        $shouts = Shout::with(['user', 'links', 'replies.user', 'replies.links'])
+        $shouts = Shout::with([
+            'user',
+            'links',
+            'media',
+            'replies.user',
+            'replies.links',
+            'replies.media',
+        ])
             ->whereNull('parent_id') // トップレベルのshoutのみ
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->through(fn (Shout $shout) => $shout->toInertiaArray());
 
         return Inertia::render('shoutbox/index', [
             'shouts' => $shouts,
@@ -41,26 +49,19 @@ class ShoutboxController extends Controller
             ]);
         }
 
-        $imagePaths = [];
-        $imageMetadata = [];
-
-        if ($request->hasFile('images')) {
-            $imageService = new ImageMetadataService;
-            foreach ($request->file('images') as $image) {
-                $result = $imageService->storeUploadedImage($image, 'shouts');
-                $path = $result['path'];
-                $imageMetadata[$path] = $result['metadata'];
-                $imagePaths[] = $path;
-            }
-        }
-
         $shout = Shout::create([
             'user_id' => $request->user()->id,
             'parent_id' => $validated['parent_id'] ?? null,
             'content' => $validated['content'],
-            'images' => empty($imagePaths) ? null : $imagePaths,
-            'image_metadata' => empty($imageMetadata) ? null : $imageMetadata,
+            'images' => null,
+            'image_metadata' => null,
         ]);
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $shout->addMedia($image)->toMediaCollection('images');
+            }
+        }
 
         // @slug形式のリンクを抽出して保存
         $this->saveMentionedLinks($shout, $validated['content']);
@@ -104,16 +105,26 @@ class ShoutboxController extends Controller
             abort(403);
         }
 
-        // 画像を削除
-        if ($shout->images) {
-            foreach ($shout->images as $imagePath) {
-                Storage::disk('public')->delete($imagePath);
-            }
-        }
-
         $shout->delete();
 
         return redirect()->back();
+    }
+
+    public function media(Request $request, Media $media): BinaryFileResponse
+    {
+        if ($media->model_type !== Shout::class) {
+            abort(404);
+        }
+
+        $path = $media->getPath();
+
+        if ($path === '') {
+            abort(404);
+        }
+
+        return response()->file($path, [
+            'Content-Type' => $media->mime_type ?? 'application/octet-stream',
+        ]);
     }
 
     private function saveMentionedLinks(Shout $shout, ?string $content): void

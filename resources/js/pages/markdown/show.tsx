@@ -18,8 +18,14 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useInitials } from '@/hooks/use-initials';
@@ -28,12 +34,14 @@ import AppLayout from '@/layouts/app-layout';
 import PublicLayout from '@/layouts/public-layout';
 import { parseToc, type TocNode } from '@/lib/parse-toc';
 import { cn } from '@/lib/utils';
+import { show as showTopic } from '@/routes/topics';
 import { type BreadcrumbItem, type User } from '@/types';
 import { Form, Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
     AlertTriangle,
+    ChevronDown,
     ChevronLeft,
     ChevronRight,
     Download,
@@ -46,6 +54,55 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+const normalizeHeadingText = (text: string) =>
+    text
+        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/__([^_]+)__/g, '$1')
+        .replace(/_([^_]+)_/g, '$1')
+        .replace(/~~([^~]+)~~/g, '$1')
+        .replace(/<[^>]+>/g, '')
+        .trim();
+
+const findHeadingOffset = (
+    content: string,
+    headingText: string,
+    level: number,
+) => {
+    const normalizedTarget = normalizeHeadingText(headingText);
+    if (!normalizedTarget) {
+        return null;
+    }
+
+    const lines = content.split(/\r?\n/);
+    const lineBreakLength = content.includes('\r\n') ? 2 : 1;
+    let offset = 0;
+    let inCodeBlock = false;
+
+    for (const line of lines) {
+        if (/^```/.test(line)) {
+            inCodeBlock = !inCodeBlock;
+        }
+
+        if (!inCodeBlock) {
+            const headingMatch = /^(#{1,6})\s+(.+?)(?:\s+#+\s*)?$/.exec(line);
+            if (headingMatch && headingMatch[1].length === level) {
+                const lineText = normalizeHeadingText(headingMatch[2]);
+                if (lineText === normalizedTarget) {
+                    return offset;
+                }
+            }
+        }
+
+        offset += line.length + lineBreakLength;
+    }
+
+    return null;
+};
+
 interface MarkdownDocument {
     id: number;
     slug: string;
@@ -56,6 +113,8 @@ interface MarkdownDocument {
     updated_by: number;
     created_at: string;
     updated_at: string;
+    topics?: Array<{ id: number; name: string; slug: string }>;
+    eyecatch_url?: string | null;
     created_by?: {
         id: number;
         name: string;
@@ -241,6 +300,34 @@ export default function Show({
 
     const mentionBasePath = isPublicView ? '/pages' : '/markdown';
 
+    const handleEditHeading = ({
+        level,
+        text,
+    }: {
+        level: number;
+        text: string;
+    }) => {
+        if (!document.content) {
+            router.visit(edit(document.slug).url);
+            return;
+        }
+
+        const offset = findHeadingOffset(document.content, text, level);
+        const editUrl = edit(document.slug).url;
+
+        if (typeof offset !== 'number') {
+            router.visit(editUrl);
+            return;
+        }
+
+        const clampedOffset = Math.max(
+            0,
+            Math.min(offset, document.content.length),
+        );
+
+        router.visit(`${editUrl}?jump=${clampedOffset}`);
+    };
+
     const renderContentWithLinks = (content: string) => {
         if (!content) return null;
 
@@ -267,10 +354,13 @@ export default function Show({
     const contentBody = (
         <div
             ref={contentRef}
-            className="prose prose-sm w-full max-w-[900px] min-w-0 rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert"
+            className="prose prose-sm w-full max-w-[900px] min-w-0 rounded-xl border border-sidebar-border/70 p-6 prose-neutral dark:border-sidebar-border dark:prose-invert [&_figcaption]:text-center"
         >
             {document.content ? (
-                <MarkdownViewer content={document.content} />
+                <MarkdownViewer
+                    content={document.content}
+                    onEditHeading={canManage ? handleEditHeading : undefined}
+                />
             ) : (
                 <p className="text-muted-foreground">{__('No content yet.')}</p>
             )}
@@ -285,12 +375,40 @@ export default function Show({
 
             <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold">
-                            {document.title || '新規ページ'}
-                        </h1>
-                        {document.status === 'draft' && (
-                            <Badge variant="secondary">{__('Draft')}</Badge>
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold">
+                                {document.title || '新規ページ'}
+                            </h1>
+                            {document.status === 'draft' && (
+                                <Badge variant="secondary">{__('Draft')}</Badge>
+                            )}
+                        </div>
+                        {document.eyecatch_url && (
+                            <div className="overflow-hidden rounded-xl border border-sidebar-border/70">
+                                <img
+                                    src={document.eyecatch_url}
+                                    alt={document.title}
+                                    className="h-56 w-full object-cover"
+                                />
+                            </div>
+                        )}
+                        {document.topics && document.topics.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {document.topics.map((topic) => (
+                                    <Link
+                                        key={topic.id}
+                                        href={showTopic(topic.slug).url}
+                                    >
+                                        <Badge
+                                            variant="secondary"
+                                            className="cursor-pointer text-xs transition-colors hover:bg-primary hover:text-primary-foreground"
+                                        >
+                                            {topic.name}
+                                        </Badge>
+                                    </Link>
+                                ))}
+                            </div>
                         )}
                     </div>
                     <div className="flex gap-2">
@@ -314,54 +432,75 @@ export default function Show({
                                     </Link>
                                 </Button>
 
-                                <div>
-                                    <input
-                                        ref={importInputRef}
-                                        type="file"
-                                        accept=".md,text/markdown,text/plain"
-                                        className="hidden"
-                                        onChange={(event) => {
-                                            const file =
-                                                event.target.files?.[0];
+                                <input
+                                    ref={importInputRef}
+                                    type="file"
+                                    accept=".md,.zip,text/markdown,text/plain,application/zip"
+                                    className="hidden"
+                                    onChange={(event) => {
+                                        const file = event.target.files?.[0];
 
-                                            if (!file) {
-                                                return;
-                                            }
-
-                                            router.post(
-                                                '/markdown/import',
-                                                {
-                                                    markdown: file,
-                                                },
-                                                {
-                                                    onFinish: () => {
-                                                        event.target.value = '';
-                                                    },
-                                                },
-                                            );
-                                        }}
-                                    />
-                                    <Button
-                                        variant="outline"
-                                        onClick={() =>
-                                            importInputRef.current?.click()
+                                        if (!file) {
+                                            return;
                                         }
-                                    >
-                                        <Upload className="h-4 w-4" />
-                                        {__('Import')}
-                                    </Button>
-                                </div>
+
+                                        router.post(
+                                            '/markdown/import',
+                                            {
+                                                markdown: file,
+                                            },
+                                            {
+                                                onFinish: () => {
+                                                    event.target.value = '';
+                                                },
+                                            },
+                                        );
+                                    }}
+                                />
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline">
+                                            {__('Actions')}
+                                            <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem
+                                            onSelect={(event) => {
+                                                event.preventDefault();
+                                                importInputRef.current?.click();
+                                            }}
+                                        >
+                                            <Upload className="h-4 w-4" />
+                                            {__('Import')}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <a
+                                                href={`/markdown/${document.slug}/export`}
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                {__('Export')}
+                                            </a>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive"
+                                            onSelect={(event) => {
+                                                event.preventDefault();
+                                                setIsDeleteDialogOpen(true);
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            {__('Delete')}
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
 
                                 <Dialog
                                     open={isDeleteDialogOpen}
                                     onOpenChange={setIsDeleteDialogOpen}
                                 >
-                                    <DialogTrigger asChild>
-                                        <Button variant="destructive">
-                                            <Trash2 className="h-4 w-4" />
-                                            {__('Delete')}
-                                        </Button>
-                                    </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>
@@ -572,19 +711,17 @@ export default function Show({
                                                                     type="button"
                                                                     onClick={() =>
                                                                         openLightbox(
-                                                                            shout.images!.map(
-                                                                                (
-                                                                                    img,
-                                                                                ) =>
-                                                                                    `/storage/${img}`,
-                                                                            ),
+                                                                            shout.images ??
+                                                                                [],
                                                                             index,
                                                                         )
                                                                     }
                                                                     className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
                                                                 >
                                                                     <img
-                                                                        src={`/storage/${image}`}
+                                                                        src={
+                                                                            image
+                                                                        }
                                                                         alt={`Image ${index + 1}`}
                                                                         className="h-32 w-32 object-cover"
                                                                     />
@@ -669,19 +806,17 @@ export default function Show({
                                                                                                 type="button"
                                                                                                 onClick={() =>
                                                                                                     openLightbox(
-                                                                                                        reply.images!.map(
-                                                                                                            (
-                                                                                                                img,
-                                                                                                            ) =>
-                                                                                                                `/storage/${img}`,
-                                                                                                        ),
+                                                                                                        reply.images ??
+                                                                                                            [],
                                                                                                         index,
                                                                                                     )
                                                                                                 }
                                                                                                 className="group relative overflow-hidden rounded transition-opacity hover:opacity-90"
                                                                                             >
                                                                                                 <img
-                                                                                                    src={`/storage/${image}`}
+                                                                                                    src={
+                                                                                                        image
+                                                                                                    }
                                                                                                     alt={`Image ${index + 1}`}
                                                                                                     className="h-20 w-20 object-cover"
                                                                                                 />
@@ -712,17 +847,6 @@ export default function Show({
                                 </Link>
                             </Button>
                         </div>
-                    </div>
-                )}
-
-                {canManage && (
-                    <div className="flex justify-end">
-                        <Button asChild variant="outline">
-                            <a href={`/markdown/${document.slug}/export`}>
-                                <Download className="h-4 w-4" />
-                                {__('Export')}
-                            </a>
-                        </Button>
                     </div>
                 )}
 

@@ -98,7 +98,11 @@ export function CodeBlock({
                 textToCopy = content
                     .split('\n')
                     .map((line) => {
-                        if (line.startsWith('+') || line.startsWith('-')) {
+                        if (
+                            line.startsWith('+') ||
+                            line.startsWith('-') ||
+                            line.startsWith(' ')
+                        ) {
                             return line.slice(1);
                         }
                         return line;
@@ -169,7 +173,11 @@ export function CodeBlock({
                                 let symbol = '';
                                 let codeContent = line;
 
-                                if (line.startsWith('+')) {
+                                if (line.startsWith('@@')) {
+                                    bgColor = 'rgba(59, 130, 246, 0.15)'; // 青
+                                    symbol = '';
+                                    codeContent = line;
+                                } else if (line.startsWith('+')) {
                                     bgColor = 'rgba(16, 185, 129, 0.15)'; // 緑
                                     symbol = '+';
                                     codeContent = line.slice(1);
@@ -177,10 +185,9 @@ export function CodeBlock({
                                     bgColor = 'rgba(239, 68, 68, 0.15)'; // 赤
                                     symbol = '-';
                                     codeContent = line.slice(1);
-                                } else if (line.startsWith('@@')) {
-                                    bgColor = 'rgba(59, 130, 246, 0.15)'; // 青
+                                } else if (line.startsWith(' ')) {
                                     symbol = '';
-                                    codeContent = line;
+                                    codeContent = line.slice(1);
                                 }
 
                                 // Prismでシンタックスハイライトを適用
@@ -204,18 +211,16 @@ export function CodeBlock({
                                     <div
                                         key={index}
                                         style={{ backgroundColor: bgColor }}
-                                        className={`px-4 py-0.5 ${wrap ? 'break-all whitespace-pre-wrap' : ''}`}
+                                        className={`grid grid-cols-[1.25rem_minmax(0,1fr)] items-start gap-1 px-4 py-0.5 ${wrap ? 'break-all whitespace-pre-wrap' : ''}`}
                                     >
-                                        {symbol && (
-                                            <span
-                                                className="inline-block w-4 text-gray-500 select-none"
-                                                style={{
-                                                    userSelect: 'none',
-                                                }}
-                                            >
-                                                {symbol}
-                                            </span>
-                                        )}
+                                        <span
+                                            className="text-center text-gray-500 select-none"
+                                            style={{
+                                                userSelect: 'none',
+                                            }}
+                                        >
+                                            {symbol || ' '}
+                                        </span>
                                         <span
                                             className="token-line"
                                             dangerouslySetInnerHTML={{

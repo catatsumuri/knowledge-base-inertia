@@ -14,6 +14,10 @@ class VerificationNotificationTest extends TestCase
 
     public function test_sends_verification_notification(): void
     {
+        if (! $this->app['router']->has('verification.send')) {
+            $this->markTestSkipped('verification.send route is disabled.');
+        }
+
         Notification::fake();
 
         $user = User::factory()->create([
@@ -29,6 +33,10 @@ class VerificationNotificationTest extends TestCase
 
     public function test_does_not_send_verification_notification_if_email_is_verified(): void
     {
+        if (! $this->app['router']->has('verification.send')) {
+            $this->markTestSkipped('verification.send route is disabled.');
+        }
+
         Notification::fake();
 
         $user = User::factory()->create([

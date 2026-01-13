@@ -52,7 +52,10 @@ class PublicPagesController extends Controller
         $document->load(['createdBy', 'updatedBy']);
 
         return Inertia::render('markdown/show', [
-            'document' => $document,
+            'document' => [
+                ...$document->toArray(),
+                'eyecatch_url' => $document->eyecatchUrl(),
+            ],
             'relatedShouts' => [],
             'canCreate' => false,
             'isPublic' => true,

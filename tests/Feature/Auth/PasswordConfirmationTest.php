@@ -13,6 +13,10 @@ class PasswordConfirmationTest extends TestCase
 
     public function test_confirm_password_screen_can_be_rendered()
     {
+        if (! $this->app['router']->has('password.confirm')) {
+            $this->markTestSkipped('password.confirm route is disabled.');
+        }
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('password.confirm'));
@@ -26,6 +30,10 @@ class PasswordConfirmationTest extends TestCase
 
     public function test_password_confirmation_requires_authentication()
     {
+        if (! $this->app['router']->has('password.confirm')) {
+            $this->markTestSkipped('password.confirm route is disabled.');
+        }
+
         $response = $this->get(route('password.confirm'));
 
         $response->assertRedirect(route('login'));

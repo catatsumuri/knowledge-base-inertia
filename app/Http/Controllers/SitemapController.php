@@ -14,7 +14,7 @@ class SitemapController extends Controller
     public function index(): Response
     {
         $documents = MarkdownDocument::query()
-            ->with(['createdBy', 'updatedBy'])
+            ->with(['createdBy', 'updatedBy', 'media'])
             ->orderBy('slug')
             ->get();
 
@@ -62,6 +62,7 @@ class SitemapController extends Controller
                 'slug' => $document->slug,
                 'title' => $document->title,
                 'status' => $document->status,
+                'eyecatch_thumb_url' => $document->eyecatchThumbUrl(),
                 'updated_at' => $document->updated_at->toISOString(),
                 'updated_by' => $document->updatedBy ? [
                     'name' => $document->updatedBy->name,

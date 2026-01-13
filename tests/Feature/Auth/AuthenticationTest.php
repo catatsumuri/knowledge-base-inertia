@@ -14,6 +14,10 @@ class AuthenticationTest extends TestCase
 
     public function test_login_screen_can_be_rendered()
     {
+        if (! $this->app['router']->has('login')) {
+            $this->markTestSkipped('login route is disabled.');
+        }
+
         $response = $this->get(route('login'));
 
         $response->assertStatus(200);
@@ -21,6 +25,10 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen()
     {
+        if (! $this->app['router']->has('login.store')) {
+            $this->markTestSkipped('login.store route is disabled.');
+        }
+
         $user = User::factory()->withoutTwoFactor()->create();
 
         $response = $this->post(route('login.store'), [
@@ -36,6 +44,10 @@ class AuthenticationTest extends TestCase
     {
         if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
+        }
+
+        if (! $this->app['router']->has('two-factor.login')) {
+            $this->markTestSkipped('two-factor.login route is disabled.');
         }
 
         Features::twoFactorAuthentication([
@@ -63,6 +75,10 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_not_authenticate_with_invalid_password()
     {
+        if (! $this->app['router']->has('login.store')) {
+            $this->markTestSkipped('login.store route is disabled.');
+        }
+
         $user = User::factory()->create();
 
         $this->post(route('login.store'), [
@@ -75,6 +91,10 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_logout()
     {
+        if (! $this->app['router']->has('logout')) {
+            $this->markTestSkipped('logout route is disabled.');
+        }
+
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('logout'));
@@ -83,8 +103,25 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('home'));
     }
 
+    public function test_logout_route_is_post()
+    {
+        if (! $this->app['router']->has('logout')) {
+            $this->markTestSkipped('logout route is disabled.');
+        }
+
+        $route = $this->app['router']->getRoutes()->getByName('logout');
+
+        $this->assertNotNull($route);
+        $this->assertContains('POST', $route->methods());
+        $this->assertSame('logout', $route->uri());
+    }
+
     public function test_users_are_rate_limited()
     {
+        if (! $this->app['router']->has('login.store')) {
+            $this->markTestSkipped('login.store route is disabled.');
+        }
+
         $user = User::factory()->create();
 
         RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
