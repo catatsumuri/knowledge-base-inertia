@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\MarkdownImageUpload;
 use App\Models\Shout;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

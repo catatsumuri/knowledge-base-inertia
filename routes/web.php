@@ -20,12 +20,11 @@ Route::get('pages/{slug}', [PublicPagesController::class, 'show'])
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        $recentDocuments = MarkdownDocument::query()
+        $recentDocuments = Inertia::scroll(fn () => MarkdownDocument::query()
             ->with('updatedBy')
             ->latest('updated_at')
-            ->limit(5)
-            ->get()
-            ->map(fn (MarkdownDocument $document) => [
+            ->paginate(5)
+            ->through(fn (MarkdownDocument $document) => [
                 'slug' => $document->slug,
                 'title' => $document->title,
                 'status' => $document->status,
@@ -33,7 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'updated_by' => $document->updatedBy ? [
                     'name' => $document->updatedBy->name,
                 ] : null,
-            ]);
+            ]));
 
         $shouts = Shout::query()
             ->with(['user', 'links', 'media', 'replies.user', 'replies.links', 'replies.media'])

@@ -1,3 +1,4 @@
+import { MermaidBlock } from '@/components/mermaid-block';
 import { Check, Copy, MoveHorizontal, WrapText } from 'lucide-react';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-bash';
@@ -132,6 +133,10 @@ export function CodeBlock({
                 {children}
             </code>
         );
+    }
+
+    if (language === 'mermaid') {
+        return <MermaidBlock code={content} />;
     }
 
     // 以下、コードブロックの処理

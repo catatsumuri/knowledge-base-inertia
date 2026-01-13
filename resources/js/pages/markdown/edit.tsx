@@ -84,6 +84,7 @@ export default function Edit({
     const { props } = usePage<{ imageUrl?: string }>();
     const previousImageUrlRef = useRef<string | undefined>();
     const hasJumpedRef = useRef(false);
+    const [returnHeading, setReturnHeading] = useState<string | null>(null);
     const moveRequestRef = useRef<AbortController | null>(null);
 
     // 画像アップロード後のURL挿入処理
@@ -159,6 +160,16 @@ export default function Edit({
             lineIndex * lineHeight - lineHeight * 2,
         );
         hasJumpedRef.current = true;
+    }, [document?.id]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const returnParam = params.get('return_heading');
+        setReturnHeading(returnParam);
     }, [document?.id]);
 
     useEffect(() => {
@@ -645,6 +656,13 @@ export default function Edit({
                 >
                     {({ processing, errors }) => (
                         <>
+                            {returnHeading ? (
+                                <Input
+                                    type="hidden"
+                                    name="return_heading"
+                                    value={returnHeading}
+                                />
+                            ) : null}
                             <Card className="gap-0 py-0">
                                 <Collapsible
                                     open={isMetaOpen}
@@ -663,7 +681,7 @@ export default function Edit({
                                         </CardHeader>
                                     </CollapsibleTrigger>
                                     <CollapsibleContent>
-                                        <CardContent className="space-y-6 px-4 pt-4">
+                                        <CardContent className="space-y-6 px-4 py-4">
                                             {!document && (
                                                 <div className="grid gap-2">
                                                     <Label htmlFor="slug">

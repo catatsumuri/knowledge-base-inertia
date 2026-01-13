@@ -4,11 +4,13 @@ import { CodeTabsWrapper } from '@/components/code-tabs';
 import { EmbedCard } from '@/components/embed-card';
 import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
+import { ParamField } from '@/components/param-field';
 import { remarkChartDirective } from '@/lib/remark-chart-directive';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { remarkCodeTabs } from '@/lib/remark-code-tabs';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkLinkifyToCard } from '@/lib/remark-linkify-to-card';
+import { remarkParamFieldDirective } from '@/lib/remark-param-field-directive';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
 import { preprocessZennSyntax } from '@/lib/remark-zenn-syntax';
 import { Link } from '@inertiajs/react';
@@ -131,6 +133,7 @@ export function MarkdownViewer({
                 remarkDirective,
                 remarkZennDirective,
                 remarkChartDirective,
+                remarkParamFieldDirective,
                 remarkCodeTabs,
                 remarkImageSize,
                 remarkCodeMeta,
@@ -159,9 +162,29 @@ export function MarkdownViewer({
                     if (props['data-embed-type']) {
                         return <EmbedCardWrapper {...props} />;
                     }
+                    if (props['data-param-field'] !== undefined) {
+                        return (
+                            <ParamField
+                                header={props['data-param-header']}
+                                body={props['data-param-body']}
+                                type={props['data-param-type']}
+                            >
+                                {props.children}
+                            </ParamField>
+                        );
+                    }
                     // それ以外は通常のdiv
                     return <div {...props} />;
                 },
+                paramfield: (props: any) => (
+                    <ParamField
+                        header={props.header}
+                        body={props.body}
+                        type={props.type}
+                    >
+                        {props.children}
+                    </ParamField>
+                ),
                 h1: (props) => (
                     <MarkdownHeading
                         level={1}

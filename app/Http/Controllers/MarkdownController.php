@@ -480,6 +480,7 @@ class MarkdownController extends Controller
     {
         $document = MarkdownDocument::query()->where('slug', $slug)->firstOrFail();
         $data = $request->validated();
+        $returnHeading = $request->string('return_heading')->trim()->toString();
         $hasChanges = $document->title !== ($data['title'] ?? null)
             || $document->content !== ($data['content'] ?? null);
 
@@ -505,6 +506,12 @@ class MarkdownController extends Controller
         if (isset($data['topics'])) {
             $topicNames = is_array($data['topics']) ? $data['topics'] : [];
             $this->syncTopics($document, $topicNames);
+        }
+
+        if ($returnHeading !== '') {
+            return redirect()->to(
+                route('markdown.show', $document->slug).'#'.rawurlencode($returnHeading),
+            );
         }
 
         return to_route('markdown.show', $document->slug);

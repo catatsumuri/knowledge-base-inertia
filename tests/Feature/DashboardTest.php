@@ -48,9 +48,9 @@ class DashboardTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->component('dashboard')
-            ->has('recentDocuments', 2)
-            ->where('recentDocuments.0.slug', 'newer')
-            ->where('recentDocuments.1.slug', 'older')
+            ->has('recentDocuments.data', 2)
+            ->where('recentDocuments.data.0.slug', 'newer')
+            ->where('recentDocuments.data.1.slug', 'older')
         );
     }
 

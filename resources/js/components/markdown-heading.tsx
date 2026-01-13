@@ -5,7 +5,11 @@ interface MarkdownHeadingProps
     extends React.HTMLAttributes<HTMLHeadingElement> {
     level: 1 | 2 | 3 | 4 | 5 | 6;
     children?: React.ReactNode;
-    onEditHeading?: (payload: { level: number; text: string }) => void;
+    onEditHeading?: (payload: {
+        level: number;
+        text: string;
+        id?: string;
+    }) => void;
 }
 
 export function MarkdownHeading({
@@ -43,7 +47,7 @@ export function MarkdownHeading({
             return;
         }
 
-        onEditHeading({ level, text: headingText });
+        onEditHeading({ level, text: headingText, id });
     };
 
     if (!id) {

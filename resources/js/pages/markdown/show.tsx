@@ -303,9 +303,11 @@ export default function Show({
     const handleEditHeading = ({
         level,
         text,
+        id,
     }: {
         level: number;
         text: string;
+        id?: string;
     }) => {
         if (!document.content) {
             router.visit(edit(document.slug).url);
@@ -324,8 +326,15 @@ export default function Show({
             0,
             Math.min(offset, document.content.length),
         );
+        const params = new URLSearchParams({
+            jump: clampedOffset.toString(),
+        });
 
-        router.visit(`${editUrl}?jump=${clampedOffset}`);
+        if (id) {
+            params.set('return_heading', id);
+        }
+
+        router.visit(`${editUrl}?${params.toString()}`);
     };
 
     const renderContentWithLinks = (content: string) => {

@@ -7,7 +7,6 @@ const LANGUAGE_STORAGE_KEY = 'code-tabs-language';
 const LANGUAGE_CHANGE_EVENT = 'code-tabs:language-change';
 
 type PreferredSelection = {
-    language: string;
     label?: string;
 };
 
@@ -26,7 +25,7 @@ function getStoredSelection(): PreferredSelection | null {
             return JSON.parse(raw) as PreferredSelection;
         }
 
-        return { language: raw };
+        return { label: raw };
     } catch {
         return null;
     }
@@ -101,22 +100,14 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
         if (
             currentTab &&
             preferredSelection &&
-            currentTab.language === preferredSelection.language &&
-            (!preferredSelection.label ||
-                currentTab.label === preferredSelection.label)
+            currentTab.label === preferredSelection.label
         ) {
             return;
         }
 
-        const matchedTab = preferredSelection
+        const matchedTab = preferredSelection?.label
             ? tabsWithValue.find(
-                  (tab) =>
-                      tab.language === preferredSelection.language &&
-                      (!preferredSelection.label ||
-                          tab.label === preferredSelection.label),
-              ) ||
-              tabsWithValue.find(
-                  (tab) => tab.language === preferredSelection.language,
+                  (tab) => tab.label === preferredSelection.label,
               )
             : null;
         const nextValue = matchedTab?.value ?? tabsWithValue[0].value;
@@ -133,7 +124,7 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
 
         const handleLanguageChange = (event: Event) => {
             const customEvent = event as CustomEvent<PreferredSelection>;
-            if (customEvent.detail?.language) {
+            if (customEvent.detail?.label) {
                 setPreferredSelection(customEvent.detail);
             }
         };
@@ -164,7 +155,6 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
                     }
 
                     const nextSelection = {
-                        language: selectedTab.language,
                         label: selectedTab.label,
                     };
 
