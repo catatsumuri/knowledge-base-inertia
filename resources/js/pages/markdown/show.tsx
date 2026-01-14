@@ -369,6 +369,7 @@ export default function Show({
                 <MarkdownViewer
                     content={document.content}
                     onEditHeading={canManage ? handleEditHeading : undefined}
+                    basePrefix={isPublicView ? '/pages' : '/markdown'}
                 />
             ) : (
                 <p className="text-muted-foreground">{__('No content yet.')}</p>

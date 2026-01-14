@@ -25,18 +25,23 @@ import remarkGfm from 'remark-gfm';
 interface MarkdownViewerProps {
     content: string;
     onEditHeading?: (payload: { level: number; text: string }) => void;
+    basePrefix?: string;
 }
 
 // Markdown内のリンクをInertia Linkに変換するコンポーネント
 function MarkdownLink({
     href,
     children,
+    basePrefix = '/markdown',
     ...props
-}: React.ComponentPropsWithoutRef<'a'>) {
-    // 脚注リンク（/markdown/#で始まる）をフラグメントのみに変換
-    if (href && href.startsWith('/markdown/#')) {
+}: React.ComponentPropsWithoutRef<'a'> & { basePrefix?: string }) {
+    // 脚注リンク（/markdown/#または/pages/#で始まる）をフラグメントのみに変換
+    if (
+        href &&
+        (href.startsWith('/markdown/#') || href.startsWith('/pages/#'))
+    ) {
         return (
-            <a href={href.replace('/markdown/', '')} {...props}>
+            <a href={href.replace(/^\/(markdown|pages)\//, '')} {...props}>
                 {children}
             </a>
         );
@@ -62,10 +67,10 @@ function MarkdownLink({
         );
     }
 
-    // 内部リンクの場合、相対パスは/markdown/を基準にする
+    // 内部リンクの場合、相対パスは現在のbasePrefixを基準にする
     let internalHref = href || '';
     if (internalHref && !internalHref.startsWith('/')) {
-        internalHref = `/markdown/${internalHref}`;
+        internalHref = `${basePrefix}/${internalHref}`;
     }
 
     return (
@@ -121,6 +126,7 @@ function EmbedCardWrapper({ ...props }: React.ComponentPropsWithoutRef<'div'>) {
 export function MarkdownViewer({
     content,
     onEditHeading,
+    basePrefix = '/markdown',
 }: MarkdownViewerProps) {
     // Zenn式構文を標準remark-directive構文に変換してから画像サイズを処理
     const processedContent = preprocessImageSize(preprocessZennSyntax(content));
@@ -145,7 +151,9 @@ export function MarkdownViewer({
                 code: CodeBlock,
                 img: MarkdownImage,
                 aside: MessageBox,
-                a: MarkdownLink,
+                a: (props) => (
+                    <MarkdownLink {...props} basePrefix={basePrefix} />
+                ),
                 div: (props: any) => {
                     // コードタブの場合
                     if (
