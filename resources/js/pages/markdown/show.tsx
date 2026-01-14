@@ -150,6 +150,7 @@ interface PublicPageNode {
     type: 'folder' | 'document';
     slug: string;
     title: string;
+    label?: string | null;
     path?: string;
     index_slug?: string;
     index_title?: string;

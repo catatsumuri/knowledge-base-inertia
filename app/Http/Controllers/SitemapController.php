@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MarkdownDocument;
+use App\Models\MarkdownNavigationItem;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,6 +20,9 @@ class SitemapController extends Controller
             ->get();
 
         $tree = $this->buildTree($documents);
+        $navigationItems = MarkdownNavigationItem::query()->get();
+        $labelMap = $this->buildLabelMap($navigationItems);
+        $this->applyLabels($tree, $labelMap);
 
         return Inertia::render('sitemap', [
             'tree' => $tree,
@@ -87,6 +91,7 @@ class SitemapController extends Controller
                 'type' => 'folder',
                 'slug' => $part,
                 'title' => ucfirst($part),
+                'path' => $newPath,
                 'children' => [],
             ];
             $folderIndex = count($tree) - 1;
@@ -115,6 +120,40 @@ class SitemapController extends Controller
         foreach ($tree as &$node) {
             if (($node['type'] ?? '') === 'folder' && isset($node['children'])) {
                 $this->sortTree($node['children']);
+            }
+        }
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Collection<int, MarkdownNavigationItem>  $navigationItems
+     */
+    private function buildLabelMap($navigationItems): array
+    {
+        $map = [];
+
+        foreach ($navigationItems as $item) {
+            if ($item->node_type !== 'folder' || ! $item->label) {
+                continue;
+            }
+
+            $map[$item->node_path] = $item->label;
+        }
+
+        return $map;
+    }
+
+    private function applyLabels(array &$tree, array $labelMap): void
+    {
+        foreach ($tree as &$node) {
+            if (($node['type'] ?? '') === 'folder') {
+                $path = $node['path'] ?? null;
+                if (is_string($path) && isset($labelMap[$path])) {
+                    $node['label'] = $labelMap[$path];
+                }
+            }
+
+            if (($node['type'] ?? '') === 'folder' && isset($node['children'])) {
+                $this->applyLabels($node['children'], $labelMap);
             }
         }
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MarkdownZipImportRequest;
 use App\Models\MarkdownDocument;
+use App\Models\MarkdownNavigationItem;
 use App\Models\Topic;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,11 @@ class AppSettingsController extends Controller
             ->orderBy('slug')
             ->get();
 
+        $navigationItems = MarkdownNavigationItem::query()
+            ->orderBy('parent_path')
+            ->orderBy('position')
+            ->get();
+
         $path = tempnam(sys_get_temp_dir(), 'markdown-export-all-');
         $zip = new ZipArchive;
 
@@ -65,6 +71,23 @@ class AppSettingsController extends Controller
             );
             $this->addEyecatchToZip($zip, $document);
         }
+
+        $zip->addFromString(
+            'navigation.json',
+            json_encode(
+                [
+                    'version' => 1,
+                    'items' => $navigationItems->map(static fn (MarkdownNavigationItem $item) => [
+                        'node_type' => $item->node_type,
+                        'node_path' => $item->node_path,
+                        'parent_path' => $item->parent_path,
+                        'position' => $item->position,
+                        'label' => $item->label,
+                    ])->values()->all(),
+                ],
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            )."\n"
+        );
 
         $zip->close();
 
@@ -322,6 +345,9 @@ class AppSettingsController extends Controller
         // Generate session key
         $sessionKey = 'zip_import_'.Str::random(16);
 
+        $navigationItems = $this->parseNavigationFile($extraction['temp_dir']);
+        $navigationPresent = $navigationItems !== null;
+
         // Store in session
         session([
             'markdown_zip_import_preview' => [
@@ -329,6 +355,8 @@ class AppSettingsController extends Controller
                 'uploaded_at' => now()->toISOString(),
                 'temp_dir' => $extraction['temp_dir'],
                 'files' => $files,
+                'navigation_present' => $navigationPresent,
+                'navigation_items' => $navigationItems ?? [],
             ],
         ]);
 
@@ -368,10 +396,21 @@ class AppSettingsController extends Controller
 
         $files = $previewData['files'];
         $tempDir = $previewData['temp_dir'] ?? null;
+        $navigationItems = $previewData['navigation_items'] ?? [];
+        $navigationPresent = (bool) ($previewData['navigation_present'] ?? false);
         $imported = 0;
         $skipped = 0;
 
-        DB::transaction(function () use ($files, $conflictResolutions, $request, $tempDir, &$imported, &$skipped) {
+        DB::transaction(function () use (
+            $files,
+            $conflictResolutions,
+            $request,
+            $tempDir,
+            $navigationItems,
+            $navigationPresent,
+            &$imported,
+            &$skipped
+        ) {
             foreach ($files as $fileData) {
                 // Skip files with validation errors
                 if (! empty($fileData['validation_errors'])) {
@@ -435,6 +474,10 @@ class AppSettingsController extends Controller
                     }
                     $imported++;
                 }
+            }
+
+            if ($navigationPresent) {
+                $this->syncNavigationItems($navigationItems);
             }
         });
 
@@ -546,6 +589,107 @@ class AppSettingsController extends Controller
             'temp_dir' => $tempDir,
             'markdown_files' => $markdownFiles,
         ];
+    }
+
+    /**
+     * Parse navigation.json if available.
+     *
+     * @return array<int, array<string, mixed>>|null
+     */
+    private function parseNavigationFile(string $tempDir): ?array
+    {
+        $path = rtrim($tempDir, '/').'/navigation.json';
+
+        if (! is_file($path)) {
+            return null;
+        }
+
+        $contents = file_get_contents($path);
+        if ($contents === false) {
+            return null;
+        }
+
+        $decoded = json_decode($contents, true);
+        if (! is_array($decoded)) {
+            return null;
+        }
+
+        $items = $decoded['items'] ?? null;
+        if (! is_array($items)) {
+            return null;
+        }
+
+        return $this->normalizeNavigationItems($items);
+    }
+
+    /**
+     * @param  array<int, mixed>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizeNavigationItems(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $nodeType = $item['node_type'] ?? null;
+            $nodePath = $item['node_path'] ?? null;
+
+            if (! is_string($nodeType) || ! in_array($nodeType, ['folder', 'document'], true)) {
+                continue;
+            }
+
+            if (! is_string($nodePath) || $nodePath === '') {
+                continue;
+            }
+
+            $parentPath = $item['parent_path'] ?? null;
+            $position = $item['position'] ?? 0;
+            $label = $item['label'] ?? null;
+
+            $normalizedItem = [
+                'node_type' => $nodeType,
+                'node_path' => $nodePath,
+                'parent_path' => is_string($parentPath) && $parentPath !== '' ? $parentPath : null,
+                'position' => is_numeric($position) ? (int) $position : 0,
+                'label' => is_string($label) && $label !== '' ? $label : null,
+            ];
+
+            $key = $normalizedItem['node_type'].'|'.$normalizedItem['node_path'];
+            $normalized[$key] = $normalizedItem;
+        }
+
+        return array_values($normalized);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function syncNavigationItems(array $items): void
+    {
+        MarkdownNavigationItem::query()->delete();
+
+        if ($items === []) {
+            return;
+        }
+
+        $now = now();
+        $payload = array_map(static function (array $item) use ($now): array {
+            return [
+                'node_type' => $item['node_type'],
+                'node_path' => $item['node_path'],
+                'parent_path' => $item['parent_path'] ?? null,
+                'position' => $item['position'] ?? 0,
+                'label' => $item['label'] ?? null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }, $items);
+
+        MarkdownNavigationItem::query()->insert($payload);
     }
 
     /**

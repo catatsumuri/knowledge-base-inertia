@@ -7,6 +7,7 @@ interface PublicPageNode {
     type: 'folder' | 'document';
     slug: string;
     title: string;
+    label?: string | null;
     path?: string;
     index_slug?: string;
     index_title?: string;
@@ -53,7 +54,7 @@ export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
             );
         }
 
-        const label = node.index_title ?? node.title;
+        const label = node.label ?? node.index_title ?? node.title;
         const isActive =
             (node.index_slug && normalizedSlug === node.index_slug) ||
             (node.path && normalizedSlug.startsWith(`${node.path}/`));

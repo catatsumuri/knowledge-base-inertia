@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AppSettingsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NavigationOrderController;
 use App\Http\Controllers\PublicPagesController;
 use App\Models\MarkdownDocument;
 use App\Models\Shout;
@@ -49,6 +50,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('app-settings', [AppSettingsController::class, 'index'])
         ->name('app-settings');
+    Route::get('app-settings/navigation-order', [NavigationOrderController::class, 'index'])
+        ->name('app-settings.navigation-order');
+    Route::post('app-settings/navigation-order', [NavigationOrderController::class, 'update'])
+        ->name('app-settings.navigation-order.update');
     Route::get('app-settings/home-page/edit', [AppSettingsController::class, 'editHomePage'])
         ->name('app-settings.home-page.edit');
     Route::post('app-settings/home-page', [AppSettingsController::class, 'storeHomePage'])

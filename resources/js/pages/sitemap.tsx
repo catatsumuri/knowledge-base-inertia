@@ -37,6 +37,7 @@ import {
     File,
     Folder,
     FolderOpen,
+    ListOrdered,
     Plus,
     Trash2,
 } from 'lucide-react';
@@ -46,6 +47,7 @@ interface TreeNode {
     type: 'folder' | 'document';
     slug: string;
     title: string;
+    label?: string | null;
     status?: 'draft' | 'private' | 'published';
     eyecatch_thumb_url?: string | null;
     updated_at?: string;
@@ -182,7 +184,7 @@ function TreeNodeComponent({
                     <Folder className="size-4 shrink-0 text-muted-foreground" />
                 )}
                 <span className="font-semibold text-foreground">
-                    {node.title}
+                    {node.label ?? node.title}
                 </span>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -210,7 +212,6 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
     const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(
         () => new Set(),
     );
-    const [csrfToken, setCsrfToken] = useState('');
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<
@@ -224,17 +225,12 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
         }
     };
 
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        const token =
-            window.document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute('content') ?? '';
-        setCsrfToken(token);
-    }, []);
+    const csrfToken =
+        typeof window === 'undefined'
+            ? ''
+            : window.document
+                  .querySelector('meta[name="csrf-token"]')
+                  ?.getAttribute('content') ?? '';
 
     const toggleSelection = () => {
         setSelectionEnabled((prev) => !prev);
@@ -294,6 +290,12 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{__('Sitemap')}</h1>
                     <div className="flex gap-2">
+                        <Button asChild variant="outline">
+                            <Link href="/app-settings/navigation-order">
+                                <ListOrdered className="h-4 w-4" />
+                                {__('Manage order')}
+                            </Link>
+                        </Button>
                         <Button
                             variant={selectionEnabled ? 'default' : 'outline'}
                             onClick={toggleSelection}
