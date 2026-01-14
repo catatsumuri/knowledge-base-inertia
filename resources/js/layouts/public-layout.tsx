@@ -3,13 +3,17 @@ import AppLogo from '@/components/app-logo';
 import { AppShell } from '@/components/app-shell';
 import { type BreadcrumbItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 type PublicLayoutProps = PropsWithChildren<{
     breadcrumbs?: BreadcrumbItem[];
+    rightPane?: ReactNode;
 }>;
 
-export default function PublicLayout({ children }: PublicLayoutProps) {
+export default function PublicLayout({
+    children,
+    rightPane,
+}: PublicLayoutProps) {
     return (
         <AppShell>
             <div className="border-b border-sidebar-border/80">
@@ -19,7 +23,16 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                     </Link>
                 </div>
             </div>
-            <AppContent>{children}</AppContent>
+            <AppContent>
+                {rightPane ? (
+                    <div className="grid w-full gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+                        <aside className="hidden lg:block">{rightPane}</aside>
+                        <div className="min-w-0">{children}</div>
+                    </div>
+                ) : (
+                    children
+                )}
+            </AppContent>
         </AppShell>
     );
 }

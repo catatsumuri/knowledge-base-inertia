@@ -4,6 +4,7 @@ import {
     show,
 } from '@/actions/App/Http/Controllers/MarkdownController';
 import { MarkdownViewer } from '@/components/markdown-viewer';
+import { PublicPagesMenu } from '@/components/public-pages-menu';
 import { Toc } from '@/components/toc';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -145,18 +146,30 @@ interface Shout {
     replies?: Shout[];
 }
 
+interface PublicPageNode {
+    type: 'folder' | 'document';
+    slug: string;
+    title: string;
+    path?: string;
+    index_slug?: string;
+    index_title?: string;
+    children?: PublicPageNode[];
+}
+
 export default function Show({
     document,
     relatedShouts,
     canCreate,
     isPublic = false,
     isHomePage = false,
+    pageTree = [],
 }: {
     document: MarkdownDocument;
     relatedShouts: Shout[];
     canCreate: boolean;
     isPublic?: boolean;
     isHomePage?: boolean;
+    pageTree?: PublicPageNode[];
 }) {
     const { __ } = useLang();
     const getInitials = useInitials();
@@ -377,13 +390,8 @@ export default function Show({
         </div>
     );
 
-    const Layout = isPublicView ? PublicLayout : AppLayout;
-
-    return (
-        <Layout breadcrumbs={breadcrumbs}>
-            <Head title={document.title} />
-
-            <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
+    const content = (
+        <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
@@ -896,7 +904,31 @@ export default function Show({
                         </div>
                     </DialogContent>
                 </Dialog>
-            </div>
-        </Layout>
+        </div>
+    );
+
+    if (isPublicView) {
+        return (
+            <PublicLayout
+                rightPane={
+                    pageTree.length > 0 ? (
+                        <PublicPagesMenu
+                            tree={pageTree}
+                            currentSlug={document.slug}
+                        />
+                    ) : null
+                }
+            >
+                <Head title={document.title} />
+                {content}
+            </PublicLayout>
+        );
+    }
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title={document.title} />
+            {content}
+        </AppLayout>
     );
 }
