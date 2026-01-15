@@ -15,13 +15,14 @@ class MarkdownNavigationTreeBuilder
     public function build(
         Collection $documents,
         Collection $navigationItems,
-        bool $promoteIndexDocuments = true
+        bool $promoteIndexDocuments = true,
+        ?callable $documentMapper = null
     ): array {
         $tree = [];
 
         foreach ($documents as $document) {
             $parts = explode('/', $document->slug);
-            $this->addToTree($tree, $parts, $document);
+            $this->addToTree($tree, $parts, $document, documentMapper: $documentMapper);
         }
 
         $orderMap = $this->buildOrderMap($navigationItems);
@@ -39,19 +40,30 @@ class MarkdownNavigationTreeBuilder
     /**
      * @param  \App\Models\MarkdownDocument  $document
      */
-    private function addToTree(array &$tree, array $parts, $document, string $currentPath = ''): void
-    {
+    private function addToTree(
+        array &$tree,
+        array $parts,
+        $document,
+        string $currentPath = '',
+        ?callable $documentMapper = null
+    ): void {
         $part = array_shift($parts);
         $newPath = $currentPath ? $currentPath.'/'.$part : $part;
 
         if (empty($parts)) {
-            $tree[] = [
+            $node = [
                 'type' => 'document',
                 'slug' => $document->slug,
                 'path' => $document->slug,
                 'title' => $document->title ?: $document->slug,
                 'status' => $document->status,
             ];
+
+            if ($documentMapper) {
+                $node = array_merge($node, (array) $documentMapper($document));
+            }
+
+            $tree[] = $node;
 
             return;
         }
@@ -75,7 +87,13 @@ class MarkdownNavigationTreeBuilder
             $folderIndex = count($tree) - 1;
         }
 
-        $this->addToTree($tree[$folderIndex]['children'], $parts, $document, $newPath);
+        $this->addToTree(
+            $tree[$folderIndex]['children'],
+            $parts,
+            $document,
+            $newPath,
+            $documentMapper
+        );
     }
 
     /**

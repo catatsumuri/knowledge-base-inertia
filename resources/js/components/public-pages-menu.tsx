@@ -1,6 +1,12 @@
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
-import { ChevronRight, FileText, Folder, FolderOpen, Link2 } from 'lucide-react';
+import {
+    ChevronRight,
+    FileText,
+    Folder,
+    FolderOpen,
+    Link2,
+} from 'lucide-react';
 import { useMemo } from 'react';
 
 interface PublicPageNode {
@@ -108,7 +114,7 @@ export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
     };
 
     return (
-        <div className="lg:sticky lg:top-6">
+        <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
             <div className="rounded-xl border border-sidebar-border/70 bg-background/80 p-4 shadow-sm">
                 <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Pages

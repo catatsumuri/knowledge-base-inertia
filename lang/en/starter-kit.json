@@ -278,5 +278,7 @@
     "Load more": "Load more",
     "Loading...": "Loading...",
     "Topics": "Topics",
-    "Add topics (comma or Enter to add)": "Add topics (comma or Enter to add)"
+    "Add topics (comma or Enter to add)": "Add topics (comma or Enter to add)",
+    "Hide TOC": "Hide TOC",
+    "Show TOC": "Show TOC"
 }

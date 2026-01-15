@@ -47,6 +47,7 @@ import {
     ChevronRight,
     Download,
     Image as ImageIcon,
+    List,
     MessageSquare,
     Pencil,
     Plus,
@@ -182,6 +183,7 @@ export default function Show({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newSlug, setNewSlug] = useState('');
+    const [showToc, setShowToc] = useState(true);
     const importInputRef = useRef<HTMLInputElement>(null);
     const tocWrapperRef = useRef<HTMLDivElement>(null);
     const tocOffsetTopRef = useRef(0);
@@ -256,6 +258,25 @@ export default function Show({
             window.removeEventListener('scroll', onScroll);
         };
     }, [isMobile]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const stored = window.localStorage.getItem('toc-visible');
+        if (stored !== null) {
+            setShowToc(stored === 'true');
+        }
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        window.localStorage.setItem('toc-visible', String(showToc));
+    }, [showToc]);
 
     // ネストしたパスの場合、階層的なbreadcrumbsを生成
     const generateBreadcrumbs = (): BreadcrumbItem[] => {
@@ -431,6 +452,15 @@ export default function Show({
                         )}
                     </div>
                     <div className="flex gap-2">
+                        {toc.length > 0 && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowToc((prev) => !prev)}
+                            >
+                                <List className="h-4 w-4" />
+                                {showToc ? __('Hide TOC') : __('Show TOC')}
+                            </Button>
+                        )}
                         {canManage && (
                             <Button
                                 variant="outline"
@@ -638,7 +668,7 @@ export default function Show({
                 )}
 
                 <div className="flex flex-col gap-6 px-3 lg:flex-row lg:gap-8">
-                    {toc.length > 0 && (
+                    {showToc && toc.length > 0 && (
                         <aside className="order-1 w-full shrink-0 lg:order-2 lg:w-60">
                             <div
                                 ref={tocWrapperRef}
@@ -658,7 +688,7 @@ export default function Show({
                     <div
                         className={cn(
                             'order-2 min-w-0 flex-1 lg:order-1',
-                            isMobile && isTocFloating ? 'pt-14' : '',
+                            showToc && isMobile && isTocFloating ? 'pt-14' : '',
                         )}
                     >
                         {contentBody}
