@@ -119,8 +119,7 @@ function extractCards(children: React.ReactNode): Array<{
     return React.Children.toArray(children)
         .filter(
             (child): child is React.ReactElement<MarkdownCardProps> =>
-                React.isValidElement(child) &&
-                child.type === MarkdownCard,
+                React.isValidElement(child) && child.type === MarkdownCard,
         )
         .map((card) => ({
             title: card.props.title,
@@ -139,7 +138,10 @@ function extractCardsFromNode(node: any): Array<{
     const children = Array.isArray(node?.children) ? node.children : [];
 
     return children
-        .filter((child: any) => child?.type === 'element' && child.tagName === 'card')
+        .filter(
+            (child: any) =>
+                child?.type === 'element' && child.tagName === 'card',
+        )
         .map((child: any) => ({
             title: child.properties?.title as string | undefined,
             href: child.properties?.href as string | undefined,

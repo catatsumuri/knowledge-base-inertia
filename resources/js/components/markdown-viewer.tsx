@@ -7,15 +7,15 @@ import { MarkdownCard, MarkdownColumns } from '@/components/markdown-columns';
 import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
 import { ParamField } from '@/components/param-field';
-import { remarkChartDirective } from '@/lib/remark-chart-directive';
 import { remarkCardDirective } from '@/lib/remark-card-directive';
+import { remarkChartDirective } from '@/lib/remark-chart-directive';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { remarkCodeTabs } from '@/lib/remark-code-tabs';
+import { preprocessColumnsSyntax } from '@/lib/remark-columns-syntax';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkLinkifyToCard } from '@/lib/remark-linkify-to-card';
 import { remarkParamFieldDirective } from '@/lib/remark-param-field-directive';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
-import { preprocessColumnsSyntax } from '@/lib/remark-columns-syntax';
 import { preprocessZennSyntax } from '@/lib/remark-zenn-syntax';
 import { Link } from '@inertiajs/react';
 import { AlertCircle, Info } from 'lucide-react';
@@ -214,7 +214,12 @@ export function MarkdownViewer({
                         props['data-columns-cards'] ||
                         props['data-columns-error']
                     ) {
-                        return <ColumnsWrapper {...props} basePrefix={basePrefix} />;
+                        return (
+                            <ColumnsWrapper
+                                {...props}
+                                basePrefix={basePrefix}
+                            />
+                        );
                     }
                     // それ以外は通常のdiv
                     return <div {...props} />;

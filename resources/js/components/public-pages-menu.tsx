@@ -50,7 +50,7 @@ export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
                         'flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors',
                         isActive
                             ? 'bg-accent/40 font-semibold text-foreground'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/30',
+                            : 'text-muted-foreground hover:bg-accent/30 hover:text-foreground',
                     )}
                     style={{ paddingLeft: `${level * 0.75 + 0.5}rem` }}
                 >
@@ -76,7 +76,7 @@ export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
                             'flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors',
                             isActive
                                 ? 'bg-accent/40 font-semibold text-foreground'
-                                : 'text-muted-foreground hover:text-foreground hover:bg-accent/30',
+                                : 'text-muted-foreground hover:bg-accent/30 hover:text-foreground',
                         )}
                         style={{ paddingLeft: `${level * 0.75 + 0.5}rem` }}
                     >
@@ -104,9 +104,7 @@ export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
                 )}
                 {children.length > 0 && (
                     <div className="space-y-0.5">
-                        {children.map((child) =>
-                            renderNode(child, level + 1),
-                        )}
+                        {children.map((child) => renderNode(child, level + 1))}
                     </div>
                 )}
             </div>
@@ -116,7 +114,7 @@ export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
     return (
         <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
             <div className="rounded-xl border border-sidebar-border/70 bg-background/80 p-4 shadow-sm">
-                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <div className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                     Pages
                 </div>
                 <nav className="space-y-0.5">

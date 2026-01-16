@@ -414,527 +414,511 @@ export default function Show({
 
     const content = (
         <div className="flex flex-1 flex-col gap-4 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold">
-                                {document.title || '新規ページ'}
-                            </h1>
-                            {document.status === 'draft' && (
-                                <Badge variant="secondary">{__('Draft')}</Badge>
-                            )}
-                        </div>
-                        {document.eyecatch_url && (
-                            <div className="overflow-hidden rounded-xl border border-sidebar-border/70">
-                                <img
-                                    src={document.eyecatch_url}
-                                    alt={document.title}
-                                    className="h-56 w-full object-cover"
-                                />
-                            </div>
-                        )}
-                        {document.topics && document.topics.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                                {document.topics.map((topic) => (
-                                    <Link
-                                        key={topic.id}
-                                        href={showTopic(topic.slug).url}
-                                    >
-                                        <Badge
-                                            variant="secondary"
-                                            className="cursor-pointer text-xs transition-colors hover:bg-primary hover:text-primary-foreground"
-                                        >
-                                            {topic.name}
-                                        </Badge>
-                                    </Link>
-                                ))}
-                            </div>
+            <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold">
+                            {document.title || '新規ページ'}
+                        </h1>
+                        {document.status === 'draft' && (
+                            <Badge variant="secondary">{__('Draft')}</Badge>
                         )}
                     </div>
-                    <div className="flex gap-2">
-                        {toc.length > 0 && (
-                            <Button
-                                variant="outline"
-                                onClick={() => setShowToc((prev) => !prev)}
-                            >
-                                <List className="h-4 w-4" />
-                                {showToc ? __('Hide TOC') : __('Show TOC')}
-                            </Button>
-                        )}
-                        {canManage && (
-                            <Button
-                                variant="outline"
-                                onClick={() =>
-                                    setShowCreateForm(!showCreateForm)
-                                }
-                            >
-                                <Plus className="h-4 w-4" />
-                                新規作成
-                            </Button>
-                        )}
-                        {canManage && document.id && (
-                            <>
-                                <Button asChild>
-                                    <Link href={edit(document.slug).url}>
-                                        <Pencil className="h-4 w-4" />
-                                        {__('Edit')}
-                                    </Link>
-                                </Button>
-
-                                <input
-                                    ref={importInputRef}
-                                    type="file"
-                                    accept=".md,.zip,text/markdown,text/plain,application/zip"
-                                    className="hidden"
-                                    onChange={(event) => {
-                                        const file = event.target.files?.[0];
-
-                                        if (!file) {
-                                            return;
-                                        }
-
-                                        router.post(
-                                            '/markdown/import',
-                                            {
-                                                markdown: file,
-                                            },
-                                            {
-                                                onFinish: () => {
-                                                    event.target.value = '';
-                                                },
-                                            },
-                                        );
-                                    }}
-                                />
-
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline">
-                                            {__('Actions')}
-                                            <ChevronDown className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                            onSelect={(event) => {
-                                                event.preventDefault();
-                                                importInputRef.current?.click();
-                                            }}
-                                        >
-                                            <Upload className="h-4 w-4" />
-                                            {__('Import')}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <a
-                                                href={`/markdown/${document.slug}/export`}
-                                            >
-                                                <Download className="h-4 w-4" />
-                                                {__('Export')}
-                                            </a>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                            className="text-destructive focus:text-destructive"
-                                            onSelect={(event) => {
-                                                event.preventDefault();
-                                                setIsDeleteDialogOpen(true);
-                                            }}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                            {__('Delete')}
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-
-                                <Dialog
-                                    open={isDeleteDialogOpen}
-                                    onOpenChange={setIsDeleteDialogOpen}
+                    {document.eyecatch_url && (
+                        <div className="overflow-hidden rounded-xl border border-sidebar-border/70">
+                            <img
+                                src={document.eyecatch_url}
+                                alt={document.title}
+                                className="h-56 w-full object-cover"
+                            />
+                        </div>
+                    )}
+                    {document.topics && document.topics.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {document.topics.map((topic) => (
+                                <Link
+                                    key={topic.id}
+                                    href={showTopic(topic.slug).url}
                                 >
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>
-                                                {__('Delete Document')}
-                                            </DialogTitle>
-                                            <DialogDescription>
-                                                <span className="block font-semibold text-foreground">
-                                                    {__(
-                                                        'Are you sure you want to delete {title}?',
-                                                        {
-                                                            title: document.title,
-                                                        },
-                                                    )}
-                                                </span>
-                                                <span className="mt-2 block text-muted-foreground">
-                                                    {__(
-                                                        'This action cannot be undone.',
-                                                    )}
-                                                </span>
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <Form
-                                            action={destroy(document.slug)}
-                                            onSuccess={() =>
-                                                setIsDeleteDialogOpen(false)
-                                            }
+                                    <Badge
+                                        variant="secondary"
+                                        className="cursor-pointer text-xs transition-colors hover:bg-primary hover:text-primary-foreground"
+                                    >
+                                        {topic.name}
+                                    </Badge>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="flex gap-2">
+                    {toc.length > 0 && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowToc((prev) => !prev)}
+                        >
+                            <List className="h-4 w-4" />
+                            {showToc ? __('Hide TOC') : __('Show TOC')}
+                        </Button>
+                    )}
+                    {canManage && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowCreateForm(!showCreateForm)}
+                        >
+                            <Plus className="h-4 w-4" />
+                            新規作成
+                        </Button>
+                    )}
+                    {canManage && document.id && (
+                        <>
+                            <Button asChild>
+                                <Link href={edit(document.slug).url}>
+                                    <Pencil className="h-4 w-4" />
+                                    {__('Edit')}
+                                </Link>
+                            </Button>
+
+                            <input
+                                ref={importInputRef}
+                                type="file"
+                                accept=".md,.zip,text/markdown,text/plain,application/zip"
+                                className="hidden"
+                                onChange={(event) => {
+                                    const file = event.target.files?.[0];
+
+                                    if (!file) {
+                                        return;
+                                    }
+
+                                    router.post(
+                                        '/markdown/import',
+                                        {
+                                            markdown: file,
+                                        },
+                                        {
+                                            onFinish: () => {
+                                                event.target.value = '';
+                                            },
+                                        },
+                                    );
+                                }}
+                            />
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline">
+                                        {__('Actions')}
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                        onSelect={(event) => {
+                                            event.preventDefault();
+                                            importInputRef.current?.click();
+                                        }}
+                                    >
+                                        <Upload className="h-4 w-4" />
+                                        {__('Import')}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <a
+                                            href={`/markdown/${document.slug}/export`}
                                         >
-                                            {({ processing }) => (
-                                                <DialogFooter>
-                                                    <DialogClose asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            disabled={
-                                                                processing
-                                                            }
-                                                        >
-                                                            {__('Cancel')}
-                                                        </Button>
-                                                    </DialogClose>
+                                            <Download className="h-4 w-4" />
+                                            {__('Export')}
+                                        </a>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive"
+                                        onSelect={(event) => {
+                                            event.preventDefault();
+                                            setIsDeleteDialogOpen(true);
+                                        }}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        {__('Delete')}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            <Dialog
+                                open={isDeleteDialogOpen}
+                                onOpenChange={setIsDeleteDialogOpen}
+                            >
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            {__('Delete Document')}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            <span className="block font-semibold text-foreground">
+                                                {__(
+                                                    'Are you sure you want to delete {title}?',
+                                                    {
+                                                        title: document.title,
+                                                    },
+                                                )}
+                                            </span>
+                                            <span className="mt-2 block text-muted-foreground">
+                                                {__(
+                                                    'This action cannot be undone.',
+                                                )}
+                                            </span>
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <Form
+                                        action={destroy(document.slug)}
+                                        onSuccess={() =>
+                                            setIsDeleteDialogOpen(false)
+                                        }
+                                    >
+                                        {({ processing }) => (
+                                            <DialogFooter>
+                                                <DialogClose asChild>
                                                     <Button
-                                                        type="submit"
-                                                        variant="destructive"
+                                                        type="button"
+                                                        variant="outline"
                                                         disabled={processing}
                                                     >
-                                                        {processing
-                                                            ? __('Deleting...')
-                                                            : __('Delete')}
+                                                        {__('Cancel')}
                                                     </Button>
-                                                </DialogFooter>
+                                                </DialogClose>
+                                                <Button
+                                                    type="submit"
+                                                    variant="destructive"
+                                                    disabled={processing}
+                                                >
+                                                    {processing
+                                                        ? __('Deleting...')
+                                                        : __('Delete')}
+                                                </Button>
+                                            </DialogFooter>
+                                        )}
+                                    </Form>
+                                </DialogContent>
+                            </Dialog>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* 新規作成フォーム */}
+            {canManage && showCreateForm && (
+                <Card className="p-4">
+                    <form onSubmit={handleCreateSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="slug">ページスラッグ</Label>
+                            <Input
+                                id="slug"
+                                type="text"
+                                value={newSlug}
+                                onChange={(e) => setNewSlug(e.target.value)}
+                                placeholder="例: getting-started, api/introduction"
+                                autoFocus
+                                className="font-mono"
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                URL: /markdown/{newSlug || '...'}
+                            </p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    setShowCreateForm(false);
+                                    setNewSlug('');
+                                }}
+                            >
+                                キャンセル
+                            </Button>
+                            <Button type="submit" disabled={!newSlug.trim()}>
+                                作成
+                            </Button>
+                        </div>
+                    </form>
+                </Card>
+            )}
+
+            {document.status === 'draft' && (
+                <Alert className="border-amber-200/70 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100">
+                    <AlertTriangle />
+                    <AlertTitle>{__('Draft')}</AlertTitle>
+                    <AlertDescription>
+                        <p>
+                            {__(
+                                'This page is marked as draft and may be incomplete.',
+                            )}
+                        </p>
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <div className="flex flex-col gap-6 px-3 lg:flex-row lg:gap-8">
+                {showToc && toc.length > 0 && (
+                    <aside className="order-1 w-full shrink-0 lg:order-2 lg:w-60">
+                        <div
+                            ref={tocWrapperRef}
+                            className={cn(
+                                'z-20 w-full',
+                                isMobile && isTocFloating
+                                    ? 'fixed inset-x-0 top-0 bg-background/95 shadow-sm backdrop-blur'
+                                    : 'relative',
+                                'lg:backdrop-blur-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto lg:bg-transparent',
+                            )}
+                        >
+                            <Toc toc={toc} />
+                        </div>
+                    </aside>
+                )}
+
+                <div
+                    className={cn(
+                        'order-2 min-w-0 flex-1 lg:order-1',
+                        showToc && isMobile && isTocFloating ? 'pt-14' : '',
+                    )}
+                >
+                    {contentBody}
+                </div>
+            </div>
+
+            {!isPublicView && document.updated_by && (
+                <div className="text-sm text-muted-foreground">
+                    {__('Last updated by')}: {document.updated_by.name}
+                </div>
+            )}
+
+            {/* 関連するShout一覧 */}
+            {relatedShouts && relatedShouts.length > 0 && (
+                <div className="mt-8 space-y-4">
+                    <div className="flex items-center gap-2">
+                        <MessageSquare className="size-5" />
+                        <h2 className="text-xl font-semibold">
+                            このページについてのディスカッション (
+                            {relatedShouts.length})
+                        </h2>
+                    </div>
+
+                    <div className="space-y-3">
+                        {relatedShouts.map((shout) => (
+                            <Card key={shout.id} className="p-4">
+                                <div className="flex gap-3">
+                                    <Avatar className="size-10">
+                                        <AvatarImage src={shout.user.avatar} />
+                                        <AvatarFallback>
+                                            {getInitials(shout.user.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <p className="font-semibold">
+                                                    {shout.user.name}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {format(
+                                                        new Date(
+                                                            shout.created_at,
+                                                        ),
+                                                        'PPP p',
+                                                        {
+                                                            locale: ja,
+                                                        },
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <p className="mt-2 break-words whitespace-pre-wrap">
+                                            {renderContentWithLinks(
+                                                shout.content,
                                             )}
-                                        </Form>
-                                    </DialogContent>
-                                </Dialog>
+                                        </p>
+
+                                        {/* 画像 */}
+                                        {shout.images &&
+                                            shout.images.length > 0 && (
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {shout.images.map(
+                                                        (image, index) => (
+                                                            <button
+                                                                key={index}
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    openLightbox(
+                                                                        shout.images ??
+                                                                            [],
+                                                                        index,
+                                                                    )
+                                                                }
+                                                                className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+                                                            >
+                                                                <img
+                                                                    src={image}
+                                                                    alt={`Image ${index + 1}`}
+                                                                    className="h-32 w-32 object-cover"
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                                    <ImageIcon className="size-6 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                                </div>
+                                                            </button>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
+
+                                        {/* 返信一覧 */}
+                                        {shout.replies &&
+                                            shout.replies.length > 0 && (
+                                                <div className="mt-4 space-y-3 border-l-2 pl-4">
+                                                    {shout.replies.map(
+                                                        (reply) => (
+                                                            <div
+                                                                key={reply.id}
+                                                                className="flex gap-2"
+                                                            >
+                                                                <Avatar className="size-8">
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            reply
+                                                                                .user
+                                                                                .avatar
+                                                                        }
+                                                                    />
+                                                                    <AvatarFallback>
+                                                                        {getInitials(
+                                                                            reply
+                                                                                .user
+                                                                                .name,
+                                                                        )}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="text-sm font-semibold">
+                                                                            {
+                                                                                reply
+                                                                                    .user
+                                                                                    .name
+                                                                            }
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            {format(
+                                                                                new Date(
+                                                                                    reply.created_at,
+                                                                                ),
+                                                                                'PPP p',
+                                                                                {
+                                                                                    locale: ja,
+                                                                                },
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+                                                                    <p className="mt-1 text-sm break-words whitespace-pre-wrap">
+                                                                        {renderContentWithLinks(
+                                                                            reply.content,
+                                                                        )}
+                                                                    </p>
+                                                                    {reply.images &&
+                                                                        reply
+                                                                            .images
+                                                                            .length >
+                                                                            0 && (
+                                                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                                                {reply.images.map(
+                                                                                    (
+                                                                                        image,
+                                                                                        index,
+                                                                                    ) => (
+                                                                                        <button
+                                                                                            key={
+                                                                                                index
+                                                                                            }
+                                                                                            type="button"
+                                                                                            onClick={() =>
+                                                                                                openLightbox(
+                                                                                                    reply.images ??
+                                                                                                        [],
+                                                                                                    index,
+                                                                                                )
+                                                                                            }
+                                                                                            className="group relative overflow-hidden rounded transition-opacity hover:opacity-90"
+                                                                                        >
+                                                                                            <img
+                                                                                                src={
+                                                                                                    image
+                                                                                                }
+                                                                                                alt={`Image ${index + 1}`}
+                                                                                                className="h-20 w-20 object-cover"
+                                                                                            />
+                                                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                                                                <ImageIcon className="size-4 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                                                            </div>
+                                                                                        </button>
+                                                                                    ),
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                </div>
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+
+                    <div className="text-center">
+                        <Button asChild variant="outline">
+                            <Link href="/shoutbox">
+                                シャウトボックスで会話に参加
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* 画像ライトボックス */}
+            <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+                <DialogContent className="max-w-4xl p-0">
+                    <div className="relative">
+                        <img
+                            src={lightboxImages[currentImageIndex]}
+                            alt="Full size"
+                            className="h-auto w-full"
+                        />
+                        {lightboxImages.length > 1 && (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={prevImage}
+                                    className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                                >
+                                    <ChevronLeft className="size-6" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={nextImage}
+                                    className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                                >
+                                    <ChevronRight className="size-6" />
+                                </Button>
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
+                                    {currentImageIndex + 1} /{' '}
+                                    {lightboxImages.length}
+                                </div>
                             </>
                         )}
                     </div>
-                </div>
-
-                {/* 新規作成フォーム */}
-                {canManage && showCreateForm && (
-                    <Card className="p-4">
-                        <form
-                            onSubmit={handleCreateSubmit}
-                            className="space-y-4"
-                        >
-                            <div className="space-y-2">
-                                <Label htmlFor="slug">ページスラッグ</Label>
-                                <Input
-                                    id="slug"
-                                    type="text"
-                                    value={newSlug}
-                                    onChange={(e) => setNewSlug(e.target.value)}
-                                    placeholder="例: getting-started, api/introduction"
-                                    autoFocus
-                                    className="font-mono"
-                                />
-                                <p className="text-sm text-muted-foreground">
-                                    URL: /markdown/{newSlug || '...'}
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setShowCreateForm(false);
-                                        setNewSlug('');
-                                    }}
-                                >
-                                    キャンセル
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={!newSlug.trim()}
-                                >
-                                    作成
-                                </Button>
-                            </div>
-                        </form>
-                    </Card>
-                )}
-
-                {document.status === 'draft' && (
-                    <Alert className="border-amber-200/70 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100">
-                        <AlertTriangle />
-                        <AlertTitle>{__('Draft')}</AlertTitle>
-                        <AlertDescription>
-                            <p>
-                                {__(
-                                    'This page is marked as draft and may be incomplete.',
-                                )}
-                            </p>
-                        </AlertDescription>
-                    </Alert>
-                )}
-
-                <div className="flex flex-col gap-6 px-3 lg:flex-row lg:gap-8">
-                    {showToc && toc.length > 0 && (
-                        <aside className="order-1 w-full shrink-0 lg:order-2 lg:w-60">
-                            <div
-                                ref={tocWrapperRef}
-                                className={cn(
-                                    'z-20 w-full',
-                                    isMobile && isTocFloating
-                                        ? 'fixed inset-x-0 top-0 bg-background/95 shadow-sm backdrop-blur'
-                                        : 'relative',
-                                    'lg:backdrop-blur-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto lg:bg-transparent',
-                                )}
-                            >
-                                <Toc toc={toc} />
-                            </div>
-                        </aside>
-                    )}
-
-                    <div
-                        className={cn(
-                            'order-2 min-w-0 flex-1 lg:order-1',
-                            showToc && isMobile && isTocFloating ? 'pt-14' : '',
-                        )}
-                    >
-                        {contentBody}
-                    </div>
-                </div>
-
-                {!isPublicView && document.updated_by && (
-                    <div className="text-sm text-muted-foreground">
-                        {__('Last updated by')}: {document.updated_by.name}
-                    </div>
-                )}
-
-                {/* 関連するShout一覧 */}
-                {relatedShouts && relatedShouts.length > 0 && (
-                    <div className="mt-8 space-y-4">
-                        <div className="flex items-center gap-2">
-                            <MessageSquare className="size-5" />
-                            <h2 className="text-xl font-semibold">
-                                このページについてのディスカッション (
-                                {relatedShouts.length})
-                            </h2>
-                        </div>
-
-                        <div className="space-y-3">
-                            {relatedShouts.map((shout) => (
-                                <Card key={shout.id} className="p-4">
-                                    <div className="flex gap-3">
-                                        <Avatar className="size-10">
-                                            <AvatarImage
-                                                src={shout.user.avatar}
-                                            />
-                                            <AvatarFallback>
-                                                {getInitials(shout.user.name)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <p className="font-semibold">
-                                                        {shout.user.name}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {format(
-                                                            new Date(
-                                                                shout.created_at,
-                                                            ),
-                                                            'PPP p',
-                                                            {
-                                                                locale: ja,
-                                                            },
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <p className="mt-2 break-words whitespace-pre-wrap">
-                                                {renderContentWithLinks(
-                                                    shout.content,
-                                                )}
-                                            </p>
-
-                                            {/* 画像 */}
-                                            {shout.images &&
-                                                shout.images.length > 0 && (
-                                                    <div className="mt-3 flex flex-wrap gap-2">
-                                                        {shout.images.map(
-                                                            (image, index) => (
-                                                                <button
-                                                                    key={index}
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        openLightbox(
-                                                                            shout.images ??
-                                                                                [],
-                                                                            index,
-                                                                        )
-                                                                    }
-                                                                    className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
-                                                                >
-                                                                    <img
-                                                                        src={
-                                                                            image
-                                                                        }
-                                                                        alt={`Image ${index + 1}`}
-                                                                        className="h-32 w-32 object-cover"
-                                                                    />
-                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
-                                                                        <ImageIcon className="size-6 text-white opacity-0 transition-opacity group-hover:opacity-100" />
-                                                                    </div>
-                                                                </button>
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                            {/* 返信一覧 */}
-                                            {shout.replies &&
-                                                shout.replies.length > 0 && (
-                                                    <div className="mt-4 space-y-3 border-l-2 pl-4">
-                                                        {shout.replies.map(
-                                                            (reply) => (
-                                                                <div
-                                                                    key={
-                                                                        reply.id
-                                                                    }
-                                                                    className="flex gap-2"
-                                                                >
-                                                                    <Avatar className="size-8">
-                                                                        <AvatarImage
-                                                                            src={
-                                                                                reply
-                                                                                    .user
-                                                                                    .avatar
-                                                                            }
-                                                                        />
-                                                                        <AvatarFallback>
-                                                                            {getInitials(
-                                                                                reply
-                                                                                    .user
-                                                                                    .name,
-                                                                            )}
-                                                                        </AvatarFallback>
-                                                                    </Avatar>
-                                                                    <div className="min-w-0 flex-1">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <p className="text-sm font-semibold">
-                                                                                {
-                                                                                    reply
-                                                                                        .user
-                                                                                        .name
-                                                                                }
-                                                                            </p>
-                                                                            <p className="text-xs text-muted-foreground">
-                                                                                {format(
-                                                                                    new Date(
-                                                                                        reply.created_at,
-                                                                                    ),
-                                                                                    'PPP p',
-                                                                                    {
-                                                                                        locale: ja,
-                                                                                    },
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                        <p className="mt-1 text-sm break-words whitespace-pre-wrap">
-                                                                            {renderContentWithLinks(
-                                                                                reply.content,
-                                                                            )}
-                                                                        </p>
-                                                                        {reply.images &&
-                                                                            reply
-                                                                                .images
-                                                                                .length >
-                                                                                0 && (
-                                                                                <div className="mt-2 flex flex-wrap gap-2">
-                                                                                    {reply.images.map(
-                                                                                        (
-                                                                                            image,
-                                                                                            index,
-                                                                                        ) => (
-                                                                                            <button
-                                                                                                key={
-                                                                                                    index
-                                                                                                }
-                                                                                                type="button"
-                                                                                                onClick={() =>
-                                                                                                    openLightbox(
-                                                                                                        reply.images ??
-                                                                                                            [],
-                                                                                                        index,
-                                                                                                    )
-                                                                                                }
-                                                                                                className="group relative overflow-hidden rounded transition-opacity hover:opacity-90"
-                                                                                            >
-                                                                                                <img
-                                                                                                    src={
-                                                                                                        image
-                                                                                                    }
-                                                                                                    alt={`Image ${index + 1}`}
-                                                                                                    className="h-20 w-20 object-cover"
-                                                                                                />
-                                                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
-                                                                                                    <ImageIcon className="size-4 text-white opacity-0 transition-opacity group-hover:opacity-100" />
-                                                                                                </div>
-                                                                                            </button>
-                                                                                        ),
-                                                                                    )}
-                                                                                </div>
-                                                                            )}
-                                                                    </div>
-                                                                </div>
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                )}
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-
-                        <div className="text-center">
-                            <Button asChild variant="outline">
-                                <Link href="/shoutbox">
-                                    シャウトボックスで会話に参加
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {/* 画像ライトボックス */}
-                <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-                    <DialogContent className="max-w-4xl p-0">
-                        <div className="relative">
-                            <img
-                                src={lightboxImages[currentImageIndex]}
-                                alt="Full size"
-                                className="h-auto w-full"
-                            />
-                            {lightboxImages.length > 1 && (
-                                <>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={prevImage}
-                                        className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                                    >
-                                        <ChevronLeft className="size-6" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={nextImage}
-                                        className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                                    >
-                                        <ChevronRight className="size-6" />
-                                    </Button>
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
-                                        {currentImageIndex + 1} /{' '}
-                                        {lightboxImages.length}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 

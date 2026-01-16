@@ -1,6 +1,6 @@
 import type { Root } from 'mdast';
 import type { Node, Parent } from 'unist';
-import { visitParents, SKIP } from 'unist-util-visit-parents';
+import { SKIP, visitParents } from 'unist-util-visit-parents';
 
 interface ContainerDirectiveNode extends Node {
     type: 'containerDirective';
@@ -58,14 +58,17 @@ export function remarkColumnsDirective() {
                 }
 
                 // columnsの直後に配置されるcardは救済対象として許可
-                const parent = ancestors[ancestors.length - 1] as Parent | undefined;
+                const parent = ancestors[ancestors.length - 1] as
+                    | Parent
+                    | undefined;
                 if (parent && Array.isArray(parent.children)) {
                     const index = parent.children.indexOf(node);
                     if (index > 0) {
                         const previous = parent.children[index - 1];
                         if (
                             previous?.type === 'containerDirective' &&
-                            (previous as ContainerDirectiveNode).name === 'columns'
+                            (previous as ContainerDirectiveNode).name ===
+                                'columns'
                         ) {
                             return;
                         }
@@ -110,19 +113,27 @@ export function remarkColumnsDirective() {
                 }
 
                 // remark-directiveのネスト制約でcardが兄弟ノードになる場合の救済
-                const parent = ancestors[ancestors.length - 1] as Parent | undefined;
+                const parent = ancestors[ancestors.length - 1] as
+                    | Parent
+                    | undefined;
                 if (parent && Array.isArray(parent.children)) {
                     const index = parent.children.indexOf(node);
                     if (index !== -1) {
                         const siblingCardIndexes: number[] = [];
 
-                        for (let i = index + 1; i < parent.children.length; i += 1) {
+                        for (
+                            let i = index + 1;
+                            i < parent.children.length;
+                            i += 1
+                        ) {
                             const sibling = parent.children[i];
                             if (
                                 sibling?.type === 'containerDirective' &&
-                                (sibling as ContainerDirectiveNode).name === 'card'
+                                (sibling as ContainerDirectiveNode).name ===
+                                    'card'
                             ) {
-                                const cardNode = sibling as ContainerDirectiveNode;
+                                const cardNode =
+                                    sibling as ContainerDirectiveNode;
                                 const cardData = extractCardData(cardNode);
                                 cards.push(cardData);
                                 siblingCardIndexes.push(i);
@@ -133,7 +144,11 @@ export function remarkColumnsDirective() {
                         }
 
                         // 収集したcardノードを親から取り除く
-                        for (let i = siblingCardIndexes.length - 1; i >= 0; i -= 1) {
+                        for (
+                            let i = siblingCardIndexes.length - 1;
+                            i >= 0;
+                            i -= 1
+                        ) {
                             parent.children.splice(siblingCardIndexes[i], 1);
                         }
                     }

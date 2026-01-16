@@ -85,7 +85,11 @@ const updateChildrenForParent = (
 
         return {
             ...node,
-            children: updateChildrenForParent(node.children, parentPath, updater),
+            children: updateChildrenForParent(
+                node.children,
+                parentPath,
+                updater,
+            ),
         };
     });
 };
@@ -118,11 +122,7 @@ const reorderWithinList = (
     return next;
 };
 
-export default function NavigationOrder({
-    tree,
-}: {
-    tree: NavigationNode[];
-}) {
+export default function NavigationOrder({ tree }: { tree: NavigationNode[] }) {
     const { __ } = useLang();
     const [currentTree, setCurrentTree] = useState<NavigationNode[]>(tree);
     const [isSaving, setIsSaving] = useState(false);
@@ -134,7 +134,10 @@ export default function NavigationOrder({
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             { title: __('Sitemap'), href: '/sitemap' },
-            { title: __('Manage order'), href: '/app-settings/navigation-order' },
+            {
+                title: __('Manage order'),
+                href: '/app-settings/navigation-order',
+            },
         ],
         [__],
     );
@@ -152,52 +155,49 @@ export default function NavigationOrder({
         );
     };
 
-    const handleDragStart = (
-        node: NavigationNode,
-        parentPath: string | null,
-    ) => (event: React.DragEvent) => {
-        const target = event.target as HTMLElement | null;
-        if (target?.closest('input,textarea,button,select')) {
+    const handleDragStart =
+        (node: NavigationNode, parentPath: string | null) =>
+        (event: React.DragEvent) => {
+            const target = event.target as HTMLElement | null;
+            if (target?.closest('input,textarea,button,select')) {
+                event.preventDefault();
+                return;
+            }
+            const key = nodeKey(node);
+            setDragState({ key, parentPath });
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', key);
+        };
+
+    const handleDragOver =
+        (node: NavigationNode, parentPath: string | null) =>
+        (event: React.DragEvent) => {
+            if (!dragState || dragState.parentPath !== parentPath) {
+                return;
+            }
+            event.stopPropagation();
             event.preventDefault();
-            return;
-        }
-        const key = nodeKey(node);
-        setDragState({ key, parentPath });
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', key);
-    };
+            setDragOverKey(nodeKey(node));
+        };
 
-    const handleDragOver = (
-        node: NavigationNode,
-        parentPath: string | null,
-    ) => (event: React.DragEvent) => {
-        if (!dragState || dragState.parentPath !== parentPath) {
-            return;
-        }
-        event.stopPropagation();
-        event.preventDefault();
-        setDragOverKey(nodeKey(node));
-    };
+    const handleDrop =
+        (node: NavigationNode, parentPath: string | null) =>
+        (event: React.DragEvent) => {
+            if (!dragState || dragState.parentPath !== parentPath) {
+                return;
+            }
+            event.stopPropagation();
+            event.preventDefault();
 
-    const handleDrop = (
-        node: NavigationNode,
-        parentPath: string | null,
-    ) => (event: React.DragEvent) => {
-        if (!dragState || dragState.parentPath !== parentPath) {
-            return;
-        }
-        event.stopPropagation();
-        event.preventDefault();
-
-        setCurrentTree((previous) =>
-            updateChildrenForParent(previous, parentPath, (children) =>
-                reorderWithinList(children, dragState.key, nodeKey(node)),
-            ),
-        );
-        setIsDirty(true);
-        setDragState(null);
-        setDragOverKey(null);
-    };
+            setCurrentTree((previous) =>
+                updateChildrenForParent(previous, parentPath, (children) =>
+                    reorderWithinList(children, dragState.key, nodeKey(node)),
+                ),
+            );
+            setIsDirty(true);
+            setDragState(null);
+            setDragOverKey(null);
+        };
 
     const handleDropToContainer =
         (parentPath: string | null) => (event: React.DragEvent) => {
@@ -228,7 +228,7 @@ export default function NavigationOrder({
     ) => {
         const label =
             node.type === 'folder'
-                ? node.label ?? node.index_title ?? node.title
+                ? (node.label ?? node.index_title ?? node.title)
                 : node.title;
         const isActiveDrag = dragOverKey === nodeKey(node);
         const isEditing = editingKey === nodeKey(node);
@@ -259,7 +259,9 @@ export default function NavigationOrder({
                         {isEditing && node.type === 'folder' ? (
                             <Input
                                 value={node.label ?? ''}
-                                placeholder={node.index_title ?? node.title ?? ''}
+                                placeholder={
+                                    node.index_title ?? node.title ?? ''
+                                }
                                 onChange={(event) => {
                                     const nextLabel = event.target.value;
                                     setCurrentTree((previous) =>
@@ -290,9 +292,7 @@ export default function NavigationOrder({
                                         setEditingKey(null);
                                     }
                                 }}
-                                onMouseDown={(event) =>
-                                    event.stopPropagation()
-                                }
+                                onMouseDown={(event) => event.stopPropagation()}
                                 className="h-8"
                             />
                         ) : (
@@ -309,9 +309,7 @@ export default function NavigationOrder({
                                         : nodeKey(node);
                                     setEditingKey(nextKey);
                                 }}
-                                onMouseDown={(event) =>
-                                    event.stopPropagation()
-                                }
+                                onMouseDown={(event) => event.stopPropagation()}
                             >
                                 <Pencil className="size-3.5" />
                             </button>

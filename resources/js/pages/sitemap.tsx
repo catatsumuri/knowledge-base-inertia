@@ -228,9 +228,9 @@ export default function Sitemap({ tree, canCreate }: SitemapProps) {
     const csrfToken =
         typeof window === 'undefined'
             ? ''
-            : window.document
+            : (window.document
                   .querySelector('meta[name="csrf-token"]')
-                  ?.getAttribute('content') ?? '';
+                  ?.getAttribute('content') ?? '');
 
     const toggleSelection = () => {
         setSelectionEnabled((prev) => !prev);
