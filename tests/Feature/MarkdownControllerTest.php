@@ -1292,4 +1292,139 @@ class MarkdownControllerTest extends TestCase
         $response->assertJsonCount(1);
         $response->assertJsonFragment(['name' => 'Laravel']);
     }
+
+    public function test_shows_folder_view_when_direct_children_exist_but_no_document(): void
+    {
+        $user = User::factory()->create();
+
+        // Create direct children documents
+        MarkdownDocument::factory()->create([
+            'slug' => 'parent/child1',
+            'title' => 'Child 1',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+        MarkdownDocument::factory()->create([
+            'slug' => 'parent/child2',
+            'title' => 'Child 2',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get('/markdown/parent');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/folder')
+            ->where('slug', 'parent')
+            ->has('children', 2)
+            ->where('hasIndex', false)
+        );
+    }
+
+    public function test_does_not_show_folder_view_for_grandchildren(): void
+    {
+        $user = User::factory()->create();
+
+        // Create direct child
+        MarkdownDocument::factory()->create([
+            'slug' => 'parent/child',
+            'title' => 'Child',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+        // Create grandchild (should not be included in folder view)
+        MarkdownDocument::factory()->create([
+            'slug' => 'parent/child/grandchild',
+            'title' => 'Grandchild',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get('/markdown/parent');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/folder')
+            ->has('children', 1)
+            ->where('children.0.slug', 'parent/child')
+        );
+    }
+
+    public function test_updates_folder_label(): void
+    {
+        $user = User::factory()->create();
+
+        // Create a child document to make it a folder
+        MarkdownDocument::factory()->create([
+            'slug' => 'parent/child',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->patchJson('/markdown/folder/parent/label', [
+                'label' => 'My Custom Label',
+            ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('markdown_navigation_items', [
+            'node_type' => 'folder',
+            'node_path' => 'parent',
+            'label' => 'My Custom Label',
+            'parent_path' => null,
+        ]);
+    }
+
+    public function test_shows_edit_form_when_no_children_exist(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/markdown/nonexistent');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/edit')
+            ->where('document', null)
+        );
+    }
+
+    public function test_folder_page_shows_index_status(): void
+    {
+        $user = User::factory()->create();
+
+        // Create a child document to make it a folder
+        MarkdownDocument::factory()->create([
+            'slug' => 'parent/child',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        // First test: no index document - shows folder view
+        $response = $this->actingAs($user)->get('/markdown/parent');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/folder')
+            ->where('hasIndex', false)
+        );
+
+        // Create index document
+        MarkdownDocument::factory()->create([
+            'slug' => 'parent/index',
+            'title' => 'Parent Index',
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        // Second test: with index document - shows the index document (not folder view)
+        $response = $this->actingAs($user)->get('/markdown/parent');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('markdown/show')
+            ->where('document.slug', 'parent/index')
+        );
+    }
 }

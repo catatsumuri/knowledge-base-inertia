@@ -14,6 +14,7 @@ use App\Http\Requests\MarkdownSlugAvailabilityRequest;
 use App\Http\Requests\MarkdownTranslateRequest;
 use App\Models\MarkdownDocument;
 use App\Models\MarkdownDocumentRevision;
+use App\Models\MarkdownNavigationItem;
 use App\Models\Shout;
 use App\Models\ShoutLink;
 use App\Models\Topic;
@@ -265,6 +266,16 @@ class MarkdownController extends Controller
         $document = $this->resolveDocumentBySlug($slug);
 
         if (! $document) {
+            // Check if this slug has direct children (folder mode)
+            $hasDirectChildren = MarkdownDocument::query()
+                ->where('slug', 'like', $slug.'/%')
+                ->where('slug', 'not like', $slug.'/%/%')
+                ->exists();
+
+            if ($hasDirectChildren) {
+                return $this->showFolder($slug);
+            }
+
             $formSlug = $slug;
 
             if ($hasTrailingSlash && $slug !== '' && $slug !== 'index') {
@@ -1648,5 +1659,75 @@ Output:
     private function yamlString(string $value): string
     {
         return (string) json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Display folder management view for slugs with direct children.
+     */
+    private function showFolder(string $slug): Response
+    {
+        // Get only direct children (not grandchildren)
+        $children = MarkdownDocument::query()
+            ->select(['slug', 'title', 'status'])
+            ->where('slug', 'like', $slug.'/%')
+            ->where('slug', 'not like', $slug.'/%/%')
+            ->orderBy('slug')
+            ->get()
+            ->map(fn ($doc) => [
+                'slug' => $doc->slug,
+                'title' => $doc->title,
+                'status' => $doc->status,
+                'path' => $doc->slug,
+                'type' => 'document',
+            ])
+            ->toArray();
+
+        // Check if index document exists
+        $indexDocument = MarkdownDocument::query()
+            ->where('slug', $slug.'/index')
+            ->first();
+
+        // Get folder label
+        $navigationItem = MarkdownNavigationItem::query()
+            ->where('node_type', 'folder')
+            ->where('node_path', $slug)
+            ->first();
+
+        return Inertia::render('markdown/folder', [
+            'slug' => $slug,
+            'label' => $navigationItem?->label,
+            'children' => $children,
+            'hasIndex' => $indexDocument !== null,
+            'canCreate' => true,
+        ]);
+    }
+
+    /**
+     * Update folder label.
+     */
+    public function updateFolderLabel(Request $request, string $slug): JsonResponse
+    {
+        $data = $request->validate([
+            'label' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        // Calculate parent path
+        $parts = explode('/', $slug);
+        array_pop($parts);
+        $parentPath = count($parts) > 0 ? implode('/', $parts) : null;
+
+        MarkdownNavigationItem::query()->updateOrCreate(
+            [
+                'node_type' => 'folder',
+                'node_path' => $slug,
+            ],
+            [
+                'label' => $data['label'] ?: null,
+                'parent_path' => $parentPath,
+                'position' => 0,
+            ]
+        );
+
+        return response()->json(['success' => true]);
     }
 }
