@@ -1,3 +1,4 @@
+import { useLang } from '@/hooks/useLang';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import {
@@ -34,6 +35,7 @@ const getPublicPageUrl = (slug: string) => {
 };
 
 export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
+    const { __ } = useLang();
     const normalizedSlug = useMemo(
         () => currentSlug.replace(/^\/+|\/+$/g, ''),
         [currentSlug],
@@ -115,7 +117,7 @@ export function PublicPagesMenu({ tree, currentSlug }: PublicPagesMenuProps) {
         <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
             <div className="rounded-xl border border-sidebar-border/70 bg-background/80 p-4 shadow-sm">
                 <div className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                    Pages
+                    {__('Pages')}
                 </div>
                 <nav className="space-y-0.5">
                     {tree.map((node) => renderNode(node, 0))}

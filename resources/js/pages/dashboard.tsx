@@ -99,7 +99,7 @@ export default function Dashboard({
                                 >
                                     <div className="divide-y divide-border">
                                         {recentDocuments.data.map(
-                                            (document) => (
+                                            (document: RecentDocument) => (
                                                 <div
                                                     key={document.slug}
                                                     className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"

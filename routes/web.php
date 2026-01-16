@@ -21,6 +21,7 @@ Route::get('pages/{slug}', [PublicPagesController::class, 'show'])
 
 // OGP API
 Route::get('api/ogp', [\App\Http\Controllers\Api\OgpController::class, 'fetch'])
+    ->middleware('auth')
     ->name('api.ogp.fetch');
 
 Route::middleware(['auth', 'verified'])->group(function () {

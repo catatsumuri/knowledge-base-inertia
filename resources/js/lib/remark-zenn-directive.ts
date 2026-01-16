@@ -1,4 +1,4 @@
-import type { Paragraph, Root } from 'mdast';
+import type { HTML, Paragraph, Root } from 'mdast';
 import type { Node } from 'unist';
 import { visit } from 'unist-util-visit';
 
@@ -109,7 +109,7 @@ export function remarkZennDirective() {
                     {
                         type: 'html',
                         value: `<summary>${summary}</summary>`,
-                    },
+                    } as HTML,
                     {
                         type: 'paragraph',
                         data: {

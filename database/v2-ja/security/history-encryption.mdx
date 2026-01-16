@@ -1,42 +1,42 @@
 ---
-title: History Encryption
+title: 履歴の暗号化
 ---
 
-Imagine a scenario where your user is authenticated, browses privileged information on your site, then logs out. If they press the back button, they can still see the privileged information that is stored in the window's history state. This is a security risk. To prevent this, Inertia.js provides a history encryption feature.
+ユーザーが認証され、サイト上の特権情報を閲覧した後にログアウトするシナリオを想像してください。その後、戻るボタンを押すと、window の履歴状態に保存されている特権情報を引き続き閲覧できてしまいます。これはセキュリティ上のリスクです。これを防ぐために、Inertia.js には履歴の暗号化機能が用意されています。
 
-## How It Works
+## 仕組み
 
-When you instruct Inertia to encrypt your app's history, it uses the browser's built-in [`crypto` api ](https://developer.mozilla.org/en-US/docs/Web/API/Crypto) to encrypt the current page's data before pushing it to the history state. We store the corresponding key in the browser's session storage. When the user navigates back to a page, we decrypt the data using the key stored in the session storage.
+Inertia にアプリの履歴を暗号化するよう指示すると、ブラウザに組み込まれている [`crypto` API](https://developer.mozilla.org/en-US/docs/Web/API/Crypto) を使用して、現在のページデータを履歴状態に push する前に暗号化します。対応するキーはブラウザのセッションストレージに保存されます。ユーザーがページに戻ると、セッションストレージに保存されているキーを使ってデータを復号します。
 
-Once you instruct Inertia to clear your history state, we simply clear the existing key from session storage roll a new one. If we attempt to decrypt the history state with the new key, it will fail and Inertia will make a fresh request back to your server for the page data.
+Inertia に履歴状態をクリアするよう指示すると、セッションストレージ内の既存のキーを削除し、新しいキーを生成します。新しいキーで履歴状態の復号を試みると失敗するため、Inertia はページデータを取得するためにサーバーへ新しいリクエストを送信します。
 
-History encryption relies on `window.crypto.subtle` which is only available in secure environments (sites with SSL enabled).
+履歴の暗号化は `window.crypto.subtle` に依存しており、これはセキュアな環境（SSL が有効なサイト）でのみ利用可能です。
 
-## Opting in
+## 有効化（オプトイン）
 
-History encryption is an opt-in feature. There are several methods for enabling it:
+履歴の暗号化はオプトイン機能です。有効化する方法はいくつかあります。
 
-### Global Encryption
+### グローバル暗号化
 
-If you'd like to enable history encryption globally, set the `inertia.history.encrypt` config value to `true`.
+履歴の暗号化をグローバルに有効にしたい場合は、`inertia.history.encrypt` の設定値を `true` に設定します。
 
-You are able to opt out of encryption on specific pages by calling the `Inertia::encryptHistory()`method before returning the response.
+特定のページで暗号化を無効にしたい場合は、レスポンスを返す前に `Inertia::encryptHistory()` メソッドを呼び出します。
 
 ```php
 Inertia::encryptHistory(false);
 ```
 
-### Per-request Encryption
+### リクエスト単位の暗号化
 
-To encrypt the history of an individual request, simply call the `Inertia::encryptHistory()` method before returning the response.
+個々のリクエストの履歴を暗号化するには、レスポンスを返す前に `Inertia::encryptHistory()` メソッドを呼び出すだけです。
 
 ```php
 Inertia::encryptHistory();
 ```
 
-### Encrypt Middleware
+### 暗号化ミドルウェア
 
-To encrypt a group of routes, you may use Inertia's included `EncryptHistory` middleware.
+特定のルートグループを暗号化するには、Inertia に同梱されている `EncryptHistory` ミドルウェアを使用できます。
 
 ```php
 Route::middleware([Inertia\Middleware\EncryptHistory::class])->get('/', function() {
@@ -48,14 +48,14 @@ Route::middleware(['inertia::encrypt'])->get('/', function() {
 });
 ```
 
-## Clearing History
+## 履歴のクリア
 
-To clear the history state, you can call the `Inertia::clearHistory()` method before returning the response.
+履歴状態をクリアするには、レスポンスを返す前に `Inertia::clearHistory()` メソッドを呼び出します。
 
 ```php
 Inertia::clearHistory();
 ```
 
-Once the response has rendered on the client, the encryption key will be rotated, rendering the previous history state unreadable.
+クライアントでレスポンスがレンダリングされると、暗号化キーがローテーションされ、以前の履歴状態は読み取れなくなります。
 
-You can also clear history on the client site by calling `router.clearHistory()`.
+また、クライアント側で `router.clearHistory()` を呼び出すことで履歴をクリアすることもできます。

@@ -288,13 +288,13 @@ class ImportV2JaMarkdownCommand extends Command
 
             // 内部リンクの先頭スラッシュを除去
             if (is_string($body)) {
-                $body = preg_replace('/\((\/)(?!\/)([^)]+)\)/', '($2)', $body);
+                $body = preg_replace('/\]\((\/)(?!\/)([^)]+)\)/', ']($2)', $body);
             }
 
             // 内部リンクにプレフィックスを付与
             if (is_string($body)) {
                 $body = preg_replace_callback(
-                    '/\(([^)]+)\)/',
+                    '/\]\(([^)]+)\)/',
                     static function ($matches) use ($navPrefix) {
                         $target = $matches[1];
 
@@ -305,10 +305,10 @@ class ImportV2JaMarkdownCommand extends Command
                             str_starts_with($target, 'mailto:') ||
                             str_starts_with($target, $navPrefix.'/')
                         ) {
-                            return "({$target})";
+                            return "]({$target})";
                         }
 
-                        return "({$navPrefix}/{$target})";
+                        return "]({$navPrefix}/{$target})";
                     },
                     $body
                 );
@@ -387,7 +387,9 @@ class ImportV2JaMarkdownCommand extends Command
 
             if (
                 str_starts_with($slug, $navPrefix.'/getting-started/') ||
-                str_starts_with($slug, $navPrefix.'/installation/')
+                str_starts_with($slug, $navPrefix.'/installation/') ||
+                str_starts_with($slug, $navPrefix.'/security/') ||
+                str_starts_with($slug, $navPrefix.'/core-concepts/')
             ) {
                 $status = 'published';
             }

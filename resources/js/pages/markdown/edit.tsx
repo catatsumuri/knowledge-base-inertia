@@ -82,7 +82,7 @@ export default function Edit({
     const [moveMessage, setMoveMessage] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { props } = usePage<{ imageUrl?: string }>();
-    const previousImageUrlRef = useRef<string | undefined>();
+    const previousImageUrlRef = useRef<string | undefined>(undefined);
     const hasJumpedRef = useRef(false);
     const [returnHeading, setReturnHeading] = useState<string | null>(null);
     const moveRequestRef = useRef<AbortController | null>(null);
@@ -694,7 +694,6 @@ export default function Edit({
                                                         placeholder="my-document"
                                                         defaultValue={
                                                             slug ??
-                                                            document?.slug ??
                                                             (isIndexDocument
                                                                 ? 'index'
                                                                 : 'core-concepts/index')

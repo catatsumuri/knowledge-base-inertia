@@ -1,10 +1,10 @@
 ---
-title: Authorization
+title: 認可
 ---
 
-When using Inertia, authorization is best handled server-side in your application's authorization policies. However, you may be wondering how to perform checks against your authorization policies from within your Inertia page components since you won't have access to your framework's server-side helpers.
+Inertia を使用する場合、認可はアプリケーションの認可ポリシーでサーバーサイドにて処理するのが最適です。しかし、フレームワークのサーバーサイド用ヘルパーにアクセスできないため、Inertia のページコンポーネント内からどのように認可ポリシーに対するチェックを行えばよいのか疑問に思うかもしれません。
 
-The simplest approach to solving this problem is to pass the results of your authorization checks as props to your page components.
+この問題を解決する最もシンプルな方法は、認可チェックの結果を props としてページコンポーネントに渡すことです。
 
 ```php
 class UsersController extends Controller

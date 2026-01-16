@@ -128,7 +128,7 @@ export default function ShoutboxPanel({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(store(), {
+        post(store().url, {
             onSuccess: () => {
                 reset();
                 setPreviewImages([]);
@@ -532,7 +532,7 @@ export default function ShoutboxPanel({
 
     const handleSubmitReply = (e: React.FormEvent) => {
         e.preventDefault();
-        postReply(store(), {
+        postReply(store().url, {
             onSuccess: () => {
                 resetReply();
                 setReplyingToShoutId(null);
@@ -765,7 +765,7 @@ export default function ShoutboxPanel({
 
             {/* タイムライン */}
             <div className="space-y-4">
-                {shouts.data.map((shout) => (
+                {shouts.data.map((shout: Shout) => (
                     <Card key={shout.id} className="p-4">
                         <div className="flex gap-3">
                             <Avatar className="size-10">
@@ -919,35 +919,37 @@ export default function ShoutboxPanel({
                                 {/* 画像 */}
                                 {shout.images && shout.images.length > 0 && (
                                     <div className="mt-3 flex flex-wrap gap-2">
-                                        {shout.images.map((image, index) => (
-                                            <button
-                                                key={index}
-                                                type="button"
-                                                onClick={() =>
-                                                    openLightbox(
-                                                        shout.images ?? [],
-                                                        index,
-                                                    )
-                                                }
-                                                className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
-                                            >
-                                                <img
-                                                    src={image}
-                                                    alt={`Image ${index + 1}`}
-                                                    className="h-32 w-32 object-cover"
-                                                />
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
-                                                    <ImageIcon className="size-6 text-white opacity-0 transition-opacity group-hover:opacity-100" />
-                                                </div>
-                                            </button>
-                                        ))}
+                                        {shout.images.map(
+                                            (image: string, index: number) => (
+                                                <button
+                                                    key={index}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        openLightbox(
+                                                            shout.images ?? [],
+                                                            index,
+                                                        )
+                                                    }
+                                                    className="group relative overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+                                                >
+                                                    <img
+                                                        src={image}
+                                                        alt={`Image ${index + 1}`}
+                                                        className="h-32 w-32 object-cover"
+                                                    />
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/10">
+                                                        <ImageIcon className="size-6 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                                                    </div>
+                                                </button>
+                                            ),
+                                        )}
                                     </div>
                                 )}
 
                                 {/* 返信一覧 */}
                                 {shout.replies && shout.replies.length > 0 && (
                                     <div className="mt-4 space-y-3 border-l-2 pl-4">
-                                        {shout.replies.map((reply) => (
+                                        {shout.replies.map((reply: Shout) => (
                                             <div
                                                 key={reply.id}
                                                 className="flex gap-2"
@@ -1012,8 +1014,8 @@ export default function ShoutboxPanel({
                                                             <div className="mt-2 flex flex-wrap gap-2">
                                                                 {reply.images.map(
                                                                     (
-                                                                        image,
-                                                                        index,
+                                                                        image: string,
+                                                                        index: number,
                                                                     ) => (
                                                                         <button
                                                                             key={

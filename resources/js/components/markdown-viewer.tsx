@@ -34,12 +34,16 @@ interface MarkdownViewerProps {
 }
 
 // Markdown内のリンクをInertia Linkに変換するコンポーネント
+type MarkdownLinkProps = React.ComponentPropsWithoutRef<'a'> & {
+    basePrefix?: string;
+};
+
 function MarkdownLink({
     href,
     children,
     basePrefix = '/markdown',
     ...props
-}: React.ComponentPropsWithoutRef<'a'> & { basePrefix?: string }) {
+}: MarkdownLinkProps) {
     // 脚注リンク（/markdown/#または/pages/#で始まる）をフラグメントのみに変換
     if (
         href &&
@@ -79,7 +83,7 @@ function MarkdownLink({
     }
 
     return (
-        <Link href={internalHref} {...props}>
+        <Link href={internalHref} {...(props as any)}>
             {children}
         </Link>
     );
@@ -113,13 +117,14 @@ function MessageBox({
 }
 
 // 埋め込みカードコンポーネント
-function EmbedCardWrapper({ ...props }: React.ComponentPropsWithoutRef<'div'>) {
-    const embedType = props['data-embed-type'] as
-        | 'github'
-        | 'tweet'
-        | 'youtube'
-        | 'card';
-    const embedUrl = props['data-embed-url'] as string;
+interface EmbedCardWrapperProps extends React.ComponentPropsWithoutRef<'div'> {
+    'data-embed-type'?: 'github' | 'tweet' | 'youtube' | 'card';
+    'data-embed-url'?: string;
+}
+
+function EmbedCardWrapper({ ...props }: EmbedCardWrapperProps) {
+    const embedType = props['data-embed-type'];
+    const embedUrl = props['data-embed-url'];
 
     if (!embedType || !embedUrl) {
         return <div {...props} />;
@@ -156,129 +161,134 @@ export function MarkdownViewer({
                 remarkLinkifyToCard,
             ]}
             rehypePlugins={[rehypeRaw, rehypeSlug]}
-            components={{
-                pre: ({ children }) => <>{children}</>,
-                code: CodeBlock,
-                img: MarkdownImage,
-                aside: MessageBox,
-                a: (props) => (
-                    <MarkdownLink {...props} basePrefix={basePrefix} />
-                ),
-                columns: (props: any) => (
-                    <MarkdownColumns {...props} basePrefix={basePrefix} />
-                ),
-                card: (props: any) => (
-                    <MarkdownCard {...props} basePrefix={basePrefix} />
-                ),
-                div: (props: any) => {
-                    // コードタブの場合
-                    if (
-                        props['data-code-tabs'] ||
-                        props['data-code-tabs-error']
-                    ) {
-                        return <CodeTabsWrapper {...props} />;
-                    }
-                    // チャートの場合
-                    if (props['data-chart-type']) {
-                        return <ChartWrapper {...props} />;
-                    }
-                    // 埋め込みカードの場合
-                    if (props['data-embed-type']) {
-                        return <EmbedCardWrapper {...props} />;
-                    }
-                    if (props['data-param-field'] !== undefined) {
-                        return (
-                            <ParamField
-                                header={props['data-param-header']}
-                                body={props['data-param-body']}
-                                type={props['data-param-type']}
-                            >
-                                {props.children}
-                            </ParamField>
-                        );
-                    }
-                    if (props['data-card-title'] || props['data-card-href']) {
-                        return (
-                            <MarkdownCard
-                                title={props['data-card-title']}
-                                href={props['data-card-href']}
-                                icon={props['data-card-icon']}
-                                cta={props['data-card-cta']}
-                                arrow={props['data-card-arrow']}
-                                basePrefix={basePrefix}
-                            >
-                                {props.children}
-                            </MarkdownCard>
-                        );
-                    }
-                    // Columnsの場合
-                    if (
-                        props['data-columns-config'] ||
-                        props['data-columns-cards'] ||
-                        props['data-columns-error']
-                    ) {
-                        return (
-                            <ColumnsWrapper
-                                {...props}
-                                basePrefix={basePrefix}
-                            />
-                        );
-                    }
-                    // それ以外は通常のdiv
-                    return <div {...props} />;
-                },
-                paramfield: (props: any) => (
-                    <ParamField
-                        header={props.header}
-                        body={props.body}
-                        type={props.type}
-                    >
-                        {props.children}
-                    </ParamField>
-                ),
-                h1: (props) => (
-                    <MarkdownHeading
-                        level={1}
-                        onEditHeading={onEditHeading}
-                        {...props}
-                    />
-                ),
-                h2: (props) => (
-                    <MarkdownHeading
-                        level={2}
-                        onEditHeading={onEditHeading}
-                        {...props}
-                    />
-                ),
-                h3: (props) => (
-                    <MarkdownHeading
-                        level={3}
-                        onEditHeading={onEditHeading}
-                        {...props}
-                    />
-                ),
-                h4: (props) => (
-                    <MarkdownHeading
-                        level={4}
-                        onEditHeading={onEditHeading}
-                        {...props}
-                    />
-                ),
-                h5: (props) => (
-                    <MarkdownHeading
-                        level={5}
-                        onEditHeading={onEditHeading}
-                        {...props}
-                    />
-                ),
-                h6: (props) => (
-                    <MarkdownHeading
-                        level={6}
-                        onEditHeading={onEditHeading}
-                        {...props}
-                    />
-                ),
-            }}
+            components={
+                {
+                    pre: ({ children }: any) => <>{children}</>,
+                    code: (props: any) => <CodeBlock {...(props as any)} />,
+                    img: MarkdownImage,
+                    aside: MessageBox,
+                    a: (props: any) => (
+                        <MarkdownLink {...props} basePrefix={basePrefix} />
+                    ),
+                    columns: (props: any) => (
+                        <MarkdownColumns {...props} basePrefix={basePrefix} />
+                    ),
+                    card: (props: any) => (
+                        <MarkdownCard {...props} basePrefix={basePrefix} />
+                    ),
+                    div: (props: any) => {
+                        // コードタブの場合
+                        if (
+                            props['data-code-tabs'] ||
+                            props['data-code-tabs-error']
+                        ) {
+                            return <CodeTabsWrapper {...props} />;
+                        }
+                        // チャートの場合
+                        if (props['data-chart-type']) {
+                            return <ChartWrapper {...props} />;
+                        }
+                        // 埋め込みカードの場合
+                        if (props['data-embed-type']) {
+                            return <EmbedCardWrapper {...props} />;
+                        }
+                        if (props['data-param-field'] !== undefined) {
+                            return (
+                                <ParamField
+                                    header={props['data-param-header']}
+                                    body={props['data-param-body']}
+                                    type={props['data-param-type']}
+                                >
+                                    {props.children}
+                                </ParamField>
+                            );
+                        }
+                        if (
+                            props['data-card-title'] ||
+                            props['data-card-href']
+                        ) {
+                            return (
+                                <MarkdownCard
+                                    title={props['data-card-title']}
+                                    href={props['data-card-href']}
+                                    icon={props['data-card-icon']}
+                                    cta={props['data-card-cta']}
+                                    arrow={props['data-card-arrow']}
+                                    basePrefix={basePrefix}
+                                >
+                                    {props.children}
+                                </MarkdownCard>
+                            );
+                        }
+                        // Columnsの場合
+                        if (
+                            props['data-columns-config'] ||
+                            props['data-columns-cards'] ||
+                            props['data-columns-error']
+                        ) {
+                            return (
+                                <ColumnsWrapper
+                                    {...props}
+                                    basePrefix={basePrefix}
+                                />
+                            );
+                        }
+                        // それ以外は通常のdiv
+                        return <div {...props} />;
+                    },
+                    paramfield: (props: any) => (
+                        <ParamField
+                            header={props.header}
+                            body={props.body}
+                            type={props.type}
+                        >
+                            {props.children}
+                        </ParamField>
+                    ),
+                    h1: (props: any) => (
+                        <MarkdownHeading
+                            level={1}
+                            onEditHeading={onEditHeading}
+                            {...props}
+                        />
+                    ),
+                    h2: (props: any) => (
+                        <MarkdownHeading
+                            level={2}
+                            onEditHeading={onEditHeading}
+                            {...props}
+                        />
+                    ),
+                    h3: (props: any) => (
+                        <MarkdownHeading
+                            level={3}
+                            onEditHeading={onEditHeading}
+                            {...props}
+                        />
+                    ),
+                    h4: (props: any) => (
+                        <MarkdownHeading
+                            level={4}
+                            onEditHeading={onEditHeading}
+                            {...props}
+                        />
+                    ),
+                    h5: (props: any) => (
+                        <MarkdownHeading
+                            level={5}
+                            onEditHeading={onEditHeading}
+                            {...props}
+                        />
+                    ),
+                    h6: (props: any) => (
+                        <MarkdownHeading
+                            level={6}
+                            onEditHeading={onEditHeading}
+                            {...props}
+                        />
+                    ),
+                } as any
+            }
         >
             {processedContent}
         </ReactMarkdown>

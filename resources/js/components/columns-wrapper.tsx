@@ -14,6 +14,9 @@ interface ColumnsConfig {
 
 interface ColumnsWrapperProps extends React.ComponentPropsWithoutRef<'div'> {
     basePrefix?: string;
+    'data-columns-config'?: string;
+    'data-columns-cards'?: string;
+    'data-columns-error'?: string;
 }
 
 /**

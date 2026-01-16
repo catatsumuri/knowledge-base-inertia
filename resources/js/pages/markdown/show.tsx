@@ -37,7 +37,7 @@ import { extractPlainText } from '@/lib/extract-plain-text';
 import { parseToc, type TocNode } from '@/lib/parse-toc';
 import { cn } from '@/lib/utils';
 import { show as showTopic } from '@/routes/topics';
-import { type BreadcrumbItem, type User } from '@/types';
+import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -112,22 +112,24 @@ interface MarkdownDocument {
     title: string;
     content: string | null;
     status: 'draft' | 'private' | 'published';
-    created_by: number;
-    updated_by: number;
+    created_by:
+        | number
+        | {
+              id: number;
+              name: string;
+              email: string;
+          };
+    updated_by:
+        | number
+        | {
+              id: number;
+              name: string;
+              email: string;
+          };
     created_at: string;
     updated_at: string;
     topics?: Array<{ id: number; name: string; slug: string }>;
     eyecatch_url?: string | null;
-    created_by?: {
-        id: number;
-        name: string;
-        email: string;
-    };
-    updated_by?: {
-        id: number;
-        name: string;
-        email: string;
-    };
 }
 
 interface ShoutLink {
@@ -176,7 +178,7 @@ export default function Show({
 }) {
     const { __ } = useLang();
     const getInitials = useInitials();
-    const page = usePage();
+    const page = usePage<SharedData>();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [toc, setToc] = useState<TocNode[]>([]);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -197,6 +199,10 @@ export default function Show({
     const [isTocFloating, setIsTocFloating] = useState(false);
     const isPublicView = Boolean(isPublic);
     const canManage = canCreate && !isPublicView;
+    const updatedBy =
+        document.updated_by && typeof document.updated_by === 'object'
+            ? document.updated_by
+            : null;
 
     // OGPメタデータの生成
     const description = document.content
@@ -689,9 +695,9 @@ export default function Show({
                 </div>
             </div>
 
-            {!isPublicView && document.updated_by && (
+            {!isPublicView && updatedBy && (
                 <div className="text-sm text-muted-foreground">
-                    {__('Last updated by')}: {document.updated_by.name}
+                    {__('Last updated by')}: {updatedBy.name}
                 </div>
             )}
 

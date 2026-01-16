@@ -22,6 +22,25 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface PaginatedData<T> {
+    data: T[];
+    links?: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+    meta?: {
+        current_page: number;
+        from: number | null;
+        last_page: number;
+        per_page: number;
+        to: number | null;
+        total: number;
+        path?: string;
+    };
+    [key: string]: unknown;
+}
+
 export interface SharedData {
     name: string;
     app: {
