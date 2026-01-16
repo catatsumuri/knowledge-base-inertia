@@ -33,11 +33,12 @@ import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import PublicLayout from '@/layouts/public-layout';
+import { extractPlainText } from '@/lib/extract-plain-text';
 import { parseToc, type TocNode } from '@/lib/parse-toc';
 import { cn } from '@/lib/utils';
 import { show as showTopic } from '@/routes/topics';
 import { type BreadcrumbItem, type User } from '@/types';
-import { Form, Head, Link, router } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
@@ -175,6 +176,7 @@ export default function Show({
 }) {
     const { __ } = useLang();
     const getInitials = useInitials();
+    const page = usePage();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [toc, setToc] = useState<TocNode[]>([]);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -183,7 +185,11 @@ export default function Show({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newSlug, setNewSlug] = useState('');
-    const [showToc, setShowToc] = useState(true);
+    const [showToc, setShowToc] = useState(() => {
+        if (typeof window === 'undefined') return true;
+        const stored = window.localStorage.getItem('toc-visible');
+        return stored !== null ? stored === 'true' : true;
+    });
     const importInputRef = useRef<HTMLInputElement>(null);
     const tocWrapperRef = useRef<HTMLDivElement>(null);
     const tocOffsetTopRef = useRef(0);
@@ -191,6 +197,20 @@ export default function Show({
     const [isTocFloating, setIsTocFloating] = useState(false);
     const isPublicView = Boolean(isPublic);
     const canManage = canCreate && !isPublicView;
+
+    // OGPメタデータの生成
+    const description = document.content
+        ? extractPlainText(document.content, 160)
+        : `${document.title} - Knowledge Base`;
+    const currentUrl =
+        typeof window !== 'undefined'
+            ? window.location.href
+            : `${page.props.app?.url || ''}${page.url}`;
+    const imageUrl = document.eyecatch_url
+        ? document.eyecatch_url.startsWith('http')
+            ? document.eyecatch_url
+            : `${page.props.app?.url || ''}${document.eyecatch_url}`
+        : null;
 
     useEffect(() => {
         if (contentRef.current && document.content) {
@@ -238,12 +258,7 @@ export default function Show({
     }, [toc.length]);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        if (!isMobile) {
-            setIsTocFloating(false);
+        if (typeof window === 'undefined' || !isMobile) {
             return;
         }
 
@@ -258,17 +273,6 @@ export default function Show({
             window.removeEventListener('scroll', onScroll);
         };
     }, [isMobile]);
-
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        const stored = window.localStorage.getItem('toc-visible');
-        if (stored !== null) {
-            setShowToc(stored === 'true');
-        }
-    }, []);
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -376,7 +380,7 @@ export default function Show({
         if (!content) return null;
 
         // @slug形式をリンクに変換
-        const parts = content.split(/(@[a-zA-Z0-9_\-\/]+)/g);
+        const parts = content.split(/(@[a-zA-Z0-9_\-/]+)/g);
 
         return parts.map((part, index) => {
             if (part.startsWith('@')) {
@@ -922,6 +926,29 @@ export default function Show({
         </div>
     );
 
+    const headContent = (
+        <Head title={document.title}>
+            {/* OGP メタタグ */}
+            <meta property="og:title" content={document.title} />
+            <meta property="og:description" content={description} />
+            <meta property="og:type" content="article" />
+            <meta property="og:url" content={currentUrl} />
+            {imageUrl && <meta property="og:image" content={imageUrl} />}
+
+            {/* Twitter Card メタタグ */}
+            <meta
+                name="twitter:card"
+                content={imageUrl ? 'summary_large_image' : 'summary'}
+            />
+            <meta name="twitter:title" content={document.title} />
+            <meta name="twitter:description" content={description} />
+            {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+
+            {/* 標準メタタグ */}
+            <meta name="description" content={description} />
+        </Head>
+    );
+
     if (isPublicView) {
         return (
             <PublicLayout
@@ -934,7 +961,7 @@ export default function Show({
                     ) : null
                 }
             >
-                <Head title={document.title} />
+                {headContent}
                 {content}
             </PublicLayout>
         );
@@ -942,7 +969,7 @@ export default function Show({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={document.title} />
+            {headContent}
             {content}
         </AppLayout>
     );

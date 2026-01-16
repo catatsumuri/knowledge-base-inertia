@@ -7,6 +7,7 @@ import { MarkdownCard, MarkdownColumns } from '@/components/markdown-columns';
 import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
 import { ParamField } from '@/components/param-field';
+import { preprocessParamField } from '@/lib/preprocess-param-field';
 import { remarkCardDirective } from '@/lib/remark-card-directive';
 import { remarkChartDirective } from '@/lib/remark-chart-directive';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
@@ -134,7 +135,9 @@ export function MarkdownViewer({
 }: MarkdownViewerProps) {
     // Zenn式構文を標準remark-directive構文に変換してから画像サイズを処理
     const processedContent = preprocessImageSize(
-        preprocessColumnsSyntax(preprocessZennSyntax(content)),
+        preprocessColumnsSyntax(
+            preprocessZennSyntax(preprocessParamField(content)),
+        ),
     );
 
     return (

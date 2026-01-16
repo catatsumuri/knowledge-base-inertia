@@ -19,6 +19,10 @@ Route::get('pages/{slug}', [PublicPagesController::class, 'show'])
     ->where('slug', '.*')
     ->name('pages.show');
 
+// OGP API
+Route::get('api/ogp', [\App\Http\Controllers\Api\OgpController::class, 'fetch'])
+    ->name('api.ogp.fetch');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $recentDocuments = Inertia::scroll(fn () => MarkdownDocument::query()
@@ -112,8 +116,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'destroy'])->where('slug', '.*')->name('markdown.destroy');
     Route::get('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'show'])->where('slug', '.*')->name('markdown.show');
 
-    // OGP API
-    Route::get('api/ogp', [\App\Http\Controllers\Api\OgpController::class, 'fetch'])->name('api.ogp.fetch');
 });
 
 require __DIR__.'/settings.php';

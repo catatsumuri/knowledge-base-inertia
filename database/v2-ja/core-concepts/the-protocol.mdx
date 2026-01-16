@@ -1,14 +1,14 @@
 ---
-title: The Protocol
+title: プロトコル
 ---
 
-This page contains a detailed specification of the Inertia protocol. Be sure to read the [how it works](/v2/core-concepts/how-it-works) page first for a high-level overview.
+このページには、Inertia プロトコルの詳細な仕様が記載されています。まずは全体像を把握するために、[仕組み](/v2/core-concepts/how-it-works) ページを先に読むようにしてください。
 
-## HTML Responses
+## HTML レスポンス
 
-The very first request to an Inertia app is just a regular, full-page browser request, with no special Inertia headers or data. For these requests, the server returns a full HTML document.
+Inertia アプリへの最初のリクエストは、特別な Inertia ヘッダーやデータを含まない、通常のフルページのブラウザリクエストです。これらのリクエストに対して、サーバーは完全な HTML ドキュメントを返します。
 
-This HTML response includes the site assets (CSS, JavaScript) as well as a root `<div>` in the page's body. The root `<div>` serves as a mounting point for the client-side app, and includes a `data-page` attribute with a JSON encoded [page object](#the-page-object) for the initial page. Inertia uses this information to boot your client-side framework and display the initial page component.
+この HTML レスポンスには、サイトのアセット（CSS、JavaScript）に加えて、ページの body 内にルート `<div>` が含まれます。このルート `<div>` はクライアントサイドアプリのマウントポイントとして機能し、初期ページ用の JSON エンコードされた [ページオブジェクト](#the-page-object) を含む `data-page` 属性を持ちます。Inertia はこの情報を使ってクライアントサイドフレームワークを起動し、初期ページコンポーネントを表示します。
 
 ```http
 REQUEST
@@ -31,13 +31,13 @@ Content-Type: text/html; charset=utf-8
 </html>
 ```
 
-While the initial response is HTML, Inertia does not server-side render the JavaScript page components. For information on server-side rendering, see the [SSR documentation](/v2/advanced/server-side-rendering).
+初期レスポンスは HTML ですが、Inertia は JavaScript のページコンポーネントをサーバーサイドレンダリングしません。サーバーサイドレンダリングについては、[SSR ドキュメント](/v2/advanced/server-side-rendering) を参照してください。
 
-## Inertia Responses
+## Inertia レスポンス
 
-Once the Inertia app has been booted, all subsequent requests to the site are made via XHR with a `X-Inertia` header set to `true`. This header indicates that the request is being made by Inertia and isn't a standard full-page visit.
+Inertia アプリが起動すると、その後のすべてのリクエストは `X-Inertia` ヘッダーが `true` に設定された XHR 経由で送信されます。このヘッダーは、リクエストが Inertia によるものであり、通常のフルページ遷移ではないことを示します。
 
-When the server detects the `X-Inertia` header, instead of responding with a full HTML document, it returns a JSON response with an encoded [page object](#the-page-object).
+サーバーが `X-Inertia` ヘッダーを検出すると、完全な HTML ドキュメントの代わりに、エンコードされた [ページオブジェクト](#the-page-object) を含む JSON レスポンスを返します。
 
 ```http
 REQUEST
@@ -71,183 +71,184 @@ X-Inertia: true
 }
 ```
 
-## Request Lifecycle Diagram
+## リクエストライフサイクル図
 
-The diagram below illustrates the request lifecycle within an Inertia application. The initial visit generates a standard request to the server, which returns an HTML application skeleton containing a root element with hydrated data. For subsequent user interactions and navigation, Inertia sends XHR requests that return JSON data. Inertia uses this response to dynamically hydrate and swap the page component without a full page reload.
+以下の図は、Inertia アプリケーション内でのリクエストライフサイクルを示しています。初回訪問では標準的なリクエストがサーバーに送信され、ハイドレート済みデータを含むルート要素を持つ HTML アプリケーションのスケルトンが返されます。その後のユーザー操作やナビゲーションでは、Inertia が JSON データを返す XHR リクエストを送信します。Inertia はこのレスポンスを使って、フルページリロードを行うことなくページコンポーネントを動的にハイドレートして差し替えます。
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Server
+    participant クライアント
+    participant サーバー
 
-    Client->>Server: First Visit
-    Server-->>Client: Returns HTML Skeleton
+    クライアント->>サーバー: 初回アクセス
+    サーバー-->>クライアント: HTMLの骨組み（スケルトン）を返す
 
-    Note over Client: Inertia.js is loaded
+    Note over クライアント: Inertia.js が読み込まれる
 
-    Client->>Server: Inertia Request (X-Inertia: true)
-    Server-->>Client: Returns JSON Payload (Component Name, Props, etc.)
+    クライアント->>サーバー: Inertiaリクエスト（X-Inertia: true）
+    サーバー-->>クライアント: JSONペイロードを返す（コンポーネント名、Props など）
 
-    Note over Client: Inertia.js swaps components
+    Note over クライアント: Inertia.js がコンポーネントを差し替える
 ```
 
-## Request Headers
 
-The following headers are automatically sent by Inertia when making requests. You don't need to set these manually, they're handled by the Inertia client-side adapter.
+## リクエストヘッダー
+
+以下のヘッダーは、Inertia がリクエストを行う際に自動的に送信されます。これらを手動で設定する必要はなく、Inertia のクライアントサイドアダプターによって処理されます。
 
 <ParamField header="X-Inertia" type="boolean">
-  Set to `true` to indicate this is an Inertia request.
+  これが Inertia リクエストであることを示すために `true` に設定されます。
 </ParamField>
 
 <ParamField header="X-Requested-With" type="string">
-  Set to `XMLHttpRequest` on all Inertia requests.
+  すべての Inertia リクエストで `XMLHttpRequest` に設定されます。
 </ParamField>
 
 <ParamField header="Accept" type="string">
-  Set to `text/html, application/xhtml+xml` to indicate acceptable response types.
+  許可されるレスポンスタイプを示すために `text/html, application/xhtml+xml` に設定されます。
 </ParamField>
 
 <ParamField header="X-Inertia-Version" type="string">
-  The current asset version to check for asset mismatches.
+  アセットの不一致をチェックするための現在のアセットバージョン。
 </ParamField>
 
 <ParamField header="Purpose" type="string">
-  Set to `prefetch` when making [prefetch](/v2/data-props/prefetching) requests.
+  [プリフェッチ](/v2/data-props/prefetching) リクエストを行う際に `prefetch` に設定されます。
 </ParamField>
 
 <ParamField header="X-Inertia-Partial-Component" type="string">
-  The component name for [partial reloads](/v2/data-props/partial-reloads).
+  [部分リロード](/v2/data-props/partial-reloads) 用のコンポーネント名。
 </ParamField>
 
 <ParamField header="X-Inertia-Partial-Data" type="string">
-  Comma-separated list of props to include in partial reloads.
+  部分リロードに含める props のカンマ区切りリスト。
 </ParamField>
 
 <ParamField header="X-Inertia-Partial-Except" type="string">
-  Comma-separated list of props to exclude from partial reloads.
+  部分リロードから除外する props のカンマ区切りリスト。
 </ParamField>
 
 <ParamField header="X-Inertia-Reset" type="string">
-  Comma-separated list of props to reset on navigation.
+  ナビゲーション時にリセットする props のカンマ区切りリスト。
 </ParamField>
 
 <ParamField header="Cache-Control" type="string">
-  Set to `no-cache` for reload requests to prevent serving stale content.
+  古いコンテンツが提供されるのを防ぐため、リロードリクエストでは `no-cache` に設定されます。
 </ParamField>
 
 <ParamField header="X-Inertia-Error-Bag" type="string">
-  Specifies which error bag to use for [validation errors](/v2/the-basics/validation).
+  [バリデーションエラー](/v2/the-basics/validation) で使用するエラーバッグを指定します。
 </ParamField>
 
 <ParamField header="X-Inertia-Infinite-Scroll-Merge-Intent" type="string">
-  Indicates whether the requested data should be appended or prepended when using [Infinite scroll](/v2/data-props/infinite-scroll).
+  [無限スクロール](/v2/data-props/infinite-scroll) 使用時に、取得したデータを追加（append）または前方追加（prepend）するかを示します。
 </ParamField>
 
 <ParamField header="X-Inertia-Except-Once-Props" type="string">
-  Comma-separated list of non-expired [once prop](/v2/data-props/once-props) keys already loaded on the client. The server will skip resolving these props unless explicitly requested via a partial reload or force refreshed server-side.
+  クライアント側ですでに読み込まれている、期限切れでない [once prop](/v2/data-props/once-props) のキーのカンマ区切りリスト。サーバーは、部分リロードで明示的に要求されるか、サーバー側で強制的に再取得されない限り、これらの props を解決しません。
 </ParamField>
 
-The following headers are used for [Precognition](/v2/the-basics/forms#precognition) validation requests.
+以下のヘッダーは、[Precognition](/v2/the-basics/forms#precognition) バリデーションリクエストで使用されます。
 
 <ParamField header="Precognition" type="boolean">
-  Set to `true` to indicate this is a Precognition validation request.
+  これが Precognition バリデーションリクエストであることを示すために `true` に設定されます。
 </ParamField>
 
 <ParamField header="Precognition-Validate-Only" type="string">
-  Comma-separated list of field names to validate.
+  バリデーションするフィールド名のカンマ区切りリスト。
 </ParamField>
 
-## Response Headers
+## レスポンスヘッダー
 
-The following headers should be sent by your server-side adapter in Inertia responses. If you're using an official server-side adapter, these are handled automatically.
+以下のヘッダーは、Inertia レスポンスでサーバーサイドアダプターから送信されるべきものです。公式のサーバーサイドアダプターを使用している場合、これらは自動的に処理されます。
 
 <ParamField header="X-Inertia" type="boolean">
-  Set to `true` to indicate this is an Inertia response.
+  これが Inertia レスポンスであることを示すために `true` に設定されます。
 </ParamField>
 
 <ParamField header="X-Inertia-Location" type="string">
-  Used for external redirects when a `409 Conflict` response is returned due to asset version mismatches.
+  アセットバージョンの不一致により `409 Conflict` レスポンスが返される際の、外部リダイレクトに使用されます。
 </ParamField>
 
 <ParamField header="Vary" type="string">
-  Set to `X-Inertia` to help browsers correctly differentiate between HTML and JSON responses.
+  HTML レスポンスと JSON レスポンスを正しく区別できるようにするため、`X-Inertia` に設定されます。
 </ParamField>
 
-The following headers are used for [Precognition](/v2/the-basics/forms#precognition) validation responses.
+以下のヘッダーは、[Precognition](/v2/the-basics/forms#precognition) バリデーションレスポンスで使用されます。
 
 <ParamField header="Precognition" type="string">
-  Set to `true` to indicate this is a Precognition validation response.
+  これが Precognition バリデーションレスポンスであることを示すために `true` に設定されます。
 </ParamField>
 
 <ParamField header="Precognition-Success" type="string">
-  Set to `true` when validation passes with no errors, combined with a `204 No Content` status code.
+  バリデーションがエラーなく成功した場合に、`204 No Content` ステータスコードとともに `true` に設定されます。
 </ParamField>
 
 <ParamField header="Vary" type="string">
-  Set to `Precognition` on all responses when the Precognition middleware is applied.
+  Precognition ミドルウェアが適用されている場合、すべてのレスポンスで `Precognition` に設定されます。
 </ParamField>
 
-## The Page Object
+## ページオブジェクト
 
-Inertia shares data between the server and client via a page object. This object includes the necessary information required to render the page component, update the browser's history state, and track the site's asset version. The page object can include the following properties:
+Inertia は、ページオブジェクトを介してサーバーとクライアント間でデータを共有します。このオブジェクトには、ページコンポーネントをレンダリングし、ブラウザの履歴状態を更新し、サイトのアセットバージョンを追跡するために必要な情報が含まれます。ページオブジェクトには、以下のプロパティを含めることができます。
 
 <ParamField body="component" type="string">
-  The name of the JavaScript page component.
+  JavaScript ページコンポーネントの名前。
 </ParamField>
 
 <ParamField body="props" type="object">
-  The page props. Contains all of the page data along with an `errors` object (defaults to `{}` if there are no errors).
+  ページの props。ページデータ全体と、`errors` オブジェクト（エラーがない場合はデフォルトで `{}`）を含みます。
 </ParamField>
 
 <ParamField body="url" type="string">
-  The page URL.
+  ページの URL。
 </ParamField>
 
 <ParamField body="version" type="string|number">
-  The current [asset version](/v2/advanced/asset-versioning).
+  現在の [アセットバージョン](/v2/advanced/asset-versioning)。
 </ParamField>
 
 <ParamField body="encryptHistory" type="boolean">
-  Whether or not to [encrypt the current page's history state](/v2/security/history-encryption).
+  [現在のページの履歴状態を暗号化するかどうか](/v2/security/history-encryption)。
 </ParamField>
 
 <ParamField body="clearHistory" type="boolean">
-  Whether or not to clear any [encrypted history state](/v2/security/history-encryption#clearing-history).
+  [暗号化された履歴状態をクリアするかどうか](/v2/security/history-encryption#clearing-history)。
 </ParamField>
 
 <ParamField body="mergeProps" type="array">
-  Array of prop keys that should be [merged](/v2/data-props/merging-props) (appended) during navigation.
+  ナビゲーション中に [マージ](/v2/data-props/merging-props)（追加）されるべき prop キーの配列。
 </ParamField>
 
 <ParamField body="prependProps" type="array">
-  Array of prop keys that should be [prepended](/v2/data-props/merging-props) during navigation.
+  ナビゲーション中に [先頭に追加](/v2/data-props/merging-props) されるべき prop キーの配列。
 </ParamField>
 
 <ParamField body="deepMergeProps" type="array">
-  Array of prop keys that should be [deep merged](/v2/data-props/merging-props#deep-merge) during navigation.
+  ナビゲーション中に [ディープマージ](/v2/data-props/merging-props#deep-merge) されるべき prop キーの配列。
 </ParamField>
 
 <ParamField body="matchPropsOn" type="array">
-  Array of prop keys to use for [matching when merging props](/v2/data-props/merging-props#matching-items).
+  [props のマージ時に一致判定に使用する](/v2/data-props/merging-props#matching-items) prop キーの配列。
 </ParamField>
 
 <ParamField body="scrollProps" type="object">
-  Configuration for [infinite scroll](/v2/data-props/infinite-scroll) prop merging behavior.
+  [無限スクロール](/v2/data-props/infinite-scroll) における prop マージ動作の設定。
 </ParamField>
 
 <ParamField body="deferredProps" type="object">
-  Configuration for client-side [lazy loading of props](/v2/data-props/deferred-props).
+  クライアントサイドでの [props の遅延読み込み](/v2/data-props/deferred-props) 設定。
 </ParamField>
 
 <ParamField body="onceProps" type="object">
-  Configuration for [once props](/v2/data-props/once-props) that should only be resolved once and reused on subsequent pages. Each entry maps a key to an object containing the `prop` name and optional `expiresAt` timestamp (in milliseconds).
+  [once props](/v2/data-props/once-props) の設定。これらは一度だけ解決され、以降のページで再利用されます。各エントリはキーを、`prop` 名と任意の `expiresAt` タイムスタンプ（ミリ秒）を含むオブジェクトにマッピングします。
 </ParamField>
 
-On standard full page visits, the page object is JSON encoded into the `data-page` attribute in the root `<div>`. On Inertia visits (as indicated by the presence of the `X-Inertia` header), the page object is returned as the JSON payload.
+通常のフルページ遷移では、ページオブジェクトはルート `<div>` の `data-page` 属性に JSON エンコードされます。Inertia 遷移（`X-Inertia` ヘッダーの存在で示される）の場合、ページオブジェクトは JSON ペイロードとして返されます。
 
-### Basic Page Object
+### 基本的なページオブジェクト
 
-A minimal page object contains the core properties.
+最小限のページオブジェクトは、コアとなるプロパティを含みます。
 
 ```json
 {
@@ -265,9 +266,9 @@ A minimal page object contains the core properties.
 }
 ```
 
-### Page Object with Deferred Props
+### 遅延 props を含むページオブジェクト
 
-When using deferred props, the page object includes a `deferredProps` configuration. Note that deferred props are not included in the initial props since they are loaded in a subsequent request.
+遅延 props を使用する場合、ページオブジェクトには `deferredProps` 設定が含まれます。遅延 props は後続のリクエストで読み込まれるため、初期 props には含まれない点に注意してください。
 
 ```json
 {
@@ -294,9 +295,9 @@ When using deferred props, the page object includes a `deferredProps` configurat
 }
 ```
 
-### Page Object with Merge Props
+### マージ props を含むページオブジェクト
 
-When using merge props, additional configuration is included.
+マージ props を使用する場合、追加の設定が含まれます。
 
 ```json
 {
@@ -352,9 +353,9 @@ When using merge props, additional configuration is included.
 }
 ```
 
-### Page Object with Scroll Props
+### スクロール props を含むページオブジェクト
 
-When using [Infinite scroll](/v2/data-props/infinite-scroll), the page object includes a `scrollProps` configuration.
+[無限スクロール](/v2/data-props/infinite-scroll) を使用する場合、ページオブジェクトには `scrollProps` 設定が含まれます。
 
 ```json
 {
@@ -392,9 +393,9 @@ When using [Infinite scroll](/v2/data-props/infinite-scroll), the page object in
 }
 ```
 
-### Page Object with Once Props
+### once props を含むページオブジェクト
 
-When using [once props](/v2/data-props/once-props), the page object includes an `onceProps` configuration. Each entry maps a key to the prop name and an optional expiration timestamp.
+[once props](/v2/data-props/once-props) を使用する場合、ページオブジェクトには `onceProps` 設定が含まれます。各エントリはキーを、prop 名と任意の有効期限タイムスタンプにマッピングします。
 
 ```json
 {
@@ -425,7 +426,7 @@ When using [once props](/v2/data-props/once-props), the page object includes an 
 }
 ```
 
-When navigating to a subsequent page that includes the same once prop, the client sends the loaded keys in the `X-Inertia-Except-Once-Props` header. The server skips resolving these props and excludes them from the response. The client reuses the previously loaded values.
+同じ once prop を含む次のページへ遷移する際、クライアントは読み込み済みのキーを `X-Inertia-Except-Once-Props` ヘッダーで送信します。サーバーはこれらの props の解決をスキップし、レスポンスから除外します。クライアントは以前に読み込んだ値を再利用します。
 
 ```http
 REQUEST
@@ -462,25 +463,25 @@ Content-Type: application/json
 }
 ```
 
-Note that `plans` is included in `onceProps` but not in `props` since it was already loaded on the client. The `onceProps` key identifies the once prop across pages, while `prop` specifies the actual prop name. These may differ when using [custom keys](/v2/data-props/once-props#custom-keys).
+この例では、`plans` は `onceProps` に含まれていますが、すでにクライアント側で読み込まれているため `props` には含まれていません。`onceProps` のキーはページ間で once prop を識別するためのものであり、`prop` は実際の prop 名を指定します。[カスタムキー](/v2/data-props/once-props#custom-keys) を使用する場合、これらは異なる場合があります。
 
-## Asset Versioning
+## アセットバージョニング
 
-One common challenge with single-page apps is refreshing site assets when they've been changed. Inertia makes this easy by optionally tracking the current version of the site's assets. In the event that an asset changes, Inertia will automatically make a full-page visit instead of an XHR visit.
+シングルページアプリでよくある課題の 1 つは、アセットが変更された際にサイトのアセットを更新することです。Inertia では、サイトの現在のアセットバージョンを任意で追跡することで、これを簡単に実現できます。アセットが変更された場合、Inertia は XHR 訪問ではなく、自動的にフルページ訪問を行います。
 
-The Inertia [page object](#the-page-object) includes a `version` identifier. This version identifier is set server-side and can be a number, string, file hash, or any other value that represents the current "version" of your site's assets, as long as the value changes when the site's assets have been updated.
+Inertia の [ページオブジェクト](#the-page-object) には `version` 識別子が含まれます。この識別子はサーバーサイドで設定され、数値、文字列、ファイルハッシュなど、サイトのアセットの現在の「バージョン」を表す任意の値にできます。重要なのは、アセットが更新されたときにこの値が変わることです。
 
-Whenever an Inertia request is made, Inertia will include the current asset version in the `X-Inertia-Version` header. When the server receives the request, it compares the asset version provided in the `X-Inertia-Version` header with the current asset version. This is typically handled in the middleware layer of your server-side framework.
+Inertia リクエストが行われるたびに、Inertia は現在のアセットバージョンを `X-Inertia-Version` ヘッダーに含めます。サーバーはこのヘッダーに含まれるバージョンと、現在のアセットバージョンを比較します。これは通常、サーバーサイドフレームワークのミドルウェア層で処理されます。
 
-If the asset versions are the same, the request simply continues as expected. However, if the asset versions are different, the server immediately returns a `409 Conflict` response, and includes the URL in a `X-Inertia-Location` header. This header is necessary, since server-side redirects may have occurred. This tells Inertia what the final intended destination URL is.
+アセットバージョンが同じ場合、リクエストは通常どおり処理されます。一方、アセットバージョンが異なる場合、サーバーは即座に `409 Conflict` レスポンスを返し、`X-Inertia-Location` ヘッダーに URL を含めます。サーバーサイドでリダイレクトが発生している可能性があるため、このヘッダーが必要です。これにより、Inertia は最終的に意図された遷移先 URL を認識できます。
 
 <Tip>
-Note, `409 Conflict` responses are only sent for `GET` requests, and not for `POST/PUT/PATCH/DELETE` requests. That said, they will be sent in the event that a `GET` redirect occurs after one of these requests.
+注意: `409 Conflict` レスポンスは `GET` リクエストに対してのみ送信され、`POST/PUT/PATCH/DELETE` リクエストには送信されません。ただし、これらのリクエストの後に `GET` リダイレクトが発生した場合には送信されます。
 </Tip>
 
-When the Inertia client receives a `409 Conflict` response, it checks for the presence of the `X-Inertia-Location` header. If this header exists, Inertia performs a full-page visit to the URL specified in the header. This ensures that the user always has the latest assets loaded.
+Inertia クライアントが `409 Conflict` レスポンスを受信すると、`X-Inertia-Location` ヘッダーの存在を確認します。このヘッダーが存在する場合、Inertia はヘッダーで指定された URL へのフルページ訪問を行います。これにより、常に最新のアセットが読み込まれた状態が保証されます。
 
-If "flash" session data exists when a `409 Conflict` response occurs, Inertia's server-side framework adapters will automatically reflash this data.
+`409 Conflict` レスポンスが発生した際に「フラッシュ」セッションデータが存在する場合、Inertia のサーバーサイドフレームワークアダプターは自動的にこのデータを再フラッシュします。
 
 ```http
 REQUEST
@@ -495,19 +496,19 @@ RESPONSE
 X-Inertia-Location: https://example.com/events/80
 ```
 
-You can read more about this on the [asset versioning](/v2/advanced/asset-versioning) page.
+詳細については、[アセットバージョニング](/v2/advanced/asset-versioning) ページを参照してください。
 
-## Partial Reloads
+## 部分リロード
 
-When making Inertia requests, the partial reload option allows you to request a subset of the props (data) from the server on subsequent visits to the *same* page component. This can be a helpful performance optimization if it's acceptable that some page data becomes stale. See the [partial reloads](/v2/data-props/partial-reloads) documentation for details.
+Inertia リクエストを行う際、部分リロードオプションを使用すると、同じページコンポーネントへの再訪問時に、サーバーから props（データ）の一部のみを取得できます。一部のページデータが古くなっても問題ない場合、これは有効なパフォーマンス最適化になります。詳細は [部分リロード](/v2/data-props/partial-reloads) ドキュメントを参照してください。
 
-When a partial reload request is made, Inertia includes the `X-Inertia-Partial-Component` header and may include `X-Inertia-Partial-Data` and/or `X-Inertia-Partial-Except` headers with the request.
+部分リロードリクエストが行われると、Inertia は `X-Inertia-Partial-Component` ヘッダーを含め、必要に応じて `X-Inertia-Partial-Data` および / または `X-Inertia-Partial-Except` ヘッダーをリクエストに含めます。
 
-The `X-Inertia-Partial-Data` header is a comma separated list of the desired props (data) keys that should be returned.
+`X-Inertia-Partial-Data` ヘッダーは、返却してほしい props（データ）キーのカンマ区切りリストです。
 
-The `X-Inertia-Partial-Except` header is a comma separated list of the props (data) keys that should not be returned. When only the `X-Inertia-Partial-Except` header is included, all props (data) except those listed will be sent. If both `X-Inertia-Partial-Data` and `X-Inertia-Partial-Except` headers are included, the `X-Inertia-Partial-Except` header will take precedence.
+`X-Inertia-Partial-Except` ヘッダーは、返却しない props（データ）キーのカンマ区切りリストです。このヘッダーのみが含まれる場合、指定されたもの以外のすべての props（データ）が送信されます。`X-Inertia-Partial-Data` と `X-Inertia-Partial-Except` の両方が含まれる場合は、`X-Inertia-Partial-Except` が優先されます。
 
-The `X-Inertia-Partial-Component` header includes the name of the component that is being partially reloaded. This is necessary, since partial reloads only work for requests made to the same page component. If the final destination is different for some reason (eg. the user was logged out and is now on the login page), then no partial reloading will occur.
+`X-Inertia-Partial-Component` ヘッダーには、部分リロード対象のコンポーネント名が含まれます。部分リロードは同じページコンポーネントへのリクエストでのみ機能するため、これは必須です。何らかの理由で最終的な遷移先が異なる場合（例: ユーザーがログアウトしてログインページに遷移した場合）、部分リロードは行われません。
 
 ```http
 REQUEST
@@ -526,30 +527,30 @@ Content-Type: application/json
 {
     "component": "Events",
     "props": {
-        "auth": {...},       // NOT included
-        "categories": [...], // NOT included
-        "events": [...],     // Included
-        "errors": {}         // ALWAYS included
+        "auth": {...},       // 含まれない
+        "categories": [...], // 含まれない
+        "events": [...],     // 含まれる
+        "errors": {}         // 常に含まれる
     },
     "url": "/events/80",
     "version": "6b16b94d7c51cbe5b1fa42aac98241d5"
 }
 ```
 
-## HTTP Status Codes
+## HTTP ステータスコード
 
-Inertia uses specific HTTP status codes to handle different scenarios.
+Inertia は、さまざまなシナリオを処理するために特定の HTTP ステータスコードを使用します。
 
-| Status Code         | Description                                                                                                                                                                                                 |
-|:--------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **200 OK**          | Standard successful response for both HTML and Inertia JSON responses.                                                                                                                                   |
-| **302 Found**       | Standard redirect response. Inertia's server-side adapters automatically convert this to `303 See Other` when returned after `PUT`, `PATCH`, or `DELETE` requests.                                        |
-| **303 See Other**   | Used for redirects after non-GET requests. This status code tells the browser to make a `GET` request to the redirect URL, preventing duplicate form submissions that could occur if the browser repeated the original request method. |
-| **409 Conflict**    | Returned when there's an asset version mismatch or for external redirects. For asset mismatches, this prompts a full page reload. For external redirects, the response includes an `X-Inertia-Location` header and triggers a `window.location` redirect client-side. |
+| ステータスコード | 説明 |
+|:-----------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **200 OK**       | HTML レスポンスおよび Inertia JSON レスポンスの両方における標準的な成功レスポンス。 |
+| **302 Found**    | 標準的なリダイレクトレスポンス。Inertia のサーバーサイドアダプターは、`PUT`、`PATCH`、`DELETE` リクエストの後に返された場合、これを自動的に `303 See Other` に変換します。 |
+| **303 See Other**| 非 GET リクエスト後のリダイレクトに使用されます。このステータスコードは、ブラウザに対してリダイレクト先 URL への `GET` リクエストを行うよう指示し、元のリクエストメソッドが繰り返されることで発生し得る重複送信を防ぎます。 |
+| **409 Conflict** | アセットバージョンの不一致、または外部リダイレクト時に返されます。アセットの不一致の場合はフルページリロードを促します。外部リダイレクトの場合、レスポンスには `X-Inertia-Location` ヘッダーが含まれ、クライアントサイドで `window.location` によるリダイレクトがトリガーされます。 |
 
-The following status codes are used for [Precognition](/v2/the-basics/forms#precognition) validation requests.
+以下のステータスコードは、[Precognition](/v2/the-basics/forms#precognition) バリデーションリクエストで使用されます。
 
-| Status Code                   | Description                                                                                     |
-|:------------------------------|:------------------------------------------------------------------------------------------------|
-| **204 No Content**            | Successful Precognition validation request with no validation errors.                           |
-| **422 Unprocessable Entity**  | Precognition validation request with validation errors. The response body contains the errors.  |
+| ステータスコード              | 説明 |
+|:-----------------------------|:------------------------------------------------------------------------------------------------|
+| **204 No Content**           | バリデーションエラーのない、成功した Precognition バリデーションリクエスト。 |
+| **422 Unprocessable Entity** | バリデーションエラーを含む Precognition バリデーションリクエスト。レスポンスボディにエラーが含まれます。 |

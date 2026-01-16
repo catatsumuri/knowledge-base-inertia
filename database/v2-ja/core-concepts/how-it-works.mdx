@@ -1,21 +1,21 @@
 ---
-title: How It Works
+title: 仕組み
 ---
 
-## Use the Tools You Love
+## 使い慣れたツールをそのまま使う
 
-With Inertia you build applications just like you've always done with your server-side web framework of choice. You use your framework's existing functionality for routing, controllers, middleware, authentication, authorization, data fetching, and more.
+Inertia を使えば、これまで選んできたサーバーサイドの Web フレームワークと同じ感覚でアプリケーションを構築できます。ルーティング、コントローラ、ミドルウェア、認証、認可、データ取得など、フレームワークが既に提供している機能をそのまま利用します。
 
-However, Inertia replaces your application's view layer. Instead of using server-side rendering via PHP or Ruby templates, the views returned by your application are JavaScript page components. This allows you to build your entire frontend using React, Vue, or Svelte, while still enjoying the productivity of Laravel or your preferred server-side framework.
+一方で、Inertia はアプリケーションのビュー層を置き換えます。PHP や Ruby のテンプレートによるサーバーサイドレンダリングの代わりに、アプリケーションが返すビューは JavaScript のページコンポーネントになります。これにより、Laravel や好みのサーバーサイドフレームワークの生産性を享受しつつ、フロントエンド全体を React、Vue、Svelte で構築できます。
 
-## Intercepting Requests
+## リクエストのインターセプト
 
-As you might expect, simply creating your frontend in JavaScript doesn't give you a single-page application experience. If you were to click a link, your browser would make a full page visit, which would then cause your client-side framework to reboot on the subsequent page load. This is where Inertia changes everything.
+ご想像のとおり、フロントエンドを単に JavaScript で作るだけでは、シングルページアプリケーションの体験は得られません。リンクをクリックすると、ブラウザはページ全体を再読み込みし、その結果、次のページロード時にクライアントサイドのフレームワークが再起動してしまいます。ここで Inertia がすべてを変えます。
 
-At its core, Inertia is essentially a client-side routing library. It allows you to make page visits without forcing a full page reload. This is done using the `<Link>` component, a light-weight wrapper around a normal anchor link. When you click an Inertia link, Inertia intercepts the click and makes the visit via XHR instead. You can even make these visits programmatically in JavaScript using `router.visit()`.
+本質的に、Inertia はクライアントサイドのルーティングライブラリです。ページ全体を再読み込みすることなく、ページ遷移を行えます。これは、通常のアンカーリンクを軽量にラップした `<Link>` コンポーネントを使って実現されます。Inertia のリンクをクリックすると、Inertia がそのクリックをインターセプトし、代わりに XHR 経由で遷移を行います。さらに、`router.visit()` を使えば、JavaScript からプログラム的に遷移を行うこともできます。
 
-When Inertia makes an XHR visit, the server detects that it's an Inertia visit and, instead of returning a full HTML response, it returns a JSON response with the JavaScript page component name and data (props). Inertia then dynamically swaps out the previous page component with the new page component and updates the browser's history state.
+Inertia が XHR による遷移を行うと、サーバーはそれが Inertia のリクエストであることを検知し、完全な HTML レスポンスを返す代わりに、JavaScript のページコンポーネント名とデータ（props）を含む JSON レスポンスを返します。その後、Inertia は以前のページコンポーネントを新しいページコンポーネントに動的に差し替え、ブラウザの履歴状態を更新します。
 
-**The end result is a silky smooth single-page experience.**
+**最終的な結果は、驚くほど滑らかなシングルページ体験です。**
 
-To learn more about the nitty-gritty, technical details of how Inertia works under the hood, check out the [protocol page](/v2/core-concepts/the-protocol).
+Inertia が内部でどのように動作しているのか、その細かな技術的詳細については、[プロトコルのページ](/v2/core-concepts/the-protocol) をご覧ください。
