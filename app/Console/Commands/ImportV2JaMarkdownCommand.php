@@ -291,6 +291,29 @@ class ImportV2JaMarkdownCommand extends Command
                 $body = preg_replace('/\((\/)(?!\/)([^)]+)\)/', '($2)', $body);
             }
 
+            // 内部リンクにプレフィックスを付与
+            if (is_string($body)) {
+                $body = preg_replace_callback(
+                    '/\(([^)]+)\)/',
+                    static function ($matches) use ($navPrefix) {
+                        $target = $matches[1];
+
+                        if (
+                            str_starts_with($target, 'http://') ||
+                            str_starts_with($target, 'https://') ||
+                            str_starts_with($target, '#') ||
+                            str_starts_with($target, 'mailto:') ||
+                            str_starts_with($target, $navPrefix.'/')
+                        ) {
+                            return "({$target})";
+                        }
+
+                        return "({$navPrefix}/{$target})";
+                    },
+                    $body
+                );
+            }
+
             // コードブロック記法の変換
             if (is_string($body)) {
                 $body = preg_replace_callback(
