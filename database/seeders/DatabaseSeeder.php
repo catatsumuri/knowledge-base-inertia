@@ -97,5 +97,16 @@ MARKDOWN
                 'updated_by' => $testUser->id,
             ]
         );
+
+        MarkdownDocument::firstOrCreate(
+            ['slug' => 'index'],
+            [
+                'title' => 'Index',
+                'content' => "Index page placeholder.\n",
+                'status' => 'published',
+                'created_by' => $testUser->id,
+                'updated_by' => $testUser->id,
+            ]
+        );
     }
 }

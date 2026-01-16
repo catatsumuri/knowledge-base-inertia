@@ -1,26 +1,26 @@
 ---
-title: Client-Side Setup
+title: クライアントサイドのセットアップ
 ---
 
-Once you have your [server-side framework configured](/v2/installation/server-side-setup), you then need to setup your client-side framework. Inertia currently provides support for React, Vue, and Svelte.
+[サーバーサイドフレームワークの設定](/v2/installation/server-side-setup)が完了したら、次にクライアントサイドフレームワークをセットアップする必要があります。Inertia は現在、React、Vue、Svelte をサポートしています。
 
 <Card
     icon="laravel"
-    title="Laravel Starter Kits"
+    title="Laravel スターターキット"
     href="https://laravel.com/docs/starter-kits"
     arrow="true"
-    cta="Start building"
+    cta="構築を開始"
 >
-Laravel's starter kits provide out-of-the-box scaffolding for new Inertia applications.
+Laravel のスターターキットは、新しい Inertia アプリケーション向けに、すぐに使えるスキャフォールディングを提供します。
 
-These starter kits are the absolute fastest way to start building a new Inertia project using Laravel and Vue or React. However, if you would like to manually install Inertia into your application, please consult the documentation below.
+これらのスターターキットは、Laravel と Vue または React を使用して新しい Inertia プロジェクトを始めるための、最速の方法です。ただし、Inertia を手動でアプリケーションにインストールしたい場合は、以下のドキュメントを参照してください。
 </Card>
 
-## Installation
+## インストール
 
 <Steps>
-    <Step title="Install dependencies">
-        First, install the Inertia client-side adapter corresponding to your framework of choice.
+    <Step title="依存関係をインストール">
+        まず、使用するフレームワークに対応した Inertia のクライアントサイドアダプターをインストールします。
 
         <CodeGroup>
         ```bash Vue icon="vuejs"
@@ -37,8 +37,8 @@ These starter kits are the absolute fastest way to start building a new Inertia 
         </CodeGroup>
     </Step>
 
-    <Step title="Initialize the Inertia app">
-        Next, update your main JavaScript file to boot your Inertia app. To accomplish this, we'll initialize the client-side framework with the base Inertia component.
+    <Step title="Inertia アプリを初期化">
+        次に、メインの JavaScript ファイルを更新して Inertia アプリを起動します。これを行うには、ベースとなる Inertia コンポーネントでクライアントサイドフレームワークを初期化します。
 
         <CodeGroup>
         ```js Vue icon="vuejs"
@@ -103,13 +103,13 @@ These starter kits are the absolute fastest way to start building a new Inertia 
         ```
         </CodeGroup>
 
-        The `setup` callback receives everything necessary to initialize the client-side framework, including the root Inertia `App` component.
+        `setup` コールバックには、ルートとなる Inertia の `App` コンポーネントを含め、クライアントサイドフレームワークを初期化するために必要なすべての情報が渡されます。
     </Step>
 </Steps>
 
-## Configuring Defaults
+## デフォルト設定の構成
 
-You may pass a `defaults` object to `createInertiaApp()` to configure default settings for various features. You don't have to pass a default for every key, just the ones you want to tweak.
+`createInertiaApp()` に `defaults` オブジェクトを渡すことで、さまざまな機能のデフォルト設定を構成できます。すべてのキーに対してデフォルトを指定する必要はなく、調整したいものだけを指定すれば問題ありません。
 
 ```js
 createInertiaApp({
@@ -134,22 +134,22 @@ createInertiaApp({
 });
 ```
 
-The `visitOptions` callback receives the target URL and the current visit options, and should return an object with any options you want to override. For more details on the available configuration options, see the [forms](/v2/the-basics/forms#form-errors), [prefetching](/v2/data-props/prefetching), and [manual visits](/v2/the-basics/manual-visits#global-visit-options) documentation.
+`visitOptions` コールバックは、対象の URL と現在の訪問オプションを受け取り、上書きしたい任意のオプションを含むオブジェクトを返す必要があります。利用可能な設定オプションの詳細については、[フォーム](/v2/the-basics/forms#form-errors)、[プリフェッチ](/v2/data-props/prefetching)、および [手動訪問](/v2/the-basics/manual-visits#global-visit-options) のドキュメントを参照してください。
 
-### Updating Configuration at Runtime
+### 実行時に設定を更新する
 
-You may also update configuration values at runtime using the exported `config` instance. This is particularly useful when you need to adjust settings based on user preferences or application state.
+エクスポートされている `config` インスタンスを使用して、実行時に設定値を更新することもできます。これは、ユーザーの設定やアプリケーションの状態に基づいて設定を調整する必要がある場合に特に便利です。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
 import { config } from '@inertiajs/vue3'
 
-// Set a single value using dot notation...
+// ドット記法を使用して単一の値を設定...
 config.set('form.recentlySuccessfulDuration', 1000)
 config.set('prefetch.cacheFor', '5m')
 
-// Set multiple values at once...
+// 複数の値を一度に設定...
 config.set({
     'form.recentlySuccessfulDuration': 1000,
     'prefetch.cacheFor': '5m',
@@ -159,42 +159,42 @@ config.set({
 ```js React icon="react"
 import { config } from '@inertiajs/react'
 
-// Set a single value using dot notation...
+// ドット記法を使用して単一の値を設定...
 config.set('form.recentlySuccessfulDuration', 1000)
 config.set('prefetch.cacheFor', '5m')
 
-// Set multiple values at once...
+// 複数の値を一度に設定...
 config.set({
     'form.recentlySuccessfulDuration': 1000,
     'prefetch.cacheFor': '5m',
 })
 
-// Get a configuration value...
+// 設定値を取得...
 const duration = config.get('form.recentlySuccessfulDuration')
 ```
 
 ```js Svelte icon="s"
 import { config } from '@inertiajs/svelte'
 
-// Set a single value using dot notation...
+// ドット記法を使用して単一の値を設定...
 config.set('form.recentlySuccessfulDuration', 1000)
 config.set('prefetch.cacheFor', '5m')
 
-// Set multiple values at once...
+// 複数の値を一度に設定...
 config.set({
     'form.recentlySuccessfulDuration': 1000,
     'prefetch.cacheFor': '5m',
 })
 
-// Get a configuration value...
+// 設定値を取得...
 const duration = config.get('form.recentlySuccessfulDuration')
 ```
 
 </CodeGroup>
 
-## Resolving Components
+## コンポーネントの解決
 
-The `resolve` callback tells Inertia how to load a page component. It receives a page name (string), and returns a page component module. How you implement this callback depends on which bundler (Vite or Webpack) you're using.
+`resolve` コールバックは、Inertia にページコンポーネントをどのように読み込むかを指示します。ページ名（文字列）を受け取り、ページコンポーネントのモジュールを返します。このコールバックの実装方法は、使用しているバンドラー（Vite または Webpack）によって異なります。
 
 <CodeGroup>
 
@@ -233,11 +233,11 @@ resolve: name => require(`./Pages/${name}.svelte`),
 
 </CodeGroup>
 
-By default we recommend eager loading your components, which will result in a single JavaScript bundle. However, if you'd like to lazy-load your components, see our [code splitting](/v2/advanced/code-splitting) documentation.
+デフォルトでは、コンポーネントをイager ロード（即時読み込み）することを推奨しています。これにより、単一の JavaScript バンドルが生成されます。ただし、コンポーネントを遅延読み込みしたい場合は、[コード分割](/v2/advanced/code-splitting) のドキュメントを参照してください。
 
-## Defining a Root Element
+## ルート要素の定義
 
-By default, Inertia assumes that your application's root template has a root element with an `id` of `app`. If your application's root element has a different `id`, you can provide it using the `id` property.
+デフォルトでは、Inertia はアプリケーションのルートテンプレートに `id` が `app` のルート要素が存在すると想定しています。アプリケーションのルート要素が異なる `id` を持つ場合は、`id` プロパティを使用して指定できます。
 
 ```js
 createInertiaApp({
@@ -246,11 +246,11 @@ createInertiaApp({
 })
 ```
 
-If you change the `id` of the root element, be sure to update it [server-side](/v2/installation/server-side-setup#root-template) as well.
+ルート要素の `id` を変更した場合は、[サーバーサイド](/v2/installation/server-side-setup#root-template) でも必ず更新してください。
 
-## Script Element for Page Data
+## ページデータ用の script 要素
 
-By default, Inertia stores the initial page data in a `data-page` attribute on the root element. You may configure Inertia to use a `<script type="application/json">` element instead, which is slightly faster and easier to inspect in your browser's dev tools.
+デフォルトでは、Inertia は初期ページデータをルート要素の `data-page` 属性に保存します。代わりに `<script type="application/json">` 要素を使用するように Inertia を設定することもでき、これはわずかに高速で、ブラウザの開発者ツールでも確認しやすくなります。
 
 ```js
 createInertiaApp({
@@ -263,4 +263,4 @@ createInertiaApp({
 })
 ```
 
-Be sure to also update your [SSR entry point](/v2/advanced/server-side-rendering#add-server-entry-point) if you're using server-side rendering. Laravel users should also set the `inertia.use_script_element_for_initial_page` config value to `true` so the `@inertia` Blade directive outputs a script element.
+サーバーサイドレンダリングを使用している場合は、[SSR のエントリーポイント](/v2/advanced/server-side-rendering#add-server-entry-point) も必ず更新してください。Laravel を使用している場合は、`@inertia` Blade ディレクティブが script 要素を出力するように、`inertia.use_script_element_for_initial_page` の設定値も `true` に設定してください。

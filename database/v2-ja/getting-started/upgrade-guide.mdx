@@ -1,38 +1,38 @@
 ---
-title: Upgrade Guide for v2.0
+title: v2.0 アップグレードガイド
 ---
 
-You can find the legacy docs for Inertia.js v1.0 at [inertiajs.com/docs/v1](/v1).
+Inertia.js v1.0 のレガシードキュメントは [https://inertiajs.com/docs/v1/getting-started](/v1) で確認できます。
 
-## What's New
+## 新機能
 
-Inertia.js v2.0 is a huge step forward for Inertia! The core library has been completely rewritten to architecturally support asynchronous requests, enabling a whole set of new features, including:
+Inertia.js v2.0 は、Inertia にとって大きな前進です！コアライブラリは、非同期リクエストをアーキテクチャレベルでサポートするために完全に書き直されました。これにより、次のような一連の新機能が実現しています。
 
 <Columns cols={2}>
-    <Card title="Polling" href="/v2/data-props/polling" icon="clock">
-        Keep data fresh by automatically polling the server at a specified interval.
+    <Card title="ポーリング" href="/v2/data-props/polling" icon="clock">
+        指定した間隔でサーバーを自動的にポーリングし、データを常に最新の状態に保ちます。
     </Card>
-    <Card title="Prefetching" href="/v2/data-props/prefetching" icon="rocket">
-        Speed up navigation by prefetching data for links when they become visible.
+    <Card title="プリフェッチ" href="/v2/data-props/prefetching" icon="rocket">
+        リンクが表示されたタイミングでデータを事前取得し、ナビゲーションを高速化します。
     </Card>
-    <Card title="Deferred props" href="/v2/data-props/deferred-props" icon="timer">
-        Load non-essential data after the initial page load to improve performance.
+    <Card title="遅延 props" href="/v2/data-props/deferred-props" icon="timer">
+        初回ページ読み込み後に必須ではないデータを読み込み、パフォーマンスを向上させます。
     </Card>
-    <Card title="Infinite scrolling" href="/v2/data-props/merging-props" icon="refresh">
-        Seamlessly load more data as the user scrolls down the page.
+    <Card title="無限スクロール" href="/v2/data-props/merging-props" icon="refresh">
+        ユーザーがページを下にスクロールするにつれて、追加のデータをシームレスに読み込みます。
     </Card>
-    <Card title="Lazy loading data on scroll" href="/v2/data-props/load-when-visible" icon="mouse">
-        Load data only when it becomes visible in the viewport.
+    <Card title="スクロール時の遅延データ読み込み" href="/v2/data-props/load-when-visible" icon="mouse">
+        ビューポート内に表示されたときのみデータを読み込みます。
     </Card>
-    <Card title="History encryption" href="/v2/security/history-encryption" icon="lock">
-        Clear page data from browser history state when logging out of an application.
+    <Card title="履歴の暗号化" href="/v2/security/history-encryption" icon="lock">
+        アプリケーションからログアウトする際に、ブラウザの履歴状態からページデータをクリアします。
     </Card>
 </Columns>
 
 
-## Upgrade Dependencies
+## 依存関係のアップグレード
 
-To upgrade to the Inertia.js v2.0, first use npm to install the client-side adapter of your choice:
+Inertia.js v2.0 にアップグレードするには、まず npm を使って利用するクライアントサイドアダプターをインストールします。
 
 <CodeGroup>
 
@@ -50,39 +50,24 @@ npm install @inertiajs/svelte@^2.0
 
 </CodeGroup>
 
-Next, upgrade the `inertiajs/inertia-laravel` package to use the `2.x` dev branch:
+次に、`inertiajs/inertia-laravel` パッケージを `2.x` 系にアップグレードします。
 
 ```bash
 composer require inertiajs/inertia-laravel:^2.0
 ```
 
-## Breaking Changes
+## 破壊的変更
 
-While a significant release, Inertia.js v2.0 doesn't introduce many breaking changes. Here's a list of all the breaking changes:
+大きなリリースではありますが、Inertia.js v2.0 では破壊的変更はそれほど多くありません。以下が、すべての破壊的変更の一覧です。
 
-### Dropped Laravel 8 and 9 Support
+### Laravel 8 および 9 のサポート終了
 
-The Laravel adapter now requires Laravel 10 and PHP 8.1 at a minimum.
+Laravel アダプターは、最低でも Laravel 10 と PHP 8.1 を必要とするようになりました。
 
-### Dropped Vue 2 Support
+### Vue 2 のサポート終了
 
-The Vue 2 adapter has been removed. Vue 2 reached End of Life on December 3, 2023, so this felt like it was time.
+Vue 2 アダプターは削除されました。Vue 2 は 2023 年 12 月 3 日にサポート終了（EOL）を迎えたため、今回の対応となりました。
 
-### Router `replace` Method
+### ルーターの `replace` メソッド
 
-The previously deprecated `router.replace` method has been re-instated, but its functionality has changed. It is now used to make [Client Side](/v2/the-basics/manual-visits#client-side-visits) page visits. To make server-side visits that replace the current history entry in the browser, use the `replace` option:
-
-```javascript
-router.get('/users', { search: 'John' }, { replace: true })
-```
-
-### Svelte Adapter
-
-- Dropped support for Svelte 3 as it reached End of Life on June 20, 2023.
-- The `remember` helper has been rename to `useRemember` to be consistent with other helpers.
-- Updated `setup` callback in `app.js`. You need to pass `props` when initializing the `App` component. [See setup in app.js](/v2/installation/client-side-setup#initialize-the-inertia-app)
-- `setup` callback is now required in `ssr.js`. [See setup in ssr.js](/v2/advanced/server-side-rendering#add-server-entry-point)
-
-### Partial Reloads Are Now Async
-
-Previously partial reloads in Inertia were synchronous, just like all Inertia requests. In v2.0, partial reloads are now asynchronous. Generally this is desirable, but if you were relying on these requests being synchronous, you may need to adjust your code.
+以前に非推奨となっていた `router.replace` メソッドが再導入されましたが、その挙動が変更されています。現在は [クライアントサイド](/v2/the-basics/manual-visits#client-side-visits) のページ遷移を行うために使用されます。ブラウザの履歴エントリを置き換えるサーバーサイド遷移を行うには、`replace` オプションを使用してください

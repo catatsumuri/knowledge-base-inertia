@@ -135,7 +135,9 @@ export function CodeBlock({
         );
     }
 
-    if (language === 'mermaid') {
+    const highlightLanguage = language === 'blade' ? 'html' : language;
+
+    if (highlightLanguage === 'mermaid') {
         return <MermaidBlock code={content} />;
     }
 
@@ -143,7 +145,7 @@ export function CodeBlock({
     if (isDiff && language) {
         // diff記法の場合
         const lines = content.split('\n');
-        const prismLanguage = Prism?.languages?.[language] || null;
+        const prismLanguage = Prism?.languages?.[highlightLanguage] || null;
 
         return (
             <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
@@ -202,7 +204,7 @@ export function CodeBlock({
                                         highlightedHTML = Prism.highlight(
                                             codeContent,
                                             prismLanguage,
-                                            language,
+                                            highlightLanguage,
                                         );
                                     } catch {
                                         // ハイライト失敗時はプレーンテキスト
@@ -243,7 +245,7 @@ export function CodeBlock({
     }
 
     // 通常のシンタックスハイライト（言語指定あり）
-    if (language) {
+    if (highlightLanguage) {
         return (
             <div className="not-prose my-4 overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
                 <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2 font-mono text-sm text-gray-300">
@@ -271,7 +273,7 @@ export function CodeBlock({
                 </div>
                 <SyntaxHighlighter
                     style={oneDark}
-                    language={language}
+                    language={highlightLanguage}
                     PreTag="div"
                     className="!mt-0 !rounded-t-none"
                     wrapLines={wrap}

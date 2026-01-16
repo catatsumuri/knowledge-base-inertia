@@ -24,6 +24,7 @@ class SitemapController extends Controller
         $tree = $treeBuilder->build(
             $documents,
             $navigationItems,
+            promoteIndexDocuments: false,
             documentMapper: static fn (MarkdownDocument $document) => [
                 'eyecatch_thumb_url' => $document->eyecatchThumbUrl(),
                 'updated_at' => $document->updated_at?->toISOString(),

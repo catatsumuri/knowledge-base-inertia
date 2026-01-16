@@ -1,17 +1,21 @@
 import { ChartWrapper } from '@/components/chart/chart-wrapper';
 import { CodeBlock } from '@/components/code-block';
 import { CodeTabsWrapper } from '@/components/code-tabs';
+import { ColumnsWrapper } from '@/components/columns-wrapper';
 import { EmbedCard } from '@/components/embed-card';
+import { MarkdownCard, MarkdownColumns } from '@/components/markdown-columns';
 import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
 import { ParamField } from '@/components/param-field';
 import { remarkChartDirective } from '@/lib/remark-chart-directive';
+import { remarkCardDirective } from '@/lib/remark-card-directive';
 import { remarkCodeMeta } from '@/lib/remark-code-meta';
 import { remarkCodeTabs } from '@/lib/remark-code-tabs';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkLinkifyToCard } from '@/lib/remark-linkify-to-card';
 import { remarkParamFieldDirective } from '@/lib/remark-param-field-directive';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
+import { preprocessColumnsSyntax } from '@/lib/remark-columns-syntax';
 import { preprocessZennSyntax } from '@/lib/remark-zenn-syntax';
 import { Link } from '@inertiajs/react';
 import { AlertCircle, Info } from 'lucide-react';
@@ -129,7 +133,9 @@ export function MarkdownViewer({
     basePrefix = '/markdown',
 }: MarkdownViewerProps) {
     // Zenn式構文を標準remark-directive構文に変換してから画像サイズを処理
-    const processedContent = preprocessImageSize(preprocessZennSyntax(content));
+    const processedContent = preprocessImageSize(
+        preprocessColumnsSyntax(preprocessZennSyntax(content)),
+    );
 
     return (
         <ReactMarkdown
@@ -140,6 +146,7 @@ export function MarkdownViewer({
                 remarkZennDirective,
                 remarkChartDirective,
                 remarkParamFieldDirective,
+                remarkCardDirective,
                 remarkCodeTabs,
                 remarkImageSize,
                 remarkCodeMeta,
@@ -153,6 +160,12 @@ export function MarkdownViewer({
                 aside: MessageBox,
                 a: (props) => (
                     <MarkdownLink {...props} basePrefix={basePrefix} />
+                ),
+                columns: (props: any) => (
+                    <MarkdownColumns {...props} basePrefix={basePrefix} />
+                ),
+                card: (props: any) => (
+                    <MarkdownCard {...props} basePrefix={basePrefix} />
                 ),
                 div: (props: any) => {
                     // コードタブの場合
@@ -180,6 +193,28 @@ export function MarkdownViewer({
                                 {props.children}
                             </ParamField>
                         );
+                    }
+                    if (props['data-card-title'] || props['data-card-href']) {
+                        return (
+                            <MarkdownCard
+                                title={props['data-card-title']}
+                                href={props['data-card-href']}
+                                icon={props['data-card-icon']}
+                                cta={props['data-card-cta']}
+                                arrow={props['data-card-arrow']}
+                                basePrefix={basePrefix}
+                            >
+                                {props.children}
+                            </MarkdownCard>
+                        );
+                    }
+                    // Columnsの場合
+                    if (
+                        props['data-columns-config'] ||
+                        props['data-columns-cards'] ||
+                        props['data-columns-error']
+                    ) {
+                        return <ColumnsWrapper {...props} basePrefix={basePrefix} />;
                     }
                     // それ以外は通常のdiv
                     return <div {...props} />;

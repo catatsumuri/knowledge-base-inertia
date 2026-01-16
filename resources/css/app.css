@@ -217,3 +217,15 @@ details .details-content {
 .prose p > img + br + em {
     @apply block text-center;
 }
+
+.prose p > img {
+    @apply mb-2;
+}
+
+.prose p > img + br {
+    display: none;
+}
+
+.prose p > img + br + em {
+    @apply mt-0 text-sm text-muted-foreground;
+}

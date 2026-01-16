@@ -1,36 +1,36 @@
 ---
-title: Server-Side Setup
+title: サーバーサイドのセットアップ
 ---
 
-The first step when installing Inertia is to configure your server-side framework. Inertia maintains an official server-side adapter for [Laravel](https://laravel.com/). For other frameworks, please see the [community adapters](/v2/installation/community-adapters).
+Inertia をインストールする最初のステップは、サーバーサイドのフレームワークを設定することです。Inertia は [Laravel](https://laravel.com/) 向けの公式サーバーサイドアダプターを提供しています。その他のフレームワークについては、[コミュニティアダプター](/v2/installation/community-adapters)をご覧ください。
 
-Inertia is fine-tuned for Laravel, so the documentation examples on this website utilize Laravel. For examples of using Inertia with other server-side frameworks, please refer to the framework specific documentation maintained by that adapter.
+Inertia は Laravel 向けに最適化されているため、このサイトのドキュメント例では Laravel を使用しています。その他のサーバーサイドフレームワークで Inertia を使用する例については、各アダプターが管理しているフレームワーク固有のドキュメントを参照してください。
 
 <Card
     icon="laravel"
-    title="Laravel Starter Kits"
+    title="Laravel スターターキット"
     href="https://laravel.com/docs/starter-kits"
     arrow="true"
-    cta="Start building"
+    cta="構築を始める"
 >
-Laravel's starter kits provide out-of-the-box scaffolding for new Inertia applications.
+Laravel のスターターキットは、新しい Inertia アプリケーションのための即利用可能なスキャフォールディングを提供します。
 
-These starter kits are the absolute fastest way to start building a new Inertia project using Laravel and Vue or React. However, if you would like to manually install Inertia into your application, please consult the documentation below.
+これらのスターターキットは、Laravel と Vue または React を使って新しい Inertia プロジェクトを始めるための、最速の方法です。ただし、Inertia をアプリケーションに手動でインストールしたい場合は、以下のドキュメントを参照してください。
 </Card>
 
-## Installation
+## インストール
 
 <Steps>
-    <Step title="Install dependencies">
-        First, install the Inertia server-side adapter using the Composer package manager.
+    <Step title="依存関係のインストール">
+        まず、Composer パッケージマネージャーを使用して Inertia のサーバーサイドアダプターをインストールします。
 
         ```bash
         composer require inertiajs/inertia-laravel
         ```
     </Step>
 
-    <Step title="Setup root template">
-        Next, setup the root template that will be loaded on the first page visit to your application. This template should include your site's CSS and JavaScript assets, along with the `@inertia` and `@inertiaHead` directives.
+    <Step title="ルートテンプレートのセットアップ">
+        次に、アプリケーションへの最初のページ訪問時に読み込まれるルートテンプレートをセットアップします。このテンプレートには、サイトの CSS および JavaScript アセットに加えて、`@inertia` および `@inertiaHead` ディレクティブを含める必要があります。
 
         ```blade
         <html>
@@ -46,9 +46,9 @@ These starter kits are the absolute fastest way to start building a new Inertia 
         </html>
         ```
 
-        For React applications, it's recommended to include the `@viteReactRefresh` directive before the `@vite` directive to enable Fast Refresh in development.
+        React アプリケーションの場合、開発時に Fast Refresh を有効にするため、`@vite` ディレクティブの前に `@viteReactRefresh` ディレクティブを含めることをおすすめします。
 
-        The `@inertia` directive renders a `<div>` element with an `id` of `app`. This element serves as the mounting point for your JavaScript application. You may customize the `id` by passing a different value to the directive.
+        `@inertia` ディレクティブは、`id` が `app` の `<div>` 要素をレンダリングします。この要素は JavaScript アプリケーションのマウントポイントとして機能します。ディレクティブに別の値を渡すことで、`id` をカスタマイズすることもできます。
 
         ```blade
         <html>
@@ -59,19 +59,19 @@ These starter kits are the absolute fastest way to start building a new Inertia 
         </html>
         ```
 
-        If you change the `id` of the root element, be sure to update it [client-side](/v2/installation/client-side-setup#defining-a-root-element) as well.
+        ルート要素の `id` を変更した場合は、[クライアントサイド](/v2/installation/client-side-setup#defining-a-root-element)でも必ず更新してください。
 
-        By default, Inertia's Laravel adapter will assume your root template is named `app.blade.php`. If you would like to use a different root view, you can change it using the `Inertia::setRootView()` method.
+        デフォルトでは、Inertia の Laravel アダプターはルートテンプレートの名前が `app.blade.php` であると想定します。別のルートビューを使用したい場合は、`Inertia::setRootView()` メソッドを使用して変更できます。
     </Step>
 
-    <Step title="Register middleware">
-        Next we need to setup the Inertia middleware. You can accomplish this by publishing the `HandleInertiaRequests` middleware to your application, which can be done using the following Artisan command.
+    <Step title="ミドルウェアの登録">
+        次に、Inertia ミドルウェアをセットアップする必要があります。以下の Artisan コマンドを使用して、`HandleInertiaRequests` ミドルウェアをアプリケーションに公開することで設定できます。
 
         ```sh
         php artisan inertia:middleware
         ```
 
-        Once the middleware has been published, append the `HandleInertiaRequests` middleware to the `web` middleware group in your application's `bootstrap/app.php` file.
+        ミドルウェアが公開されたら、アプリケーションの `bootstrap/app.php` ファイル内の `web` ミドルウェアグループに `HandleInertiaRequests` ミドルウェアを追加します。
 
         ```php
         use App\Http\Middleware\HandleInertiaRequests;
@@ -83,11 +83,11 @@ These starter kits are the absolute fastest way to start building a new Inertia 
         })
         ```
 
-        This middleware provides a `version()` method for setting your [asset version](/v2/advanced/asset-versioning), as well as a `share()` method for defining [shared data](/v2/data-props/shared-data).
+        このミドルウェアは、[アセットバージョン](/v2/advanced/asset-versioning)を設定するための `version()` メソッドと、[共有データ](/v2/data-props/shared-data)を定義するための `share()` メソッドを提供します。
     </Step>
 
-    <Step title="Create your first response">
-        That's it, you're all ready to go server-side! Now you're ready to start creating Inertia [pages](/v2/the-basics/pages) and rendering them via [responses](/v2/the-basics/responses).
+    <Step title="最初のレスポンスを作成">
+        これでサーバーサイドの準備は完了です！あとは Inertia の[ページ](/v2/the-basics/pages)を作成し、[レスポンス](/v2/the-basics/responses)を通じてレンダリングするだけです。
 
         ```php
         use Inertia\Inertia;

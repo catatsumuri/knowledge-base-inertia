@@ -77,6 +77,80 @@ Artisan::command('markdown:import-v2-ja', function () {
         return [$title, $status ?? $type, $body];
     };
 
+    $convertColumnsComponents = static function (string $body): string {
+        return preg_replace_callback('/<Columns\b[^>]*>.*?<\/Columns>/s', static function ($matches) {
+            $block = $matches[0];
+
+            if (! preg_match('/<Columns\b([^>]*)>/s', $block, $columnsMatch)) {
+                return $block;
+            }
+
+            $columnsAttrs = $columnsMatch[1];
+            $cols = 2;
+            if (preg_match('/cols=\{?(\d+)\}?/i', $columnsAttrs, $colsMatch)) {
+                $cols = (int) $colsMatch[1];
+            }
+
+            if (! preg_match_all('/<Card\b([^>]*)>(.*?)<\/Card>/s', $block, $cardMatches, PREG_SET_ORDER)) {
+                return $block;
+            }
+
+            $cards = [];
+
+            foreach ($cardMatches as $cardMatch) {
+                $cardAttrs = $cardMatch[1];
+                $cardBody = trim($cardMatch[2]);
+
+                $attributes = [];
+                foreach (['title', 'href', 'icon'] as $attribute) {
+                    if (preg_match('/'.$attribute.'="([^"]*)"/', $cardAttrs, $attrMatch)) {
+                        $value = $attrMatch[1];
+                        if ($attribute === 'href') {
+                            $value = preg_replace('#^/?v2/#', '', $value);
+                        }
+                        $value = addcslashes($value, '"');
+                        $attributes[] = $attribute.'="'.$value.'"';
+                    }
+                }
+
+                $cards[] = ':::card{'.implode(' ', $attributes)."}\n".$cardBody."\n:::";
+            }
+
+            return ':::columns{cols='.$cols."}\n".implode("\n\n", $cards)."\n:::";
+        }, $body) ?? $body;
+    };
+
+    $convertStandaloneCardComponents = static function (string $body): string {
+        return preg_replace_callback('/<Card\b[^>]*>.*?<\/Card>/s', static function ($matches) {
+            $block = $matches[0];
+
+            if (! preg_match('/<Card\b([^>]*)>/s', $block, $cardMatch)) {
+                return $block;
+            }
+
+            $cardAttrs = $cardMatch[1];
+            $cardBody = '';
+
+            if (preg_match('/<Card\b[^>]*>(.*?)<\/Card>/s', $block, $bodyMatch)) {
+                $cardBody = trim($bodyMatch[1]);
+            }
+
+            $attributes = [];
+            foreach (['title', 'href', 'icon', 'cta', 'arrow'] as $attribute) {
+                if (preg_match('/'.$attribute.'="([^"]*)"/', $cardAttrs, $attrMatch)) {
+                    $value = $attrMatch[1];
+                    if ($attribute === 'href') {
+                        $value = preg_replace('#^/?v2/#', '', $value);
+                    }
+                    $value = addcslashes($value, '"');
+                    $attributes[] = $attribute.'="'.$value.'"';
+                }
+            }
+
+            return ':::card{'.implode(' ', $attributes)."}\n".$cardBody."\n:::";
+        }, $body) ?? $body;
+    };
+
     $navigationSpec = [
         [
             'slug' => 'getting-started',
@@ -165,6 +239,7 @@ Artisan::command('markdown:import-v2-ja', function () {
             ],
         ],
     ];
+    $navPrefix = 'inertia-ja-docs';
 
     $documents = [];
     $slugs = [];
@@ -174,6 +249,8 @@ Artisan::command('markdown:import-v2-ja', function () {
         $relative = str_replace('\\', '/', $relative);
         $slug = preg_replace('/\.mdx$/', '', $relative) ?? $relative;
         $slug = ltrim($slug, '/');
+        $sourceSlug = $slug;
+        $slug = $navPrefix.'/'.$slug;
 
         $contents = file_get_contents($path);
         if ($contents === false) {
@@ -190,13 +267,87 @@ Artisan::command('markdown:import-v2-ja', function () {
             $body
         );
 
+        // 内部リンクの先頭スラッシュを除去
         if (is_string($body)) {
-            $body = rtrim($body)."\n\n> https://inertiajs.com/docs/v2/{$slug}\n";
+            $body = preg_replace('/\((\/)(?!\/)([^)]+)\)/', '($2)', $body);
+        }
+
+        // コードブロック記法の変換
+        if (is_string($body)) {
+            $body = preg_replace_callback(
+                '/^(\s*)```(\w+)\s+([A-Za-z]+)(\s+\d+)?\s+icon="[^"]*"\s*$/m',
+                function ($matches) {
+                    $indent = $matches[1];
+                    $language = $matches[2];
+                    $framework = $matches[3];
+                    $version = $matches[4] ?? '';
+
+                    return "{$indent}```{$language}:{$framework}{$version}";
+                },
+                $body
+            );
+        }
+
+        // CodeGroupタグの変換
+        if (is_string($body)) {
+            // 開始タグの変換: <CodeGroup> → :::code-tabs
+            $body = preg_replace('/<CodeGroup>/', ':::code-tabs', $body);
+
+            // 閉じタグの変換: </CodeGroup> → :::
+            $body = preg_replace('/<\/CodeGroup>/', ':::', $body);
+        }
+
+        // Steps/Stepコンポーネントを見出しに変換
+        if (is_string($body)) {
+            $body = preg_replace_callback(
+                '/<Steps>([\s\S]*?)<\/Steps>/',
+                static function ($matches) {
+                    $content = $matches[1];
+
+                    // Steps内の先頭4スペースを削除
+                    $content = preg_replace('/^ {4}/m', '', $content);
+                    $content = preg_replace('/^ {4}/m', '', $content);
+
+                    return $content;
+                },
+                $body
+            );
+            $body = preg_replace_callback(
+                '/<Step\b([^>]*)>/',
+                static function ($matches) {
+                    if (! preg_match('/title="([^"]*)"/', $matches[1], $titleMatch)) {
+                        return "###\n";
+                    }
+
+                    $title = trim($titleMatch[1]);
+
+                    return "### {$title}\n";
+                },
+                $body
+            );
+            $body = preg_replace('/<\/Step>/', '', $body);
+        }
+
+        // Columns/Cardコンポーネントを :::columns / :::card 記法へ変換
+        if (is_string($body)) {
+            $body = $convertColumnsComponents($body);
+            $body = $convertStandaloneCardComponents($body);
+        }
+
+        if (is_string($body)) {
+            $body = rtrim($body)."\n\n> https://inertiajs.com/docs/v2/{$sourceSlug}\n";
         }
 
         $status = 'private';
         if (is_string($statusValue) && in_array($statusValue, ['draft', 'private', 'published'], true)) {
             $status = $statusValue;
+        }
+
+        if (
+            str_starts_with($slug, $navPrefix.'/getting-started/') ||
+            str_starts_with($slug, $navPrefix.'/installation/')
+        ) {
+            $status = 'published';
         }
 
         $documents[] = [
@@ -229,7 +380,7 @@ Artisan::command('markdown:import-v2-ja', function () {
     $expectedSlugs = [];
     foreach ($navigationSpec as $group) {
         foreach ($group['children'] as $childSlug) {
-            $expectedSlugs[] = $childSlug;
+            $expectedSlugs[] = $navPrefix.'/'.$childSlug;
         }
     }
 
@@ -254,7 +405,7 @@ Artisan::command('markdown:import-v2-ja', function () {
         return 1;
     }
 
-    DB::transaction(function () use ($documents, $user, $navigationSpec): void {
+    DB::transaction(function () use ($documents, $user, $navigationSpec, $navPrefix): void {
         foreach ($documents as $document) {
             MarkdownDocument::query()->create([
                 'slug' => $document['slug'],
@@ -272,9 +423,10 @@ Artisan::command('markdown:import-v2-ja', function () {
         $navItems = [];
 
         foreach ($navigationSpec as $groupIndex => $group) {
+            $groupPath = $navPrefix.'/'.$group['slug'];
             $navItems[] = [
                 'node_type' => 'folder',
-                'node_path' => $group['slug'],
+                'node_path' => $groupPath,
                 'parent_path' => null,
                 'position' => $groupIndex,
                 'label' => $group['label'],
@@ -285,8 +437,8 @@ Artisan::command('markdown:import-v2-ja', function () {
             foreach ($group['children'] as $childIndex => $childSlug) {
                 $navItems[] = [
                     'node_type' => 'document',
-                    'node_path' => $childSlug,
-                    'parent_path' => $group['slug'],
+                    'node_path' => $navPrefix.'/'.$childSlug,
+                    'parent_path' => $groupPath,
                     'position' => $childIndex,
                     'label' => null,
                     'created_at' => $now,
