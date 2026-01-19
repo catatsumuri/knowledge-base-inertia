@@ -55,7 +55,7 @@ export function ColumnsWrapper({
     try {
         config = rawConfig ? JSON.parse(rawConfig) : { cols: 2 };
         cards = rawCards ? JSON.parse(rawCards) : [];
-    } catch (parseError) {
+    } catch {
         return (
             <div className="not-prose my-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
                 <AlertCircle

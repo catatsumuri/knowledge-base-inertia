@@ -45,11 +45,15 @@ export function remarkZennDirective() {
                 return;
             }
 
-            if (node.type === 'leafDirective' || node.type === 'textDirective') {
+            if (
+                node.type === 'leafDirective' ||
+                node.type === 'textDirective'
+            ) {
                 const directiveNode = node as InlineDirectiveNode;
 
                 if (directiveNode.name === 'badge') {
-                    const data = directiveNode.data || (directiveNode.data = {});
+                    const data =
+                        directiveNode.data || (directiveNode.data = {});
                     data.hName = 'span';
                     data.hProperties = {
                         className: 'badge',

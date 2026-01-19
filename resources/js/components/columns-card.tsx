@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getLucideIcon } from '@/lib/lucide-icon-mapper';
 import { Link } from '@inertiajs/react';
 import { AlertCircle } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface ColumnsCardProps {
     title?: string;
@@ -25,7 +26,10 @@ export function ColumnsCard({
     arrow = false,
     basePrefix = '/markdown',
 }: ColumnsCardProps) {
-    const IconComponent = icon ? getLucideIcon(icon) : undefined;
+    const IconComponent = useMemo(
+        () => (icon ? getLucideIcon(icon) : undefined),
+        [icon],
+    );
 
     // リンクの正規化（markdown-viewer.tsxのMarkdownLinkと同じロジック）
     const normalizedHref = normalizeHref(href, basePrefix);

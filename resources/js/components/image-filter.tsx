@@ -7,7 +7,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type FilterType =
     | 'normal'
@@ -64,13 +64,8 @@ export function ImageFilter({
         }
     }, [open, image]);
 
-    useEffect(() => {
-        if (originalImage && canvasRef.current) {
-            applyFilter(selectedFilter, intensity);
-        }
-    }, [selectedFilter, originalImage, intensity]);
-
-    const applyFilter = (filterType: FilterType, filterIntensity: number) => {
+    const applyFilter = useCallback(
+        (filterType: FilterType, filterIntensity: number) => {
         const canvas = canvasRef.current;
         if (!canvas || !originalImage) return;
 
@@ -292,7 +287,15 @@ export function ImageFilter({
         if (filterType !== 'normal') {
             ctx.putImageData(imageData, 0, 0);
         }
-    };
+    },
+        [originalImage],
+    );
+
+    useEffect(() => {
+        if (originalImage && canvasRef.current) {
+            applyFilter(selectedFilter, intensity);
+        }
+    }, [selectedFilter, originalImage, intensity, applyFilter]);
 
     const handleApply = () => {
         const canvas = canvasRef.current;

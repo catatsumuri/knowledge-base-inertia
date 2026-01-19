@@ -78,9 +78,6 @@ export default function ShoutboxPanel({
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
     const [currentProcessingImage, setCurrentProcessingImage] =
         useState<File | null>(null);
-    const [currentFilteringIndex, setCurrentFilteringIndex] = useState<
-        number | null
-    >(null);
     const [isReplyImage, setIsReplyImage] = useState(false);
     const [editingShoutId, setEditingShoutId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState('');
@@ -625,7 +622,7 @@ export default function ShoutboxPanel({
         if (!content) return null;
 
         // @slug形式をリンクに変換
-        const parts = content.split(/(@[a-zA-Z0-9_\-\/]+)/g);
+        const parts = content.split(/(@[a-zA-Z0-9_\-/]+)/g);
 
         return parts.map((part, index) => {
             if (part.startsWith('@')) {

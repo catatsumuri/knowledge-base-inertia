@@ -88,7 +88,7 @@ export default function FolderPage({
     };
 
     const getStatusBadgeVariant = (
-        status: DocumentStatus
+        status: DocumentStatus,
     ): 'default' | 'secondary' | 'outline' => {
         switch (status) {
             case 'published':
@@ -223,7 +223,7 @@ export default function FolderPage({
                                         </div>
                                         <Badge
                                             variant={getStatusBadgeVariant(
-                                                child.status
+                                                child.status,
                                             )}
                                         >
                                             {child.status}

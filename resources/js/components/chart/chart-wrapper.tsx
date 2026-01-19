@@ -16,7 +16,7 @@ import { RadarChart } from './radar-chart';
  */
 export function ChartWrapper({
     ...props
-}: React.ComponentPropsWithoutRef<'div'> & Record<string, any>) {
+}: React.ComponentPropsWithoutRef<'div'> & Record<string, unknown>) {
     const chartType = props['data-chart-type'] as string | undefined;
     const rawData = props['data-chart-data'] as string | undefined;
     const title = props['data-chart-title'] as string | undefined;
@@ -28,39 +28,18 @@ export function ChartWrapper({
         return <div {...props} />;
     }
 
+    // データをパース
+    let data;
+    let parseError: Error | null = null;
+
     try {
-        // データをパース
-        const data = parseKeyValueData(rawData);
-        const chartProps = { data, title, height, width };
-
-        // チャートタイプに応じてコンポーネントを選択
-        switch (chartType) {
-            case 'radar':
-                return <RadarChart {...chartProps} />;
-
-            // 将来的に追加
-            // case 'bar':
-            //     return <BarChart {...chartProps} />;
-            // case 'pie':
-            //     return <PieChart {...chartProps} />;
-            // case 'line':
-            //     return <LineChart {...chartProps} />;
-
-            default:
-                return (
-                    <div className="my-4 flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
-                        <AlertCircle
-                            className="text-yellow-600 dark:text-yellow-400"
-                            size={20}
-                        />
-                        <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                            未対応のチャートタイプ: {chartType}
-                        </p>
-                    </div>
-                );
-        }
+        data = parseKeyValueData(rawData);
     } catch (error) {
-        // パースエラー時はエラー表示
+        parseError = error instanceof Error ? error : new Error('不明なエラー');
+    }
+
+    // パースエラー時はエラー表示
+    if (parseError) {
         return (
             <div className="my-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
                 <AlertCircle
@@ -68,10 +47,38 @@ export function ChartWrapper({
                     size={20}
                 />
                 <p className="text-sm text-red-800 dark:text-red-200">
-                    チャートデータのパースに失敗:{' '}
-                    {error instanceof Error ? error.message : '不明なエラー'}
+                    チャートデータのパースに失敗: {parseError.message}
                 </p>
             </div>
         );
+    }
+
+    const chartProps = { data, title, height, width };
+
+    // チャートタイプに応じてコンポーネントを選択
+    switch (chartType) {
+        case 'radar':
+            return <RadarChart {...chartProps} />;
+
+        // 将来的に追加
+        // case 'bar':
+        //     return <BarChart {...chartProps} />;
+        // case 'pie':
+        //     return <PieChart {...chartProps} />;
+        // case 'line':
+        //     return <LineChart {...chartProps} />;
+
+        default:
+            return (
+                <div className="my-4 flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
+                    <AlertCircle
+                        className="text-yellow-600 dark:text-yellow-400"
+                        size={20}
+                    />
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                        未対応のチャートタイプ: {chartType}
+                    </p>
+                </div>
+            );
     }
 }

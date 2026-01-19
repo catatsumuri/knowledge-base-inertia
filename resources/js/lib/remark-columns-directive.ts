@@ -20,10 +20,6 @@ interface CardData {
     content: string;
 }
 
-interface ColumnsConfig {
-    cols: number;
-}
-
 /**
  * :::columns と :::card ディレクティブをサポートするremarkプラグイン
  *

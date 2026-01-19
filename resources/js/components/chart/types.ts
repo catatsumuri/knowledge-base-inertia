@@ -12,7 +12,7 @@ export interface BaseChartProps {
     width?: string;
 }
 
-export interface RadarChartProps extends BaseChartProps {}
+export type RadarChartProps = BaseChartProps;
 
 export interface ChartAttributes {
     title?: string;

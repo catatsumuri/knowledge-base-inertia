@@ -230,7 +230,7 @@ export default function Edit({
                             ? __('Slug is available.')
                             : __('Slug is already in use.')),
                 );
-            } catch (error) {
+            } catch {
                 if (controller.signal.aborted) {
                     return;
                 }

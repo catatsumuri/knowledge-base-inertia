@@ -63,20 +63,6 @@ interface CodeTabsProps {
  * 複数言語のコードブロックをタブで切り替え表示
  */
 export function CodeTabs({ tabs }: CodeTabsProps) {
-    if (!tabs || tabs.length === 0) {
-        return (
-            <div className="not-prose my-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
-                <AlertCircle
-                    className="text-red-600 dark:text-red-400"
-                    size={20}
-                />
-                <p className="text-sm text-red-800 dark:text-red-200">
-                    コードブロックが見つかりません
-                </p>
-            </div>
-        );
-    }
-
     const [preferredSelection, setPreferredSelection] =
         useState<PreferredSelection | null>(() => getStoredSelection());
     const [selectedValue, setSelectedValue] = useState<string>('');
@@ -88,8 +74,10 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
             })),
         [tabs],
     );
+
     useEffect(() => {
         if (tabsWithValue.length === 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedValue('');
             return;
         }
@@ -113,6 +101,7 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
         const nextValue = matchedTab?.value ?? tabsWithValue[0].value;
 
         if (nextValue !== selectedValue) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedValue(nextValue);
         }
     }, [preferredSelection, tabsWithValue, selectedValue]);
@@ -141,6 +130,20 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
             );
         };
     }, []);
+
+    if (!tabs || tabs.length === 0) {
+        return (
+            <div className="not-prose my-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+                <AlertCircle
+                    className="text-red-600 dark:text-red-400"
+                    size={20}
+                />
+                <p className="text-sm text-red-800 dark:text-red-200">
+                    コードブロックが見つかりません
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="not-prose my-6">
@@ -206,7 +209,7 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
  */
 export function CodeTabsWrapper({
     ...props
-}: React.ComponentPropsWithoutRef<'div'> & Record<string, any>) {
+}: React.ComponentPropsWithoutRef<'div'> & Record<string, unknown>) {
     const rawTabs = props['data-code-tabs'] as string | undefined;
     const error = props['data-code-tabs-error'] as string | undefined;
 
@@ -238,10 +241,10 @@ export function CodeTabsWrapper({
         );
     }
 
+    let tabs: CodeTab[];
     try {
-        const tabs = JSON.parse(rawTabs) as CodeTab[];
-        return <CodeTabs tabs={tabs} />;
-    } catch (error) {
+        tabs = JSON.parse(rawTabs) as CodeTab[];
+    } catch {
         return (
             <div className="not-prose my-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
                 <AlertCircle
@@ -254,4 +257,6 @@ export function CodeTabsWrapper({
             </div>
         );
     }
+
+    return <CodeTabs tabs={tabs} />;
 }
