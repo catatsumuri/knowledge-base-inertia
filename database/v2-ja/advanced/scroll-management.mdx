@@ -1,16 +1,16 @@
 ---
-title: Scroll Management
+title: スクロール管理
 ---
 
-## Scroll Resetting
+## スクロールのリセット
 
-When navigating between pages, Inertia mimics default browser behavior by automatically resetting the scroll position of the document body (as well as any [scroll regions](#scroll-regions) you've defined) back to the top.
+ページ間を移動する際、Inertia はデフォルトのブラウザ挙動を再現し、ドキュメントボディ（および定義した任意の[スクロール領域](#scroll-regions)）のスクロール位置を自動的に先頭へリセットします。
 
-In addition, Inertia keeps track of the scroll position of each page and automatically restores that scroll position as you navigate forward and back in history.
+さらに、Inertia は各ページのスクロール位置を追跡し、履歴を前後に移動する際にそのスクロール位置を自動的に復元します。
 
-## Scroll Preservation
+## スクロールの保持
 
-Sometimes it's desirable to prevent the default scroll resetting when making visits. You can disable this behavior by setting the `preserveScroll` option to `true`.
+場合によっては、遷移時のデフォルトのスクロールリセットを防ぎたいことがあります。この挙動は、`preserveScroll` オプションを `true` に設定することで無効化できます。
 
 <CodeGroup>
 
@@ -34,7 +34,7 @@ router.visit(url, { preserveScroll: true })
 
 </CodeGroup>
 
-If you'd like to only preserve the scroll position if the response includes validation errors, set the `preserveScroll` option to "errors".
+レスポンスにバリデーションエラーが含まれる場合にのみスクロール位置を保持したい場合は、`preserveScroll` オプションを `"errors"` に設定します。
 
 <CodeGroup>
 
@@ -58,7 +58,7 @@ router.visit(url, { preserveScroll: 'errors' })
 
 </CodeGroup>
 
-You can also lazily evaluate the `preserveScroll` option based on the response by providing a callback.
+また、コールバックを渡すことで、レスポンスに基づいて `preserveScroll` オプションを遅延評価することもできます。
 
 <CodeGroup>
 
@@ -88,7 +88,7 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-When using an [Inertia link](/v2/the-basics/links), you can preserve the scroll position using the `preserveScroll` prop.
+[Inertia リンク](/v2/the-basics/links)を使用する場合、`preserveScroll` プロパティを使ってスクロール位置を保持できます。
 
 <CodeGroup>
 
@@ -114,20 +114,20 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-## Scroll Regions
+## スクロール領域
 
-If your app doesn't use document body scrolling, but instead has scrollable elements (using the `overflow` CSS property), scroll resetting will not work.
+アプリがドキュメントボディのスクロールを使用せず、代わりに（`overflow` CSS プロパティを使った）スクロール可能な要素を使用している場合、スクロールのリセットは機能しません。
 
-In these situations, you must tell Inertia which scrollable elements to manage by adding the `scroll-region` attribute to the element.
+このような場合、`scroll-region` 属性を要素に追加して、どのスクロール可能な要素を Inertia が管理すべきかを指定する必要があります。
 
 ```html
 <div class="overflow-y-auto" scroll-region="">
-    <!-- Your page content -->
+    <!-- ページコンテンツ -->
 </div>
 ```
 
-## Text Fragments
+## テキストフラグメント
 
-[Text fragments](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments) allow you to link directly to specific text on a page using a special URL syntax like `#:~:text=term`. However, the browser removes the fragment directive before any JavaScript runs, so text fragments only work if the targeted text is present in the initial HTML response.
+[テキストフラグメント](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments)を使用すると、`#:~:text=term` のような特別な URL 構文で、ページ内の特定のテキストへ直接リンクできます。ただし、ブラウザは JavaScript が実行される前にフラグメントディレクティブを削除するため、テキストフラグメントは、対象のテキストが初期の HTML レスポンスに含まれている場合にのみ機能します。
 
-To use text fragments with your Inertia pages, enable [server-side rendering](/v2/advanced/server-side-rendering).
+Inertia ページでテキストフラグメントを使用するには、[サーバーサイドレンダリング](/v2/advanced/server-side-rendering)を有効にしてください。

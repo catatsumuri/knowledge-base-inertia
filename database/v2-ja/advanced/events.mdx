@@ -1,12 +1,12 @@
 ---
-title: Events
+title: イベント
 ---
 
-Inertia provides an event system that allows you to "hook into" the various lifecycle events of the library.
+Inertia は、ライブラリのさまざまなライフサイクルイベントに「フック」できるイベントシステムを提供します。
 
-## Registering Listeners
+## リスナーの登録
 
-To register an event listener, use the `router.on()` method.
+イベントリスナーを登録するには、`router.on()` メソッドを使用します。
 
 <CodeGroup>
 
@@ -36,7 +36,7 @@ router.on('start', (event) => {
 
 </CodeGroup>
 
-Under the hood, Inertia uses native browser events, so you can also interact with Inertia events using the typical event methods you may already be familiar with - just be sure to prepend `inertia:` to the event name.
+内部的には Inertia はネイティブのブラウザーイベントを使用しているため、すでに慣れ親しんでいる一般的なイベントメソッドを使って Inertia のイベントとやり取りすることもできます。ただし、イベント名の先頭に `inertia:` を付ける必要があります。
 
 <CodeGroup>
 
@@ -66,9 +66,9 @@ document.addEventListener('inertia:start', (event) => {
 
 </CodeGroup>
 
-## Removing Listeners
+## リスナーの削除
 
-When you register an event listener, Inertia automatically returns a callback that can be invoked to remove the event listener.
+イベントリスナーを登録すると、Inertia は自動的に、そのリスナーを削除するために呼び出せるコールバックを返します。
 
 <CodeGroup>
 
@@ -79,7 +79,7 @@ let removeStartEventListener = router.on('start', (event) => {
     console.log(`Starting a visit to ${event.detail.visit.url}`)
 })
 
-// Remove the listener...
+// リスナーを削除...
 removeStartEventListener()
 ```
 
@@ -90,7 +90,7 @@ let removeStartEventListener = router.on('start', (event) => {
     console.log(`Starting a visit to ${event.detail.visit.url}`)
 })
 
-// Remove the listener...
+// リスナーを削除...
 removeStartEventListener()
 ```
 
@@ -101,13 +101,13 @@ let removeStartEventListener = router.on('start', (event) => {
     console.log(`Starting a visit to ${event.detail.visit.url}`)
 })
 
-// Remove the listener...
+// リスナーを削除...
 removeStartEventListener()
 ```
 
 </CodeGroup>
 
-Combined with hooks, you can automatically remove the event listener when components unmount.
+フックと組み合わせることで、コンポーネントがアンマウントされた際に自動的にイベントリスナーを削除できます。
 
 <CodeGroup>
 
@@ -156,7 +156,7 @@ $effect(() => {
 
 </CodeGroup>
 
-Alternatively, if you're using native browser events, you can remove the event listener using `removeEventListener()`.
+あるいは、ネイティブのブラウザーイベントを使用している場合は、`removeEventListener()` を使ってイベントリスナーを削除できます。
 
 <CodeGroup>
 
@@ -169,7 +169,7 @@ let startEventListener = (event) => {
 
 document.addEventListener('inertia:start', startEventListener)
 
-// Remove the listener...
+// リスナーを削除...
 document.removeEventListener('inertia:start', startEventListener)
 ```
 
@@ -182,7 +182,7 @@ let startEventListener = (event) => {
 
 document.addEventListener('inertia:start', startEventListener)
 
-// Remove the listener...
+// リスナーを削除...
 document.removeEventListener('inertia:start', startEventListener)
 ```
 
@@ -195,15 +195,15 @@ let startEventListener = (event) => {
 
 document.addEventListener('inertia:start', startEventListener)
 
-// Remove the listener...
+// リスナーを削除...
 document.removeEventListener('inertia:start', startEventListener)
 ```
 
 </CodeGroup>
 
-## Cancelling Events
+## イベントのキャンセル
 
-Some events, such as `before`, `exception`, and `invalid`, support cancellation, allowing you to prevent Inertia's default behavior. Just like native events, the event will be cancelled if only one event listener calls `event.preventDefault()`.
+`before`、`exception`、`invalid` などの一部のイベントはキャンセルをサポートしており、Inertia のデフォルト動作を防ぐことができます。ネイティブイベントと同様に、いずれか 1 つのイベントリスナーが `event.preventDefault()` を呼び出すと、そのイベントはキャンセルされます。
 
 <CodeGroup>
 
@@ -239,7 +239,7 @@ router.on('before', (event) => {
 
 </CodeGroup>
 
-For convenience, if you register your event listener using `router.on()`, you can cancel the event by returning `false` from the listener.
+利便性のため、`router.on()` を使ってイベントリスナーを登録している場合は、リスナーから `false` を返すことでイベントをキャンセルできます。
 
 <CodeGroup>
 
@@ -269,11 +269,11 @@ router.on('before', (event) => {
 
 </CodeGroup>
 
-Note, browsers do not allow cancelling the native `popstate` event, so preventing forward and back history visits while using Inertia.js is not possible.
+なお、ブラウザーはネイティブの `popstate` イベントのキャンセルを許可していないため、Inertia.js の使用中に履歴の前後移動を防ぐことはできません。
 
 ## Before
 
-The `before` event fires when a request is about to be made to the server. This is useful for intercepting visits.
+`before` イベントは、サーバーへのリクエストが送信される直前に発火します。これは、訪問をインターセプトするのに役立ちます。
 
 <CodeGroup>
 
@@ -303,7 +303,7 @@ router.on('before', (event) => {
 
 </CodeGroup>
 
-The primary purpose of this event is to allow you to prevent a visit from happening.
+このイベントの主な目的は、訪問が実行されるのを防ぐことです。
 
 <CodeGroup>
 
@@ -335,7 +335,7 @@ router.on('before', (event) => {
 
 ## Start
 
-The `start` event fires when a request to the server has started. This is useful for displaying loading indicators.
+`start` イベントは、サーバーへのリクエストが開始されたときに発火します。これは、ローディングインジケーターを表示するのに便利です。
 
 <CodeGroup>
 
@@ -365,11 +365,11 @@ router.on('start', (event) => {
 
 </CodeGroup>
 
-The `start` event is not cancelable.
+`start` イベントはキャンセルできません。
 
 ## Progress
 
-The `progress` event fires as progress increments during file uploads.
+`progress` イベントは、ファイルアップロード中に進捗が増加するたびに発火します。
 
 <CodeGroup>
 
@@ -399,11 +399,11 @@ router.on('progress', (event) => {
 
 </CodeGroup>
 
-The `progress` event is not cancelable.
+`progress` イベントはキャンセルできません。
 
 ## Success
 
-The `success` event fires on successful page visits, unless validation errors are present. However, this does *not* include history visits.
+`success` イベントは、バリデーションエラーが存在しない場合に、ページ訪問が成功すると発火します。ただし、履歴による訪問は含まれません。
 
 <CodeGroup>
 
@@ -433,13 +433,13 @@ router.on('success', (event) => {
 
 </CodeGroup>
 
-The `success` event is not cancelable.
+`success` イベントはキャンセルできません。
 
 ## Flash
 
 <Badge>v2.3.3+</Badge>
 
-The `flash` event fires when [flash data](/v2/data-props/flash-data) is received from the server. This is useful for displaying toast notifications or handling temporary data in a central location.
+`flash` イベントは、サーバーから [フラッシュデータ](/v2/data-props/flash-data) を受信したときに発火します。これは、トースト通知を表示したり、一時的なデータを中央集約的な場所で処理したりするのに便利です。
 
 <CodeGroup>
 
@@ -475,11 +475,11 @@ router.on('flash', (event) => {
 
 </CodeGroup>
 
-The `flash` event is not cancelable. [Partial reloads](/v2/data-props/partial-reloads) will only trigger the event if the flash data has changed.
+`flash` イベントはキャンセルできません。[部分リロード](/v2/data-props/partial-reloads) では、フラッシュデータが変更された場合にのみこのイベントが発火します。
 
 ## Error
 
-The `error` event fires when validation errors are present on "successful" page visits.
+`error` イベントは、「成功した」ページ訪問においてバリデーションエラーが存在する場合に発火します。
 
 <CodeGroup>
 
@@ -509,13 +509,13 @@ router.on('error', (errors) => {
 
 </CodeGroup>
 
-The `error` event is not cancelable.
+`error` イベントはキャンセルできません。
 
 ## Invalid
 
-The `invalid` event fires when a non-Inertia response is received from the server, such as an HTML or vanilla JSON response. A valid Inertia response is a response that has the `X-Inertia` header set to `true` with a `json` payload containing [the page object](/v2/core-concepts/the-protocol#the-page-object).
+`invalid` イベントは、HTML や通常の JSON レスポンスなど、非 Inertia レスポンスがサーバーから返されたときに発火します。有効な Inertia レスポンスとは、`X-Inertia` ヘッダーが `true` に設定され、[ページオブジェクト](/v2/core-concepts/the-protocol#the-page-object) を含む `json` ペイロードを持つレスポンスのことです。
 
-This event is fired for all response types, including `200`, `400`, and `500`response codes.
+このイベントは、`200`、`400`、`500` を含むすべてのレスポンスタイプで発火します。
 
 <CodeGroup>
 
@@ -548,7 +548,7 @@ router.on('invalid', (event) => {
 
 </CodeGroup>
 
-You may cancel the `invalid` event to prevent Inertia from showing the non-Inertia response modal.
+`invalid` イベントをキャンセルすることで、Inertia が非 Inertia レスポンス用のモーダルを表示するのを防ぐことができます。
 
 <CodeGroup>
 
@@ -558,7 +558,7 @@ import { router } from '@inertiajs/vue3'
 router.on('invalid', (event) => {
     event.preventDefault()
 
-    // Handle the invalid response yourself...
+    // 無効なレスポンスを自分で処理する...
 })
 ```
 
@@ -568,7 +568,7 @@ import { router } from '@inertiajs/react'
 router.on('invalid', (event) => {
     event.preventDefault()
 
-    // Handle the invalid response yourself...
+    // 無効なレスポンスを自分で処理する...
 })
 ```
 
@@ -578,7 +578,7 @@ import { router } from '@inertiajs/svelte'
 router.on('invalid', (event) => {
     event.preventDefault()
 
-    // Handle the invalid response yourself...
+    // 無効なレスポンスを自分で処理する...
 })
 ```
 
@@ -586,7 +586,7 @@ router.on('invalid', (event) => {
 
 ## Exception
 
-The `exception` event fires on unexpected XHR errors such as network interruptions. In addition, this event fires for errors generated when resolving page components.
+`exception` イベントは、ネットワーク中断などの予期しない XHR エラーが発生した場合に発火します。また、ページコンポーネントの解決時に生成されたエラーに対しても発火します。
 
 <CodeGroup>
 
@@ -619,7 +619,7 @@ router.on('exception', (event) => {
 
 </CodeGroup>
 
-You may cancel the `exception` event to prevent the error from being thrown.
+`exception` イベントをキャンセルすることで、エラーがスローされるのを防ぐことができます。
 
 <CodeGroup>
 
@@ -628,7 +628,7 @@ import { router } from '@inertiajs/vue3'
 
 router.on('exception', (event) => {
     event.preventDefault()
-    // Handle the error yourself
+    // エラーを自分で処理する
 })
 ```
 
@@ -637,7 +637,7 @@ import { router } from '@inertiajs/react'
 
 router.on('exception', (event) => {
     event.preventDefault()
-    // Handle the error yourself
+    // エラーを自分で処理する
 })
 ```
 
@@ -646,17 +646,17 @@ import { router } from '@inertiajs/svelte'
 
 router.on('exception', (event) => {
     event.preventDefault()
-    // Handle the error yourself
+    // エラーを自分で処理する
 })
 ```
 
 </CodeGroup>
 
-This event will *not* fire for XHR requests that receive `400` and `500` level responses or for non-Inertia responses, as these situations are handled in other ways by Inertia. Please consult the [error handling documentation](/v2/advanced/error-handling) for more information.
+このイベントは、`400` や `500` レベルのレスポンスを受け取った XHR リクエストや、非 Inertia レスポンスに対しては発火しません。これらの状況は Inertia によって別の方法で処理されます。詳細については、[エラーハンドリングのドキュメント](/v2/advanced/error-handling) を参照してください。
 
 ## Finish
 
-The `finish` event fires after an XHR request has completed for both "successful" and "unsuccessful" responses. This event is useful for hiding loading indicators.
+`finish` イベントは、「成功」「失敗」を問わず、XHR リクエストが完了した後に発火します。これは、ローディングインジケーターを非表示にするのに便利です。
 
 <CodeGroup>
 
@@ -686,11 +686,11 @@ router.on('finish', (event) => {
 
 </CodeGroup>
 
-The `finish` event is not cancelable.
+`finish` イベントはキャンセルできません。
 
 ## Navigate
 
-The `navigate` event fires on successful page visits, as well as when navigating through history.
+`navigate` イベントは、ページ訪問が成功したとき、および履歴を通じてナビゲーションしたときに発火します。
 
 <CodeGroup>
 
@@ -720,11 +720,11 @@ router.on('navigate', (event) => {
 
 </CodeGroup>
 
-The `navigate` event is not cancelable.
+`navigate` イベントはキャンセルできません。
 
 ## Prefetching
 
-The `prefetching` event fires when the router starts prefetching a page.
+`prefetching` イベントは、ルーターがページのプリフェッチを開始したときに発火します。
 
 <CodeGroup>
 
@@ -754,11 +754,11 @@ router.on('prefetching', (event) => {
 
 </CodeGroup>
 
-The `prefetching` event is not cancelable.
+`prefetching` イベントはキャンセルできません。
 
 ## Prefetched
 
-The `prefetched` event fires when the router has successfully prefetched a page.
+`prefetched` イベントは、ルーターがページのプリフェッチに成功したときに発火します。
 
 <CodeGroup>
 
@@ -788,8 +788,8 @@ router.on('prefetched', (event) => {
 
 </CodeGroup>
 
-The `prefetched` event is not cancelable.
+`prefetched` イベントはキャンセルできません。
 
-## Event Callbacks
+## イベントコールバック
 
-In addition to the global events described throughout this page, Inertia also provides a number of [event callbacks](/v2/the-basics/manual-visits#event-callbacks) that fire when manually making Inertia visits.
+このページ全体で説明しているグローバルイベントに加えて、Inertia では、手動で Inertia の訪問を行う際に発火するいくつかの [イベントコールバック](/v2/the-basics/manual-visits#event-callbacks) も提供されています。

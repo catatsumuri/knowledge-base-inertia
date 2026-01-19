@@ -1,16 +1,16 @@
 ---
-title: View Transitions
+title: ビュー遷移
 ---
 
 <Badge>v2.2.13+</Badge>
 
-Inertia supports the [View Transitions API](https://developer.chrome.com/docs/web-platform/view-transitions), allowing you to animate page transitions.
+Inertia は [View Transitions API](https://developer.chrome.com/docs/web-platform/view-transitions) をサポートしており、ページ遷移をアニメーション化できます。
 
-The View Transitions API is a [relatively new browser feature](https://caniuse.com/view-transitions). Inertia gracefully falls back to standard page transitions in browsers that don't support the API.
+View Transitions API は[比較的新しいブラウザ機能](https://caniuse.com/view-transitions)です。Inertia は、この API をサポートしていないブラウザでは標準のページ遷移にフォールバックします。
 
-## Enabling Transitions
+## 遷移を有効にする
 
-You may enable view transitions for a visit by setting the `viewTransition` option to `true`. By default, this will apply a cross-fade transition between pages.
+`viewTransition` オプションを `true` に設定することで、訪問時にビュー遷移を有効にできます。デフォルトでは、ページ間にクロスフェードの遷移が適用されます。
 
 <CodeGroup>
 
@@ -34,9 +34,9 @@ router.visit('/another-page', { viewTransition: true })
 
 </CodeGroup>
 
-## Transition Callbacks
+## 遷移コールバック
 
-You may also pass a callback to the `viewTransition` option, which will receive the standard [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition) instance provided by the browser. This allows you to hook into the various promises provided by the API.
+`viewTransition` オプションにはコールバックを渡すこともでき、そのコールバックはブラウザから提供される標準の [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition) インスタンスを受け取ります。これにより、API が提供するさまざまな Promise にフックできます。
 
 <CodeGroup>
 
@@ -78,33 +78,33 @@ router.visit('/another-page', {
 
 </CodeGroup>
 
-## Links
+## リンク
 
-The `viewTransition` option is also available on the `Link` component.
+`viewTransition` オプションは `Link` コンポーネントでも利用できます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 import { Link } from '@inertiajs/vue3'
 
-<Link href="/another-page" view-transition>Navigate</Link>
+<Link href="/another-page" view-transition>移動</Link>
 ```
 
 ```jsx React icon="react"
 import { Link } from '@inertiajs/react'
 
-<Link href="/another-page" viewTransition>Navigate</Link>
+<Link href="/another-page" viewTransition>移動</Link>
 ```
 
 ```svelte Svelte icon="s"
 import { Link } from '@inertiajs/svelte'
 
-<Link href="/another-page" viewTransition>Navigate</Link>
+<Link href="/another-page" viewTransition>移動</Link>
 ```
 
 </CodeGroup>
 
-You may also pass a callback to access the `ViewTransition` instance.
+`ViewTransition` インスタンスにアクセスするためのコールバックを渡すこともできます。
 
 <CodeGroup>
 
@@ -115,7 +115,7 @@ import { Link } from '@inertiajs/vue3'
     href="/another-page"
     :view-transition="(transition) => transition.finished.then(() => console.log('Done'))"
 >
-    Navigate
+    移動
 </Link>
 ```
 
@@ -126,7 +126,7 @@ import { Link } from '@inertiajs/react'
     href="/another-page"
     viewTransition={(transition) => transition.finished.then(() => console.log('Done'))}
 >
-    Navigate
+    移動
 </Link>
 ```
 
@@ -137,15 +137,15 @@ import { Link } from '@inertiajs/svelte'
     href="/another-page"
     viewTransition={(transition) => transition.finished.then(() => console.log('Done'))}
 >
-    Navigate
+    移動
 </Link>
 ```
 
 </CodeGroup>
 
-## Global Configuration
+## グローバル設定
 
-You may enable view transitions globally for all visits by configuring the `visitOptions` callback when [initializing your Inertia app](/v2/installation/client-side-setup#configuring-defaults).
+[Inertia アプリを初期化する際](/v2/installation/client-side-setup#configuring-defaults)に `visitOptions` コールバックを設定することで、すべての訪問に対してグローバルにビュー遷移を有効にできます。
 
 <CodeGroup>
 
@@ -190,9 +190,9 @@ createInertiaApp({
 
 </CodeGroup>
 
-## Customizing Transitions
+## 遷移のカスタマイズ
 
-You may customize the transition animations using CSS. The View Transitions API uses several pseudo-elements that you can target with CSS to create custom animations. The following examples are taken from the [Chrome documentation ](https://developer.chrome.com/docs/web-platform/view-transitions/same-document#customize_the_transition).
+CSS を使用して遷移アニメーションをカスタマイズできます。View Transitions API は、カスタムアニメーションを作成するために CSS で指定できる複数の疑似要素を使用します。以下の例は、[Chrome のドキュメント](https://developer.chrome.com/docs/web-platform/view-transitions/same-document#customize_the_transition) から引用したものです。
 
 ```css
 @keyframes fade-in {
@@ -217,14 +217,14 @@ You may customize the transition animations using CSS. The View Transitions API 
 }
 ```
 
-You may also animate individual elements between pages by assigning them a unique `view-transition-name`. For example, you may animate an avatar from a large size on a profile page to a small size on a dashboard.
+また、各要素に一意の `view-transition-name` を割り当てることで、ページ間で個別の要素をアニメーションさせることもできます。たとえば、プロフィールページでは大きく、ダッシュボードでは小さく表示されるアバターをアニメーションさせることができます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <!-- Profile.vue -->
 <template>
-    <img src="/avatar.jpg" alt="User" class="avatar-large" />
+    <img src="/avatar.jpg" alt="ユーザー" class="avatar-large" />
 </template>
 
 <style>
@@ -237,7 +237,7 @@ You may also animate individual elements between pages by assigning them a uniqu
 
 <!-- Dashboard.vue -->
 <template>
-    <img src="/avatar.jpg" alt="User" class="avatar-small" />
+    <img src="/avatar.jpg" alt="ユーザー" class="avatar-small" />
 </template>
 
 <style>
@@ -252,7 +252,7 @@ You may also animate individual elements between pages by assigning them a uniqu
 ```jsx React icon="react"
 // Profile.jsx
 export default function Profile() {
-    return <img src="/avatar.jpg" alt="User" className="avatar-large" />
+    return <img src="/avatar.jpg" alt="ユーザー" className="avatar-large" />
 }
 
 // CSS
@@ -264,7 +264,7 @@ export default function Profile() {
 
 // Dashboard.jsx
 export default function Dashboard() {
-    return <img src="/avatar.jpg" alt="User" className="avatar-small" />
+    return <img src="/avatar.jpg" alt="ユーザー" className="avatar-small" />
 }
 
 // CSS
@@ -277,7 +277,7 @@ export default function Dashboard() {
 
 ```svelte Svelte icon="s"
 <!-- Profile.svelte -->
-<img src="/avatar.jpg" alt="User" class="avatar-large" />
+<img src="/avatar.jpg" alt="ユーザー" class="avatar-large" />
 
 <style>
 .avatar-large {
@@ -288,7 +288,7 @@ export default function Dashboard() {
 </style>
 
 <!-- Dashboard.svelte -->
-<img src="/avatar.jpg" alt="User" class="avatar-small" />
+<img src="/avatar.jpg" alt="ユーザー" class="avatar-small" />
 
 <style>
 .avatar-small {
@@ -301,4 +301,4 @@ export default function Dashboard() {
 
 </CodeGroup>
 
-You may customize view transitions to your liking using any CSS animations you wish. For more information, please consult the [View Transitions API documentation ](https://developer.chrome.com/docs/web-platform/view-transitions/same-document#customize_the_transition).
+任意の CSS アニメーションを使用して、ビュー遷移を自由にカスタマイズできます。詳しくは、[View Transitions API のドキュメント](https://developer.chrome.com/docs/web-platform/view-transitions/same-document#customize_the_transition) を参照してください。

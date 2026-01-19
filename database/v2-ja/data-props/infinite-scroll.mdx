@@ -1,12 +1,12 @@
 ---
-title: Infinite Scroll
+title: 無限スクロール
 ---
 
-Inertia's infinite scroll feature loads additional pages of content as users scroll, replacing traditional pagination controls. This is great for applications like chat interfaces, social feeds, photo grids, and product listings.
+Inertia の無限スクロール機能は、ユーザーがスクロールするにつれて追加のコンテンツページを読み込み、従来のページネーションコントロールを置き換えます。これは、チャットインターフェース、ソーシャルフィード、フォトグリッド、商品一覧などのアプリケーションに最適です。
 
-## Server-Side
+## サーバーサイド
 
-To configure your paginated data for infinite scrolling, you should use the `Inertia::scroll()`method when returning your response. This method automatically configures the proper merge behavior and normalizes pagination metadata for the frontend component.
+無限スクロール用にページネーションされたデータを設定するには、レスポンスを返す際に `Inertia::scroll()` メソッドを使用します。このメソッドは、適切なマージ動作を自動的に設定し、フロントエンドコンポーネント向けにページネーションメタデータを正規化します。
 
 ```php
 Route::get('/users', function () {
@@ -16,11 +16,11 @@ Route::get('/users', function () {
 });
 ```
 
-The `Inertia::scroll()` method works with Laravel's `paginate()`, `simplePaginate()`, and `cursorPaginate()` methods, as well as pagination data wrapped in [Eloquent API resources](https://laravel.com/docs/eloquent-resources). For more details, check out the [Inertia::scroll() method](#inertia-scroll-method) documentation.
+`Inertia::scroll()` メソッドは、Laravel の `paginate()`、`simplePaginate()`、`cursorPaginate()` メソッドに加え、[Eloquent API リソース](https://laravel.com/docs/eloquent-resources)でラップされたページネーションデータにも対応しています。詳細は [Inertia::scroll() メソッド](#inertia-scroll-method) のドキュメントをご覧ください。
 
-## Client-Side
+## クライアントサイド
 
-On the client side, Inertia provides the `<InfiniteScroll>` component to automatically load additional pages of content. The component accepts a `data` prop that specifies the key of the prop containing your paginated data. The `<InfiniteScroll>` component should wrap the content that depends on the paginated data.
+クライアントサイドでは、Inertia は追加のコンテンツページを自動的に読み込むための `<InfiniteScroll>` コンポーネントを提供します。このコンポーネントは、ページネーションされたデータを含む props のキーを指定する `data` プロパティを受け取ります。`<InfiniteScroll>` コンポーネントは、ページネーションデータに依存するコンテンツをラップする必要があります。
 
 <CodeGroup>
 
@@ -71,11 +71,11 @@ export default function Users({ users }) {
 
 </CodeGroup>
 
-The component uses [intersection observers ](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to detect when users scroll near the end of the content and automatically triggers requests to load the next page. New data is merged with existing content rather than replacing it.
+このコンポーネントは [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) を使用して、ユーザーがコンテンツの末尾付近までスクロールしたことを検知し、次のページを読み込むリクエストを自動的にトリガーします。新しいデータは既存のコンテンツを置き換えるのではなく、マージされます。
 
-## Loading Buffer
+## ローディングバッファ
 
-You can control how early content begins loading by setting a buffer distance. The buffer specifies how many pixels before the end of the content loading should begin.
+バッファ距離を設定することで、コンテンツの読み込み開始タイミングを制御できます。バッファは、コンテンツの末尾に到達する何ピクセル前から読み込みを開始するかを指定します。
 
 <CodeGroup>
 
@@ -99,11 +99,11 @@ You can control how early content begins loading by setting a buffer distance. T
 
 </CodeGroup>
 
-In the example above, content will start loading 500 pixels before reaching the end of the current content. A larger buffer loads content earlier but potentially loads content that users may never see.
+上記の例では、現在のコンテンツの末尾に到達する 500 ピクセル前から読み込みが開始されます。バッファを大きくすると早めに読み込まれますが、ユーザーが実際には見ない可能性のあるコンテンツも読み込まれる場合があります。
 
-## URL Synchronization
+## URL 同期
 
-The infinite scroll component updates the browser URL's query string (`?page=...`) as users scroll through content. The URL reflects which page has the most visible items on screen, updating in both directions as users scroll up or down. This allows users to bookmark or share links to specific pages. You can disable this behavior to maintain the original page URL.
+無限スクロールコンポーネントは、ユーザーがコンテンツをスクロールするにつれて、ブラウザ URL のクエリ文字列（`?page=...`）を更新します。URL は、画面上で最も多く表示されているページを反映し、上下どちらにスクロールしても更新されます。これにより、特定のページへのリンクをブックマークしたり共有したりできます。この挙動を無効にして、元のページ URL を維持することも可能です。
 
 <CodeGroup>
 
@@ -127,13 +127,13 @@ The infinite scroll component updates the browser URL's query string (`?page=...
 
 </CodeGroup>
 
-This is useful when infinite scroll is used for secondary content that shouldn't affect the main page URL, such as comments on a blog post or related products on a product page.
+これは、ブログ投稿のコメントや商品ページの関連商品など、メインページの URL に影響を与えたくない副次的なコンテンツに無限スクロールを使用する場合に便利です。
 
-## Resetting
+## リセット
 
-When filters or other parameters change, you may need to reset the infinite scroll data to start from the beginning. Without resetting, new results will merge with existing content instead of replacing it.
+フィルターやその他のパラメータが変更された場合、無限スクロールのデータを最初から再読み込みする必要があることがあります。リセットしない場合、新しい結果は既存のコンテンツにマージされ、置き換えられません。
 
-You can reset data using the `reset` visit option.
+`reset` ビジットオプションを使用してデータをリセットできます。
 
 <CodeGroup>
 
@@ -151,8 +151,8 @@ const show = (role) => {
 </script>
 
 <template>
-    <button @click="show('admin')">Show admins</button>
-    <button @click="show('customer')">Show customers</button>
+    <button @click="show('admin')">管理者を表示</button>
+    <button @click="show('customer')">顧客を表示</button>
 
     <InfiniteScroll data="users">
         <div v-for="user in users.data" :key="user.id">
@@ -176,8 +176,8 @@ export default function Users({ users }) {
 
     return (
 
-            <button onClick={() => show('admin')}>Show admins</button>
-            <button onClick={() => show('customer')}>Show customers</button>
+            <button onClick={() => show('admin')}>管理者を表示</button>
+            <button onClick={() => show('customer')}>顧客を表示</button>
 
             <InfiniteScroll data="users">
                 {users.data.map(user => (
@@ -205,8 +205,8 @@ export default function Users({ users }) {
     }
 </script>
 
-<button on:click={() => show('admin')}>Show admins</button>
-<button on:click={() => show('customer')}>Show customers</button>
+<button on:click={() => show('admin')}>管理者を表示</button>
+<button on:click={() => show('customer')}>顧客を表示</button>
 
 <InfiniteScroll data="users">
     {#each users.data as user (user.id)}
@@ -217,60 +217,60 @@ export default function Users({ users }) {
 
 </CodeGroup>
 
-For more information about the reset option, see the [Resetting props](/v2/data-props/merging-props#resetting-props) documentation.
+`reset` オプションの詳細については、[Resetting props](/v2/data-props/merging-props#resetting-props) のドキュメントをご覧ください。
 
-## Loading Direction
+## 読み込み方向
 
-The infinite scroll component loads content in both directions when you scroll near the start or end. You can control this behavior using the `only-next` and `only-previous` props.
+無限スクロールコンポーネントは、開始位置または終了位置付近にスクロールした際に、両方向へコンテンツを読み込みます。この挙動は `only-next` および `only-previous` プロパティで制御できます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
-<!-- Only load the next page -->
+<!-- 次のページのみ読み込む -->
 <InfiniteScroll data="users" only-next>
     <!-- ... -->
 </InfiniteScroll>
 
-<!-- Only load the previous page -->
+<!-- 前のページのみ読み込む -->
 <InfiniteScroll data="messages" only-previous>
     <!-- ... -->
 </InfiniteScroll>
 
-<!-- Load in both directions (default) -->
+<!-- 両方向に読み込む（デフォルト） -->
 <InfiniteScroll data="posts">
     <!-- ... -->
 </InfiniteScroll>
 ```
 
 ```jsx React icon="react"
-{/* Only load the next page */}
+{/* 次のページのみ読み込む */}
 <InfiniteScroll data="users" onlyNext>
     {/* ... */}
 </InfiniteScroll>
 
-{/* Only load the previous page */}
+{/* 前のページのみ読み込む */}
 <InfiniteScroll data="messages" onlyPrevious>
     {/* ... */}
 </InfiniteScroll>
 
-{/* Load in both directions (default) */}
+{/* 両方向に読み込む（デフォルト） */}
 <InfiniteScroll data="posts">
     {/* ... */}
 </InfiniteScroll>
 ```
 
 ```svelte Svelte icon="s"
-<!-- Only load the next page -->
+<!-- 次のページのみ読み込む -->
 <InfiniteScroll data="users" only-next>
     <!-- ... -->
 </InfiniteScroll>
 
-<!-- Only load the previous page -->
+<!-- 前のページのみ読み込む -->
 <InfiniteScroll data="messages" only-previous>
     <!-- ... -->
 </InfiniteScroll>
 
-<!-- Load in both directions (default) -->
+<!-- 両方向に読み込む（デフォルト） -->
 <InfiniteScroll data="posts">
     <!-- ... -->
 </InfiniteScroll>
@@ -278,11 +278,11 @@ The infinite scroll component loads content in both directions when you scroll n
 
 </CodeGroup>
 
-The default option is particularly useful when users start on a middle page and need to scroll in both directions to access all content.
+デフォルトの挙動は、ユーザーが途中のページから開始し、すべてのコンテンツにアクセスするために上下両方向へスクロールする必要がある場合に特に有用です。
 
-## Reverse Mode
+## リバースモード
 
-For chat applications, timelines, or interfaces where content is sorted descendingly (newest items at the bottom), you can enable reverse mode. This configures the component to load older content when scrolling upward.
+チャットアプリケーションやタイムラインなど、コンテンツが降順（最新の項目が下）で並んでいるインターフェースでは、リバースモードを有効にできます。これにより、上方向にスクロールした際に古いコンテンツが読み込まれるようになります。
 
 <CodeGroup>
 
@@ -306,9 +306,9 @@ For chat applications, timelines, or interfaces where content is sorted descendi
 
 </CodeGroup>
 
-In reverse mode, the component flips the loading directions so that scrolling up loads the next page (older content) and scrolling down loads the previous page (newer content). The component handles the loading positioning, but you are responsible for reversing your content to display in the correct order.
+リバースモードでは、読み込み方向が反転し、上にスクロールすると次のページ（古いコンテンツ）が、下にスクロールすると前のページ（新しいコンテンツ）が読み込まれます。読み込み位置の調整はコンポーネントが処理しますが、正しい順序で表示するためにコンテンツを反転させるのは利用者側の責任です。
 
-Reverse mode also enables automatic scrolling to the bottom on initial load, which you can disable with `:auto-scroll="false"`.
+また、リバースモードでは初期読み込み時に自動的に最下部へスクロールしますが、`:auto-scroll="false"` で無効化できます。
 
 <CodeGroup>
 
@@ -332,9 +332,9 @@ Reverse mode also enables automatic scrolling to the bottom on initial load, whi
 
 </CodeGroup>
 
-## Manual Mode
+## マニュアルモード
 
-Manual mode disables automatic loading when scrolling and allows you to control when content loads through the `next` and `previous` slots. For more details about available slot properties and customization options, see the [Slots](#slots) documentation.
+マニュアルモードでは、スクロール時の自動読み込みが無効になり、`next` および `previous` スロットを通じて、いつコンテンツを読み込むかを制御できます。利用可能なスロットプロパティやカスタマイズオプションの詳細については、[Slots](#slots) ドキュメントをご覧ください。
 
 <CodeGroup>
 
@@ -343,15 +343,15 @@ Manual mode disables automatic loading when scrolling and allows you to control 
     <InfiniteScroll data="users" manual>
         <template #previous="{ loading, fetch, hasMore }">
             <button v-if="hasMore" @click="fetch" :disabled="loading">
-                {{ loading ? 'Loading...' : 'Load previous' }}
+                {{ loading ? '読み込み中...' : '前を読み込む' }}
             </button>
         </template>
 
-        <!-- Your content -->
+        <!-- コンテンツ -->
 
         <template #next="{ loading, fetch, hasMore }">
             <button v-if="hasMore" @click="fetch" :disabled="loading">
-                {{ loading ? 'Loading...' : 'Load more' }}
+                {{ loading ? '読み込み中...' : 'さらに読み込む' }}
             </button>
         </template>
     </InfiniteScroll>
@@ -368,14 +368,14 @@ export default ({ users }) => (
         previous={({ loading, fetch, hasMore }) => (
             hasMore && (
                 <button onClick={fetch} disabled={loading}>
-                    {loading ? 'Loading...' : 'Load previous'}
+                    {loading ? '読み込み中...' : '前を読み込む'}
                 </button>
             )
         )}
         next={({ loading, fetch, hasMore }) => (
             hasMore && (
                 <button onClick={fetch} disabled={loading}>
-                    {loading ? 'Loading...' : 'Load more'}
+                    {loading ? '読み込み中...' : 'さらに読み込む'}
                 </button>
             )
         )}
@@ -397,7 +397,7 @@ export default ({ users }) => (
     <div slot="previous" let:hasMore let:fetch let:loading>
         {#if hasMore}
             <button on:click={fetch} disabled={loading}>
-                {loading ? 'Loading...' : 'Load previous'}
+                {loading ? '読み込み中...' : '前を読み込む'}
             </button>
         {/if}
     </div>
@@ -409,7 +409,7 @@ export default ({ users }) => (
     <div slot="next" let:hasMore let:fetch let:loading>
         {#if hasMore}
             <button on:click={fetch} disabled={loading}>
-                {loading ? 'Loading...' : 'Load more'}
+                {loading ? '読み込み中...' : 'さらに読み込む'}
             </button>
         {/if}
     </div>
@@ -418,7 +418,7 @@ export default ({ users }) => (
 
 </CodeGroup>
 
-You can also configure the component to automatically switch to manual mode after a certain number of pages using the `manualAfter` prop.
+`manualAfter` プロパティを使用すると、一定ページ数後に自動的にマニュアルモードへ切り替えることもできます。
 
 <CodeGroup>
 
@@ -442,115 +442,115 @@ You can also configure the component to automatically switch to manual mode afte
 
 </CodeGroup>
 
-## Slots
+## スロット
 
-The infinite scroll component provides several slots to customize the loading experience. These slots allow you to display custom loading indicators and create manual load controls. Each slot receives properties that provide loading state information and functions to trigger content loading.
+無限スクロールコンポーネントは、読み込み体験をカスタマイズするための複数のスロットを提供します。これらのスロットを使って、独自のローディングインジケータを表示したり、手動読み込みコントロールを作成したりできます。各スロットには、読み込み状態や読み込みをトリガーする関数を含むプロパティが渡されます。
 
-### Default Slot
+### デフォルトスロット
 
-The main content area where you render your data items. This slot receives loading state information.
+データ項目を描画するメインコンテンツ領域です。このスロットには読み込み状態の情報が渡されます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <InfiniteScroll data="users" #default="{ loading, loadingPrevious, loadingNext }">
-    <!-- Your content with access to loading states -->
+    <!-- 読み込み状態にアクセス可能なコンテンツ -->
 </InfiniteScroll>
 ```
 
 ```jsx React icon="react"
 <InfiniteScroll data="users">
     {({ loading, loadingPrevious, loadingNext }) => (
-        <div>{/* Your content with access to loading states */}</div>
+        <div>{/* 読み込み状態にアクセス可能なコンテンツ */}</div>
     )}
 </InfiniteScroll>
 ```
 
 ```svelte Svelte icon="s"
 <InfiniteScroll data="users" let:loading let:loadingPrevious let:loadingNext>
-    <!-- Your content with access to loading states -->
+    <!-- 読み込み状態にアクセス可能なコンテンツ -->
 </InfiniteScroll>
 ```
 
 </CodeGroup>
 
-### Loading Slot
+### ローディングスロット
 
-The loading slot is used as a fallback when loading content and no custom `before` or `after` slots are provided. This creates a default loading indicator.
+ローディングスロットは、コンテンツ読み込み中で、かつカスタムの `before` または `after` スロットが提供されていない場合のフォールバックとして使用されます。これにより、デフォルトのローディングインジケータが作成されます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <template>
     <InfiniteScroll data="users">
-        <!-- Your content -->
+        <!-- コンテンツ -->
 
         <template #loading>
-            Loading more users...
+            ユーザーを読み込み中...
         </template>
     </InfiniteScroll>
 </template>
 ```
 
 ```jsx React icon="react"
-<InfiniteScroll data="users" loading={() => "Loading more users..."}>
-    {/* Your content */}
+<InfiniteScroll data="users" loading={() => "ユーザーを読み込み中..."}>
+    {/* コンテンツ */}
 </InfiniteScroll>
 ```
 
 ```svelte Svelte icon="s"
 <InfiniteScroll data="users">
-    <!-- Your content -->
+    <!-- コンテンツ -->
 
     <div slot="loading">
-        Loading more users...
+        ユーザーを読み込み中...
     </div>
 </InfiniteScroll>
 ```
 
 </CodeGroup>
 
-### Previous and Next Slots
+### Previous / Next スロット
 
-The `previous` and `next` slots are rendered above and below the main content, typically used for manual load controls. These slots receive several properties including loading states, fetch functions, and mode indicators.
+`previous` および `next` スロットは、メインコンテンツの上下にレンダリングされ、主に手動読み込みコントロールとして使用されます。これらのスロットには、読み込み状態、フェッチ関数、モード情報などのプロパティが渡されます。
 
 ```vue
 <template>
     <InfiniteScroll data="users" :manual-after="3">
         <template #previous="{ loading, fetch, hasMore, manualMode }">
             <button v-if="manualMode && hasMore" @click="fetch" :disabled="loading">
-                {{ loading ? 'Loading...' : 'Load previous' }}
+                {{ loading ? '読み込み中...' : '前を読み込む' }}
             </button>
         </template>
 
-        <!-- Your content -->
+        <!-- コンテンツ -->
 
         <template #next="{ loading, fetch, hasMore, manualMode }">
             <button v-if="manualMode && hasMore" @click="fetch" :disabled="loading">
-                {{ loading ? 'Loading...' : 'Load more' }}
+                {{ loading ? '読み込み中...' : 'さらに読み込む' }}
             </button>
         </template>
     </InfiniteScroll>
 </template>
 ```
 
-The `loading`, `previous`, and `next` slots receive the following properties:
+`loading`、`previous`、`next` スロットには次のプロパティが渡されます。
 
-| Property          | Description                                         |
-|:------------------|:----------------------------------------------------|
-| `loading`         | Whether the slot is currently loading content       |
-| `loadingPrevious` | Whether previous content is loading                 |
-| `loadingNext`     | Whether next content is loading                     |
-| `fetch`           | Function to trigger loading for the slot            |
-| `hasMore`         | Whether more content is available for the slot      |
-| `hasPrevious`     | Whether more previous content is available          |
-| `hasNext`         | Whether more next content is available              |
-| `manualMode`      | Whether manual mode is active                       |
-| `autoMode`        | Whether automatic loading is active                 |
+| プロパティ        | 説明                                           |
+|:------------------|:-----------------------------------------------|
+| `loading`         | 現在スロットがコンテンツを読み込み中かどうか |
+| `loadingPrevious` | 前のコンテンツを読み込み中かどうか           |
+| `loadingNext`     | 次のコンテンツを読み込み中かどうか           |
+| `fetch`           | スロットの読み込みをトリガーする関数         |
+| `hasMore`         | さらにコンテンツがあるかどうか               |
+| `hasPrevious`     | さらに前のコンテンツがあるかどうか           |
+| `hasNext`         | さらに次のコンテンツがあるかどうか           |
+| `manualMode`      | マニュアルモードが有効かどうか               |
+| `autoMode`        | 自動読み込みが有効かどうか                   |
 
-## Custom Element
+## カスタム要素
 
-The `InfiniteScroll` component renders as a `<div>` element. You may customize this to use any HTML element using the `as` prop.
+`InfiniteScroll` コンポーネントはデフォルトで `<div>` 要素としてレンダリングされます。`as` プロパティを使用することで、任意の HTML 要素に変更できます。
 
 <CodeGroup>
 
@@ -584,9 +584,9 @@ The `InfiniteScroll` component renders as a `<div>` element. You may customize t
 
 </CodeGroup>
 
-## Element Targeting
+## 要素ターゲティング
 
-The infinite scroll component automatically tracks content and assigns page numbers to elements for [URL synchronization](#url-synchronization). When your data items are not direct children of the component's root element, you need to specify which element contains the actual data items using the `itemsElement` prop.
+無限スクロールコンポーネントは、[URL 同期](#url-synchronization) のためにコンテンツを自動的に追跡し、要素にページ番号を割り当てます。データ項目がコンポーネントのルート要素の直接の子でない場合、実際のデータ項目を含む要素を `itemsElement` プロパティで指定する必要があります。
 
 <CodeGroup>
 
@@ -595,7 +595,7 @@ The infinite scroll component automatically tracks content and assigns page numb
     <InfiniteScroll data="users" items-element="#table-body">
         <table>
             <thead>
-                <tr><th>Name</th></tr>
+                <tr><th>名前</th></tr>
             </thead>
             <tbody id="table-body">
                 <tr v-for="user in users.data" :key="user.id">
@@ -611,7 +611,7 @@ The infinite scroll component automatically tracks content and assigns page numb
 <InfiniteScroll data="users" itemsElement="#table-body">
     <table>
         <thead>
-            <tr><th>Name</th></tr>
+            <tr><th>名前</th></tr>
         </thead>
         <tbody id="table-body">
             {users.data.map(user => (
@@ -628,7 +628,7 @@ The infinite scroll component automatically tracks content and assigns page numb
 <InfiniteScroll data="users" items-element="#table-body">
     <table>
         <thead>
-            <tr><th>Name</th></tr>
+            <tr><th>名前</th></tr>
         </thead>
         <tbody id="table-body">
             {#each users.data as user (user.id)}
@@ -643,9 +643,9 @@ The infinite scroll component automatically tracks content and assigns page numb
 
 </CodeGroup>
 
-In this example, the component monitors the `#table-body` element and automatically tags each `<tr>` with a page number as new content loads. This enables proper URL updates based on which page's content is most visible in the viewport.
+この例では、コンポーネントは `#table-body` 要素を監視し、新しいコンテンツが読み込まれるたびに各 `<tr>` にページ番号を自動的に付与します。これにより、ビューポート内で最も表示されているページに基づいて URL が正しく更新されます。
 
-You can also specify custom trigger elements for loading more content using CSS selectors. This prevents the default trigger elements from being rendered and uses intersection observers on your custom elements instead.
+CSS セレクタを使用して、読み込みトリガー用のカスタム要素を指定することもできます。これにより、デフォルトのトリガー要素はレンダリングされず、代わりに指定したカスタム要素に対して Intersection Observer が使用されます。
 
 <CodeGroup>
 
@@ -659,7 +659,7 @@ You can also specify custom trigger elements for loading more content using CSS 
         >
         <table>
             <thead id="table-header">
-                <tr><th>Name</th></tr>
+                <tr><th>名前</th></tr>
             </thead>
             <tbody id="table-body">
                 <tr v-for="user in users.data" :key="user.id">
@@ -667,7 +667,7 @@ You can also specify custom trigger elements for loading more content using CSS 
                 </tr>
             </tbody>
             <tfoot id="table-footer">
-                <tr><td>Footer</td></tr>
+                <tr><td>フッター</td></tr>
             </tfoot>
         </table>
     </InfiniteScroll>
@@ -683,7 +683,7 @@ You can also specify custom trigger elements for loading more content using CSS 
 >
     <table>
         <thead id="table-header">
-            <tr><th>Name</th></tr>
+            <tr><th>名前</th></tr>
         </thead>
         <tbody id="table-body">
             {users.data.map(user => (
@@ -693,7 +693,7 @@ You can also specify custom trigger elements for loading more content using CSS 
             ))}
         </tbody>
         <tfoot id="table-footer">
-            <tr><td>Footer</td></tr>
+            <tr><td>フッター</td></tr>
         </tfoot>
     </table>
 </InfiniteScroll>
@@ -708,7 +708,7 @@ You can also specify custom trigger elements for loading more content using CSS 
 >
     <table>
         <thead id="table-header">
-            <tr><th>Name</th></tr>
+            <tr><th>名前</th></tr>
         </thead>
         <tbody id="table-body">
             {#each users.data as user (user.id)}
@@ -718,7 +718,7 @@ You can also specify custom trigger elements for loading more content using CSS 
             {/each}
         </tbody>
         <tfoot id="table-footer">
-            <tr><td>Footer</td></tr>
+            <tr><td>フッター</td></tr>
         </tfoot>
     </table>
 </InfiniteScroll>
@@ -726,7 +726,7 @@ You can also specify custom trigger elements for loading more content using CSS 
 
 </CodeGroup>
 
-Alternatively, you can use template refs instead of CSS selectors. This avoids adding HTML attributes and provides direct element references.
+あるいは、CSS セレクタの代わりにテンプレート参照（refs）を使用することもできます。これにより HTML 属性を追加する必要がなくなり、要素への直接参照が可能になります。
 
 <CodeGroup>
 
@@ -747,7 +747,7 @@ const tableBody = ref()
     >
         <table>
             <thead ref="tableHeader">
-                <tr><th>Name</th></tr>
+                <tr><th>名前</th></tr>
             </thead>
             <tbody ref="tableBody">
                 <tr v-for="user in users.data" :key="user.id">
@@ -755,7 +755,7 @@ const tableBody = ref()
                 </tr>
             </tbody>
             <tfoot ref="tableFooter">
-                <tr><td>Footer</td></tr>
+                <tr><td>フッター</td></tr>
             </tfoot>
         </table>
     </InfiniteScroll>
@@ -779,7 +779,7 @@ export default ({ users }) => {
 >
             <table>
                 <thead ref={tableHeader}>
-                    <tr><th>Name</th></tr>
+                    <tr><th>名前</th></tr>
                 </thead>
                 <tbody ref={tableBody}>
                     {users.data.map(user => (
@@ -789,7 +789,7 @@ export default ({ users }) => {
                     ))}
                 </tbody>
                 <tfoot ref={tableFooter}>
-                    <tr><td>Footer</td></tr>
+                    <tr><td>フッター</td></tr>
                 </tfoot>
             </table>
         </InfiniteScroll>
@@ -815,7 +815,7 @@ export default ({ users }) => {
 >
     <table>
         <thead bind:this={tableHeader}>
-            <tr><th>Name</th></tr>
+            <tr><th>名前</th></tr>
         </thead>
         <tbody bind:this={tableBody}>
             {#each users.data as user (user.id)}
@@ -825,7 +825,7 @@ export default ({ users }) => {
             {/each}
         </tbody>
         <tfoot bind:this={tableFooter}>
-            <tr><td>Footer</td></tr>
+            <tr><td>フッター</td></tr>
         </tfoot>
     </table>
 </InfiniteScroll>
@@ -833,9 +833,9 @@ export default ({ users }) => {
 
 </CodeGroup>
 
-## Scroll Containers
+## スクロールコンテナ
 
-The infinite scroll component works within any scrollable container, not just the main document. The component automatically adapts to use the custom scroll container for trigger detection and calculations instead of the main document scroll.
+無限スクロールコンポーネントは、メインドキュメントだけでなく、任意のスクロール可能なコンテナ内でも動作します。トリガー検出や計算には、メインドキュメントのスクロールではなく、カスタムスクロールコンテナが自動的に使用されます。
 
 <CodeGroup>
 
@@ -875,9 +875,9 @@ The infinite scroll component works within any scrollable container, not just th
 
 </CodeGroup>
 
-### Multiple Scroll Containers
+### 複数のスクロールコンテナ
 
-Sometimes you may need to render multiple infinite scroll components on a single page. However, if both components use the default `page` query parameter for [URL synchronization](#url-synchronization), they will conflict with each other. To resolve this, instruct each paginator to use a custom `pageName`.
+1 つのページに複数の無限スクロールコンポーネントを配置する必要がある場合があります。ただし、両方のコンポーネントが [URL 同期](#url-synchronization) のためにデフォルトの `page` クエリパラメータを使用すると、互いに競合してしまいます。これを解決するには、それぞれのページネータにカスタムの `pageName` を指定します。
 
 ```php
 Route::get('/dashboard', function () {
@@ -892,13 +892,13 @@ Route::get('/dashboard', function () {
 });
 ```
 
-The `Inertia::scroll()` method automatically detects the `pageName` from each paginator, allowing both scroll containers to maintain independent pagination state. This results in URLs like `?users=2&orders=3` instead of conflicting `?page=` parameters.
+`Inertia::scroll()` メソッドは各ページネータから `pageName` を自動的に検出するため、`?page=` が競合することなく、`?users=2&orders=3` のようにそれぞれ独立したページネーション状態を URL に反映できます。
 
-For more information about pagination page names, see [Laravel's documentation](https://laravel.com/docs/pagination#multiple-paginator-instances-per-page).
+ページネーションのページ名について詳しくは、[Laravel のドキュメント](https://laravel.com/docs/pagination#multiple-paginator-instances-per-page)をご覧ください。
 
-## Programmatic Access
+## プログラムによるアクセス
 
-When you need to trigger loading actions programmatically, you may use a template ref.
+プログラムから読み込みアクションをトリガーしたい場合は、テンプレート参照を使用できます。
 
 <CodeGroup>
 
@@ -913,10 +913,10 @@ const fetchNext = () => {
 </script>
 
 <template>
-    <button @click="fetchNext">Load More</button>
+    <button @click="fetchNext">さらに読み込む</button>
 
     <InfiniteScroll ref="infiniteScrollRef" data="users" manual>
-        <!-- Your content -->
+        <!-- コンテンツ -->
     </InfiniteScroll>
 </template>
 ```
@@ -934,7 +934,7 @@ export default ({ users }) => {
 
     return (
 
-            <button onClick={fetchNext}>Load More</button>
+            <button onClick={fetchNext}>さらに読み込む</button>
 
             <InfiniteScroll ref={infiniteScrollRef} data="users" manual>
                 {users.data.map(user => (
@@ -958,7 +958,7 @@ export default ({ users }) => {
     }
 </script>
 
-<button on:click={fetchNext}>Load More</button>
+<button on:click={fetchNext}>さらに読み込む</button>
 
 <InfiniteScroll bind:this={infiniteScrollRef} data="users" manual>
     {#each users.data as user (user.id)}
@@ -969,38 +969,38 @@ export default ({ users }) => {
 
 </CodeGroup>
 
-The component exposes the following methods:
+このコンポーネントは次のメソッドを公開しています。
 
-- `fetchNext()` - Manually fetch the next page
-- `fetchPrevious()` - Manually fetch the previous page
-- `hasNext()` - Whether there is a next page
-- `hasPrevious()` - Whether there is a previous page
+- `fetchNext()` - 次のページを手動で取得
+- `fetchPrevious()` - 前のページを手動で取得
+- `hasNext()` - 次のページが存在するか
+- `hasPrevious()` - 前のページが存在するか
 
-## Inertia::scroll() Method
+## Inertia::scroll() メソッド
 
-The `Inertia::scroll()` method provides server-side configuration for infinite scrolling. It automatically configures the proper merge behavior so that new data is appended or prepended to existing content instead of replacing it, and normalizes pagination metadata for the frontend component.
+`Inertia::scroll()` メソッドは、無限スクロールのためのサーバーサイド設定を提供します。新しいデータが既存のコンテンツを置き換えるのではなく、末尾または先頭に追加されるよう、適切なマージ動作を自動的に設定し、フロントエンドコンポーネント向けにページネーションメタデータを正規化します。
 
 ```php
-// Works with all Laravel pagination methods...
+// すべての Laravel ページネーションメソッドで動作
 Inertia::scroll(User::paginate(20));
 Inertia::scroll(User::simplePaginate(20));
 Inertia::scroll(User::cursorPaginate(20));
 
-// Works with API resources...
+// API リソースでも動作
 Inertia::scroll(UserResource::collection(User::paginate(20)));
 ```
 
-If you don't use Laravel's paginator or use a different transformation layer, you may use the additional arguments that `scroll()` accepts.
+Laravel のページネータを使用しない場合や、別の変換レイヤーを使用している場合は、`scroll()` が受け取る追加の引数を利用できます。
 
 ```php
-// Customize the data wrapper key (defaults to 'data')...
+// データラッパーキーをカスタマイズ（デフォルトは 'data'）
 Inertia::scroll($customPaginatedData, wrapper: 'items');
 
-// Provide custom metadata resolution...
+// カスタムメタデータ解決を提供
 Inertia::scroll($data, metadata: $metadataProvider);
 ```
 
-The metadata parameter accepts an instance of `ProvidesScrollMetadata` or a callback that returns such an instance. The callback receives the `$data` parameter. This is useful when integrating with third-party pagination libraries like Fractal.
+`metadata` パラメータは、`ProvidesScrollMetadata` のインスタンス、またはそれを返すコールバックを受け取ります。コールバックは `$data` パラメータを受け取ります。これは Fractal のようなサードパーティ製ページネーションライブラリと統合する際に有用です。
 
 ```php
 use League\Fractal\Resource\Collection;
@@ -1015,23 +1015,23 @@ class FractalScrollMetadata implements ProvidesScrollMetadata
 }
 ```
 
-You may then use this custom metadata provider in your scroll function.
+このカスタムメタデータプロバイダを `scroll` 関数で使用できます。
 
 ```php
-// Using an instance directly
+// インスタンスを直接使用
 Inertia::scroll($data, metadata: new FractalScrollMetadata($data));
 
-// Using a callback
+// コールバックを使用
 Inertia::scroll(
     fn() => $this->transformData($data),
     metadata: fn($data) => new FractalScrollMetadata($data)
 );
 ```
 
-To avoid repeating this setup in multiple controllers, you may define a macro.
+複数のコントローラで同じ設定を繰り返さないように、マクロを定義することもできます。
 
 ```php
-// In your AppServiceProvider's boot method
+// AppServiceProvider の boot メソッド内
 Inertia::macro('fractalScroll', function (Collection $data) {
     return Inertia::scroll(
         $data,
@@ -1039,7 +1039,7 @@ Inertia::macro('fractalScroll', function (Collection $data) {
     );
 });
 
-// Then use it in your controllers
+// コントローラで使用
 return Inertia::render('Users/Index', [
     'users' => Inertia::fractalScroll($fractalCollection)
 ]);

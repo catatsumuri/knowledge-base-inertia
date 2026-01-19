@@ -1,24 +1,24 @@
 ---
-title: Validation
+title: バリデーション
 ---
 
-## How It Works
+## 仕組み
 
-Handling server-side validation errors in Inertia works differently than a classic XHR-driven form that requires you to catch the validation errors from `422` responses and manually update the form's error state - because Inertia never receives `422` responses. Instead, Inertia operates much more like a standard full page form submission. Here's how:
+Inertia におけるサーバーサイドのバリデーションエラーの扱いは、`422` レスポンスを受け取ってバリデーションエラーを捕捉し、手動でフォームのエラー状態を更新する必要がある従来の XHR 駆動フォームとは異なります。というのも、Inertia は `422` レスポンスを受信しないからです。その代わり、Inertia は標準的なフルページのフォーム送信に非常に近い形で動作します。以下がその流れです。
 
-First, you [submit your form using Inertia](/v2/the-basics/forms). If there are server-side validation errors, you don't return those errors as a `422` JSON response. Instead, you redirect (server-side) the user back to the form page they were previously on, flashing the validation errors in the session. Some frameworks, such as Laravel, do this automatically.
+まず、[Inertia を使ってフォームを送信](/v2/the-basics/forms) します。サーバーサイドでバリデーションエラーが発生した場合、それらのエラーを `422` の JSON レスポンスとして返すのではありません。代わりに、サーバー側でユーザーを直前にいたフォームページへリダイレクトし、バリデーションエラーをセッションにフラッシュします。Laravel などの一部のフレームワークでは、これは自動的に行われます。
 
-Next, any time these validation errors are present in the session, they automatically get shared with Inertia, making them available client-side as page props which you can display in your form. Since props are reactive, they are automatically shown when the form submission completes.
+次に、これらのバリデーションエラーがセッションに存在する場合、それらは自動的に Inertia と共有され、ページの props としてクライアントサイドから利用可能になります。props はリアクティブであるため、フォーム送信が完了した時点で自動的に表示されます。
 
-Finally, since Inertia apps never generate `422` responses, Inertia needs another way to determine if a response includes validation errors. To do this, Inertia checks the `page.props.errors` object for the existence of any errors. In the event that errors are present, the request's `onError()` callback will be called instead of the `onSuccess()` callback.
+最後に、Inertia アプリは `422` レスポンスを生成しないため、レスポンスにバリデーションエラーが含まれているかどうかを判断する別の方法が必要です。これを実現するために、Inertia は `page.props.errors` オブジェクトにエラーが存在するかどうかをチェックします。エラーが存在する場合、`onSuccess()` コールバックの代わりに、リクエストの `onError()` コールバックが呼び出されます。
 
-## Sharing Errors
+## エラーの共有
 
-In order for your server-side validation errors to be available client-side, your server-side framework must share them via the `errors` prop. Inertia's first-party adapters, such as the Laravel adapter, do this automatically. For other frameworks, you may need to do this manually. Please refer to your specific server-side adapter documentation for more information.
+サーバーサイドのバリデーションエラーをクライアントサイドで利用できるようにするには、サーバーサイドのフレームワークがそれらを `errors` prop として共有する必要があります。Laravel アダプターなどの Inertia のファーストパーティ製アダプターは、これを自動的に行います。他のフレームワークの場合は、手動で設定する必要があるかもしれません。詳細については、使用しているサーバーサイドアダプターのドキュメントを参照してください。
 
-## Displaying Errors
+## エラーの表示
 
-Since validation errors are made available client-side as page component props, you can conditionally display them based on their existence. Remember, when using our first-party server adapters (such as the Laravel adapter), the `errors` prop will automatically be available to your page.
+バリデーションエラーはページコンポーネントの props としてクライアントサイドで利用可能になるため、その存在に基づいて条件付きで表示できます。ファーストパーティのサーバーアダプター（Laravel アダプターなど）を使用している場合、`errors` prop は自動的にページで利用可能になる点に注意してください。
 
 <CodeGroup>
 
@@ -134,11 +134,11 @@ export default function Edit() {
 
 </CodeGroup>
 
-When using the Vue adapters, you may also access the errors via the `$page.props.errors` object.
+Vue アダプターを使用している場合は、`$page.props.errors` オブジェクト経由でもエラーにアクセスできます。
 
-### Multiple Errors Per Field
+### フィールドごとの複数エラー
 
-By default, Inertia's Laravel adapter returns only the first validation error for each field. You may opt-in to receiving all errors by setting the `$withAllErrors` property to `true` in your middleware.
+デフォルトでは、Inertia の Laravel アダプターは各フィールドにつき最初のバリデーションエラーのみを返します。すべてのエラーを受け取りたい場合は、ミドルウェアで `$withAllErrors` プロパティを `true` に設定することで有効化できます。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -149,7 +149,7 @@ class HandleInertiaRequests extends Middleware
 }
 ```
 
-When enabled, each field will contain an array of error strings instead of a single string.
+有効にすると、各フィールドには単一の文字列ではなく、エラー文字列の配列が含まれるようになります。
 
 <CodeGroup>
 
@@ -169,23 +169,23 @@ When enabled, each field will contain an array of error strings instead of a sin
 
 </CodeGroup>
 
-You may [configure TypeScript](/v2/advanced/typescript#error-values) to expect arrays instead of strings.
+文字列ではなく配列を想定するように、[TypeScript を設定](/v2/advanced/typescript#error-values) することもできます。
 
-## Repopulating Input
+## 入力値の再設定
 
-While handling errors in Inertia is similar to full page form submissions, Inertia offers even more benefits. In fact, you don't even need to manually repopulate old form input data.
+Inertia におけるエラー処理はフルページのフォーム送信と似ていますが、Inertia にはさらに多くの利点があります。実際、古いフォーム入力データを手動で再設定する必要すらありません。
 
-When validation errors occur, the user is typically redirected back to the form page they were previously on. And, by default, Inertia automatically preserves the [component state](/v2/the-basics/manual-visits#state-preservation) for `post`, `put`, `patch`, and `delete` requests. Therefore, all the old form input data remains exactly as it was when the user submitted the form.
+バリデーションエラーが発生すると、ユーザーは通常、直前にいたフォームページへリダイレクトされます。そしてデフォルトでは、Inertia は `post`、`put`、`patch`、`delete` リクエストに対して [コンポーネントの状態](/v2/the-basics/manual-visits#state-preservation) を自動的に保持します。そのため、ユーザーがフォームを送信した時点の入力データは、そのまま正確に保持されます。
 
-So, the only work remaining is to display any validation errors using the `errors` prop.
+つまり、残る作業は `errors` prop を使ってバリデーションエラーを表示することだけです。
 
-## Error Bags
+## エラーバッグ
 
-If you're using the [form helper](/v2/the-basics/forms#form-helper), it's not necessary to use error bags since validation errors are automatically scoped to the form object making the request.
+[フォームヘルパー](/v2/the-basics/forms#form-helper) を使用している場合、バリデーションエラーはリクエストを行ったフォームオブジェクトに自動的にスコープされるため、エラーバッグを使用する必要はありません。
 
-For pages that have more than one form, it's possible to encounter conflicts when displaying validation errors if two forms share the same field names. For example, imagine a "create company" form and a "create user" form that both have a `name` field. Since both forms will be displaying the `page.props.errors.name` validation error, generating a validation error for the `name`field in either form will cause the error to appear in both forms.
+1 つのページに複数のフォームがある場合、2 つのフォームが同じフィールド名を共有していると、バリデーションエラーの表示時に競合が発生する可能性があります。たとえば、「会社を作成する」フォームと「ユーザーを作成する」フォームの両方に `name` フィールドがあるとします。両方のフォームが `page.props.errors.name` のバリデーションエラーを表示するため、どちらか一方のフォームで `name` フィールドのバリデーションエラーが発生すると、両方のフォームにエラーが表示されてしまいます。
 
-To solve this issue, you can use "error bags". Error bags scope the validation errors returned from the server within a unique key specific to that form. Continuing with our example above, you might have a `createCompany` error bag for the first form and a `createUser` error bag for the second form.
+この問題を解決するために、「エラーバッグ」を使用できます。エラーバッグは、サーバーから返されるバリデーションエラーを、そのフォーム固有の一意なキーの下にスコープします。先ほどの例を続けると、最初のフォームには `createCompany` エラーバッグを、2 つ目のフォームには `createUser` エラーバッグを使用できます。
 
 <CodeGroup>
 
@@ -227,4 +227,4 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-Specifying an error bag will cause the validation errors to come back from the server within `page.props.errors.createCompany` and `page.props.errors.createUser`.
+エラーバッグを指定すると、バリデーションエラーは `page.props.errors.createCompany` および `page.props.errors.createUser` 内に含まれてサーバーから返されます。

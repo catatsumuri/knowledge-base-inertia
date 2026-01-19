@@ -1,16 +1,16 @@
 ---
-title: Title & Meta
+title: タイトルと メタ
 ---
 
-Since Inertia powered JavaScript apps are rendered within the document `<body>`, they are unable to render markup to the document `<head>`, as it's outside of their scope. To help with this, Inertia ships with a `<Head>` component which can be used to set the page `<title>`, `<meta>` tags, and other `<head>` elements.
+Inertia で構築された JavaScript アプリはドキュメントの `<body>` 内でレンダリングされるため、そのスコープ外にあるドキュメントの `<head>` にマークアップをレンダリングすることができません。これを補うために、Inertia には `<Head>` コンポーネントが同梱されており、ページの `<title>`、`<meta>` タグ、その他の `<head>` 要素を設定するために使用できます。
 
-The `<Head>` component will only replace `<head>` elements that are not in your server-side root template.
+`<Head>` コンポーネントは、サーバーサイドのルートテンプレートに含まれていない `<head>` 要素のみを置き換えます。
 
-The `<Head>` component is not available in the Svelte adapter, as Svelte already ships with its own `<svelte:head>` component.
+`<Head>` コンポーネントは Svelte アダプターでは利用できません。Svelte にはすでに独自の `<svelte:head>` コンポーネントが用意されているためです。
 
-## Head Component
+## Head コンポーネント
 
-To add `<head>` elements to your page, use the `<Head>` component. Within this component, you can include the elements that you wish to add to the document `<head>`.
+ページに `<head>` 要素を追加するには、`<Head>` コンポーネントを使用します。このコンポーネント内に、ドキュメントの `<head>` に追加したい要素を含めることができます。
 
 <CodeGroup>
 
@@ -41,9 +41,9 @@ import { Head } from '@inertiajs/react'
 
 </CodeGroup>
 
-## Title Shorthand
+## タイトルの省略記法
 
-If you only need to add a `<title>` to the document `<head>`, you may simply pass the title as a prop to the `<Head>` component.
+ドキュメントの `<head>` に `<title>` だけを追加したい場合は、`<Head>` コンポーネントに `title` を props として渡すだけで構いません。
 
 <CodeGroup>
 
@@ -60,14 +60,14 @@ import { Head } from '@inertiajs/react'
 ```
 
 ```js Svelte icon="s"
-// Not supported
+// サポートされていません
 ```
 
 </CodeGroup>
 
-## Title Callback
+## タイトルコールバック
 
-You can globally modify the page `<title>` using the `title` callback in the `createInertiaApp` setup method. Typically, this method is invoked in your application's main JavaScript file. A common use case for the title callback is automatically adding an app name before or after each page title.
+`createInertiaApp` のセットアップメソッド内で `title` コールバックを使用することで、ページの `<title>` をグローバルに変更できます。通常、このメソッドはアプリケーションのメイン JavaScript ファイルで呼び出されます。タイトルコールバックの一般的なユースケースは、各ページタイトルの前後にアプリ名を自動的に追加することです。
 
 ```js
 createInertiaApp({
@@ -76,7 +76,7 @@ createInertiaApp({
 })
 ```
 
-After defining the `title` callback, the callback will automatically be invoked when you set a title using the `<Head>` component.
+`title` コールバックを定義すると、`<Head>` コンポーネントを使ってタイトルを設定した際に、自動的にこのコールバックが呼び出されます。
 
 <CodeGroup>
 
@@ -93,18 +93,18 @@ import { Head } from '@inertiajs/react'
 ```
 
 ```js Svelte icon="s"
-// Not supported
+// サポートされていません
 ```
 
 </CodeGroup>
 
-Which, in this example, will result in the following `<title>` tag.
+この例では、次の `<title>` タグが生成されます。
 
 ```html
 <title>Home - My App</title>
 ```
 
-The `title` callback will also be invoked when you set the title using a `<title>` tag within your `<Head>` component.
+`<Head>` コンポーネント内で `<title>` タグを使用してタイトルを設定した場合も、`title` コールバックは呼び出されます。
 
 <CodeGroup>
 
@@ -125,14 +125,14 @@ import { Head } from '@inertiajs/react'
 ```
 
 ```js Svelte icon="s"
-// Not supported
+// サポートされていません
 ```
 
 </CodeGroup>
 
-## Multiple Head Instances
+## 複数の Head インスタンス
 
-It's possible to have multiple instances of the `<Head>` component throughout your application. For example, your layout can set some default `<Head>` elements, and then your individual pages can override those defaults.
+アプリケーション全体で `<Head>` コンポーネントを複数配置することができます。たとえば、レイアウトでデフォルトの `<Head>` 要素を設定し、個々のページでそれらのデフォルトを上書きする、といった使い方が可能です。
 
 <CodeGroup>
 
@@ -179,14 +179,14 @@ import { Head } from '@inertiajs/react'
 ```
 
 ```js Svelte icon="s"
-// Not supported
+// サポートされていません
 ```
 
 </CodeGroup>
 
-Inertia will only ever render one `<title>` tag; however, all other tags will be stacked since it's valid to have multiple instances of them. To avoid duplicate tags in your `<head>`, you can use the `head-key` property, which will make sure the tag is only rendered once. This is illustrated in the example above for the `<meta name="description">` tag.
+Inertia は常に 1 つの `<title>` タグのみをレンダリングします。一方で、その他のタグは複数存在しても有効であるため、すべて積み重ねてレンダリングされます。`<head>` 内で重複したタグを避けるには、`head-key` プロパティを使用してください。これにより、そのタグが 1 度だけレンダリングされることが保証されます。上記の例では、`<meta name="description">` タグでこの仕組みが示されています。
 
-The code example above will render the following HTML.
+上記のコード例は、次の HTML をレンダリングします。
 
 ```html
 <head>
@@ -196,9 +196,9 @@ The code example above will render the following HTML.
 </head>
 ```
 
-## Head Extension
+## Head の拡張
 
-When building a real application, it can sometimes be helpful to create a custom head component that extends Inertia's `<Head>` component. This gives you a place to set app-wide defaults, such as appending the app name to the page title.
+実際のアプリケーションを構築する際には、Inertia の `<Head>` コンポーネントを拡張したカスタム head コンポーネントを作成すると便利な場合があります。これにより、ページタイトルにアプリ名を付加するなど、アプリ全体のデフォルト設定をまとめて管理できます。
 
 <CodeGroup>
 
@@ -236,12 +236,12 @@ export default Site
 ```
 
 ```js Svelte icon="s"
-// Not supported
+// サポートされていません
 ```
 
 </CodeGroup>
 
-Once you have created the custom component, you can just start using it in your pages.
+カスタムコンポーネントを作成したら、ページ内でそれを使い始めるだけです。
 
 <CodeGroup>
 
@@ -258,16 +258,16 @@ import AppHead from './AppHead'
 ```
 
 ```js Svelte icon="s"
-// Not supported
+// サポートされていません
 ```
 
 </CodeGroup>
 
-## Inertia Attribute on Elements
+## 要素における Inertia 属性
 
-Inertia has historically used the `inertia` attribute to track and manage elements in the document `<head>`. However, you can now opt-in to using the more standards-compliant `data-inertia` attribute instead. According to the HTML specification, custom attributes should be prefixed with `data-` to avoid conflicts with future HTML standards.
+Inertia はこれまで、ドキュメントの `<head>` 内の要素を追跡・管理するために `inertia` 属性を使用してきました。しかし現在では、より標準に準拠した `data-inertia` 属性を使用するオプションを選択できます。HTML 仕様では、将来の HTML 標準との衝突を避けるため、カスタム属性には `data-` プレフィックスを付けることが推奨されています。
 
-To enable this, configure the `future.useDataInertiaHeadAttribute` option in your [application defaults](/v2/installation/client-side-setup#configuring-defaults).
+これを有効にするには、[アプリケーションのデフォルト設定](/v2/installation/client-side-setup#configuring-defaults) で `future.useDataInertiaHeadAttribute` オプションを設定してください。
 
 ```js
 createInertiaApp({

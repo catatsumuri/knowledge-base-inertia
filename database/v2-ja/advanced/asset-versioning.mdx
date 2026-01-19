@@ -1,14 +1,14 @@
 ---
-title: Asset Versioning
+title: アセットのバージョニング
 ---
 
-One common challenge when building single-page apps is refreshing site assets when they've been changed. Thankfully, Inertia makes this easy by optionally tracking the current version of your site assets. When an asset changes, Inertia will automatically make a full page visit instead of a XHR visit on the next request.
+シングルページアプリを構築する際によくある課題のひとつが、アセットが変更されたときにサイトのアセットを更新することです。幸い、Inertia では現在のサイトアセットのバージョンを任意で追跡することで、これを簡単に実現できます。アセットが変更されると、Inertia は次のリクエストで XHR 訪問の代わりに自動的にフルページ訪問を行います。
 
-## Configuration
+## 設定
 
-To enable automatic asset refreshing, you need to tell Inertia the current version of your assets. This can be any arbitrary string (letters, numbers, or a file hash), as long as it changes when your assets have been updated.
+アセットの自動更新を有効にするには、Inertia に現在のアセットバージョンを伝える必要があります。これは、アセットが更新されたときに変更される限り、任意の文字列（文字、数字、またはファイルハッシュ）で構いません。
 
-Typically, your application's asset version can be specified within the `version` method of the Inertia `HandleInertiaRequests` middleware.
+通常、アプリケーションのアセットバージョンは、Inertia の `HandleInertiaRequests` ミドルウェア内の `version` メソッドで指定します。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -20,26 +20,26 @@ class HandleInertiaRequests extends Middleware
 }
 ```
 
-Alternatively, the asset version can be provided manually using the `Inertia::version()` method.
+あるいは、`Inertia::version()` メソッドを使って手動でアセットバージョンを指定することもできます。
 
 ```php
 use Inertia\Inertia;
 
 Inertia::version($version);
-Inertia::version(fn () => $version); // Lazily...
+Inertia::version(fn () => $version); // 遅延評価...
 ```
 
-## Cache Busting
+## キャッシュバスティング
 
-Asset refreshing in Inertia works on the assumption that a hard page visit will trigger your assets to reload. However, Inertia doesn't actually do anything to force this. Typically this is done with some form of cache busting. For example, appending a version query parameter to the end of your asset URLs.
+Inertia におけるアセットの更新は、ハードなページ遷移がアセットの再読み込みを引き起こす、という前提で動作します。しかし、Inertia 自体がこれを強制する処理を行っているわけではありません。通常は、何らかのキャッシュバスティングによって実現します。たとえば、アセット URL の末尾にバージョンのクエリパラメータを付与する方法です。
 
-With Laravel's Vite integration, asset versioning is done automatically. If you're using Laravel Mix, you can do this automatically by enabling [versioning](https://laravel.com/docs/mix#versioning-and-cache-busting) in your `webpack.mix.js` file.
+Laravel の Vite 連携を利用している場合、アセットのバージョニングは自動的に行われます。Laravel Mix を使用している場合は、`webpack.mix.js` ファイルで [versioning](https://laravel.com/docs/mix#versioning-and-cache-busting) を有効にすることで自動化できます。
 
-## Manual Refreshing
+## 手動更新
 
-If you want to take asset refreshing into your control, you can return a fixed value from the `version` method in the `HandleInertiaRequests` middleware. This disables Inertia's automatic asset versioning.
+アセットの更新を自分で制御したい場合は、`HandleInertiaRequests` ミドルウェアの `version` メソッドから固定値を返すことができます。これにより、Inertia の自動アセットバージョニングが無効になります。
 
-For example, if you want to notify users when a new version of your frontend is available, you can still expose the actual asset version to the frontend by including it as [shared data](/v2/data-props/shared-data).
+たとえば、フロントエンドの新しいバージョンが利用可能になったときにユーザーへ通知したい場合でも、実際のアセットバージョンを [共有データ](/v2/data-props/shared-data) として含めることで、フロントエンドに公開することができます。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -58,4 +58,4 @@ class HandleInertiaRequests extends Middleware
 }
 ```
 
-On the frontend, you can watch the `version` property and show a notification when a new version is detected.
+フロントエンド側では、`version` プロパティを監視し、新しいバージョンが検出されたときに通知を表示できます。

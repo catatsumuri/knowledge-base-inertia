@@ -1,12 +1,12 @@
 ---
-title: Deferred Props
+title: Defered Props
 ---
 
-Inertia's deferred props feature allows you to defer the loading of certain page data until after the initial page render. This can be useful for improving the perceived performance of your app by allowing the initial page render to happen as quickly as possible.
+Inertia の遅延 props 機能を使うと、初回のページ描画後まで特定のページデータの読み込みを遅らせることができます。これにより、初回のページ描画をできるだけ速く行えるため、アプリの体感パフォーマンスを向上させるのに役立ちます。
 
-## Server Side
+## サーバーサイド
 
-To defer a prop, you can use the `Inertia::defer()` method when returning your response. This method receives a callback that returns the prop data. The callback will be executed in a separate request after the initial page render.
+prop を遅延させるには、レスポンスを返す際に `Inertia::defer()` メソッドを使用します。このメソッドは、prop データを返すコールバックを受け取ります。コールバックは、初回のページ描画後に別リクエストとして実行されます。
 
 ```php
 Route::get('/users', function () {
@@ -18,9 +18,9 @@ Route::get('/users', function () {
 });
 ```
 
-### Grouping Requests
+### リクエストのグルーピング
 
-By default, all deferred props get fetched in one request after the initial page is rendered, but you can choose to fetch data in parallel by grouping props together.
+デフォルトでは、すべての遅延 props は初回ページ描画後に 1 つのリクエストで取得されますが、props をグループ化することで並列にデータを取得することもできます。
 
 ```php
 Route::get('/users', function () {
@@ -35,11 +35,11 @@ Route::get('/users', function () {
 });
 ```
 
-In the example above, the `teams`, `projects`, and `tasks` props will be fetched in one request, while the `permissions` prop will be fetched in a separate request in parallel. Group names are arbitrary strings and can be anything you choose.
+上記の例では、`teams`、`projects`、`tasks` の props は 1 つのリクエストで取得され、一方で `permissions` の prop は別のリクエストとして並列に取得されます。グループ名は任意の文字列で、自由に指定できます。
 
-## Client Side
+## クライアントサイド
 
-On the client side, Inertia provides the `Deferred` component to help you manage deferred props. This component will automatically wait for the specified deferred props to be available before rendering its children.
+クライアントサイドでは、Inertia は遅延 props を管理するための `Deferred` コンポーネントを提供しています。このコンポーネントは、指定された遅延 props が利用可能になるまで自動的に待機し、その後に子要素を描画します。
 
 <CodeGroup>
 
@@ -51,7 +51,7 @@ import { Deferred } from '@inertiajs/vue3'
 <template>
     <Deferred data="permissions">
         <template #fallback>
-            <div>Loading...</div>
+            <div>読み込み中...</div>
         </template>
 
         <div v-for="permission in permissions">
@@ -65,7 +65,7 @@ import { Deferred } from '@inertiajs/vue3'
 import { Deferred } from '@inertiajs/react'
 
 export default () => (
-    <Deferred data="permissions" fallback={<div>Loading...</div>}>
+    <Deferred data="permissions" fallback={<div>読み込み中...</div>}>
         <PermissionsChildComponent />
     </Deferred>
 )
@@ -80,7 +80,7 @@ export default () => (
 
 <Deferred data="permissions">
     <svelte:fragment slot="fallback">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
     </svelte:fragment>
 
     {#each permissions as permission}
@@ -98,7 +98,7 @@ export default () => (
 
 <Deferred data="permissions">
     {#snippet fallback()}
-        <div>Loading...</div>
+        <div>読み込み中...</div>
     {/snippet}
 
     {#each permissions as permission}
@@ -109,9 +109,9 @@ export default () => (
 
 </CodeGroup>
 
-## Multiple Deferred Props
+## 複数の遅延 Props
 
-If you need to wait for multiple deferred props to become available, you can specify an array to the `data` prop.
+複数の遅延 props が利用可能になるのを待つ必要がある場合は、`data` prop に配列を指定できます。
 
 <CodeGroup>
 
@@ -123,10 +123,10 @@ import { Deferred } from '@inertiajs/vue3'
 <template>
     <Deferred :data="['teams', 'users']">
         <template #fallback>
-            <div>Loading...</div>
+            <div>読み込み中...</div>
         </template>
 
-        <!-- Props are now loaded -->
+        <!-- Props は読み込み済み -->
     </Deferred>
 </template>
 ```
@@ -135,7 +135,7 @@ import { Deferred } from '@inertiajs/vue3'
 import { Deferred } from '@inertiajs/react'
 
 export default () => (
-    <Deferred data={['teams', 'users']} fallback={<div>Loading...</div>}>
+    <Deferred data={['teams', 'users']} fallback={<div>読み込み中...</div>}>
         <ChildComponent />
     </Deferred>
 )
@@ -151,10 +151,10 @@ export default () => (
 
 <Deferred data={['teams', 'users']}>
     <svelte:fragment slot="fallback">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
     </svelte:fragment>
 
-    <!-- Props are now loaded -->
+    <!-- Props は読み込み済み -->
 </Deferred>
 ```
 
@@ -167,18 +167,18 @@ export default () => (
 
 <Deferred data={['teams', 'users']}>
     {#snippet fallback()}
-        <div>Loading...</div>
+        <div>読み込み中...</div>
     {/snippet}
 
-    <!-- Props are now loaded -->
+    <!-- Props は読み込み済み -->
 </Deferred>
 ```
 
 </CodeGroup>
 
-## Combining with Once Props
+## Once Props との組み合わせ
 
-You may chain the `once()` modifier onto a deferred prop to ensure the data is resolved only once and remembered by the client across subsequent navigations.
+遅延 prop に `once()` 修飾子をチェーンすることで、データが一度だけ解決され、その後のナビゲーションでもクライアント側で記憶されるようにできます。
 
 ```php
 return Inertia::render('Dashboard', [
@@ -186,4 +186,4 @@ return Inertia::render('Dashboard', [
 ]);
 ```
 
-For more information on once props, see the [once props](/v2/data-props/once-props) documentation.
+once props の詳細については、[once props](/v2/data-props/once-props) のドキュメントを参照してください。

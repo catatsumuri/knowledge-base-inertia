@@ -228,37 +228,77 @@ export default function ShoutboxPanel({
         }, 0);
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length + data.images.length > 4) {
+    const queueImages = (files: File[], isReplyImageTarget: boolean) => {
+        const existingImages = isReplyImageTarget
+            ? replyData.images
+            : data.images;
+
+        if (files.length + existingImages.length > 4) {
             alert('画像は最大4枚までです');
             return;
         }
 
-        // 最初の画像にトリミング→フィルターを適用
-        if (files.length > 0) {
-            setCurrentProcessingImage(files[0]);
-            setCurrentFilteringIndex(data.images.length);
-            setIsReplyImage(false);
-            setCropDialogOpen(true);
+        if (files.length === 0) {
+            return;
+        }
 
-            // 残りの画像は一時保存
-            if (files.length > 1) {
-                // 2枚目以降は後で処理
-                const remainingFiles = files.slice(1);
-                remainingFiles.forEach((file) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        setPreviewImages((prev) => [
+        // 最初の画像にトリミング→フィルターを適用
+        setCurrentProcessingImage(files[0]);
+        setCurrentFilteringIndex(existingImages.length);
+        setIsReplyImage(isReplyImageTarget);
+        setCropDialogOpen(true);
+
+        // 残りの画像は一時保存
+        if (files.length > 1) {
+            const remainingFiles = files.slice(1);
+            remainingFiles.forEach((file) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (isReplyImageTarget) {
+                        setReplyPreviewImages((prev) => [
                             ...prev,
                             reader.result as string,
                         ]);
-                    };
-                    reader.readAsDataURL(file);
-                    setData('images', [...data.images, file]);
-                });
+                        return;
+                    }
+
+                    setPreviewImages((prev) => [
+                        ...prev,
+                        reader.result as string,
+                    ]);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (isReplyImageTarget) {
+                setReplyData('images', [...existingImages, ...remainingFiles]);
+            } else {
+                setData('images', [...existingImages, ...remainingFiles]);
             }
         }
+    };
+
+    const handleClipboardPaste = (
+        e: React.ClipboardEvent<HTMLTextAreaElement>,
+        isReplyTarget: boolean,
+    ) => {
+        const items = Array.from(e.clipboardData?.items || []);
+        const imageFiles = items
+            .filter((item) => item.type.startsWith('image/'))
+            .map((item) => item.getAsFile())
+            .filter((file): file is File => file !== null);
+
+        if (imageFiles.length === 0) {
+            return;
+        }
+
+        e.preventDefault();
+        queueImages(imageFiles, isReplyTarget);
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        queueImages(files, false);
 
         // inputをリセット
         if (fileInputRef.current) {
@@ -543,32 +583,7 @@ export default function ShoutboxPanel({
 
     const handleReplyImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        if (files.length + replyData.images.length > 4) {
-            alert('画像は最大4枚までです');
-            return;
-        }
-
-        if (files.length > 0) {
-            setCurrentProcessingImage(files[0]);
-            setCurrentFilteringIndex(replyData.images.length);
-            setIsReplyImage(true);
-            setCropDialogOpen(true);
-
-            if (files.length > 1) {
-                const remainingFiles = files.slice(1);
-                remainingFiles.forEach((file) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        setReplyPreviewImages((prev) => [
-                            ...prev,
-                            reader.result as string,
-                        ]);
-                    };
-                    reader.readAsDataURL(file);
-                    setReplyData('images', [...replyData.images, file]);
-                });
-            }
-        }
+        queueImages(files, true);
 
         if (replyFileInputRef.current) {
             replyFileInputRef.current.value = '';
@@ -653,6 +668,9 @@ export default function ShoutboxPanel({
                                     value={data.content}
                                     onChange={handleContentChange}
                                     onKeyDown={handleKeyDown}
+                                    onPaste={(e) =>
+                                        handleClipboardPaste(e, false)
+                                    }
                                     placeholder="いま何してる？ (@でページをメンション)"
                                     className="min-h-[100px] resize-none border-none p-0 text-lg focus-visible:ring-0"
                                     maxLength={1000}
@@ -1085,6 +1103,12 @@ export default function ShoutboxPanel({
                                                         }
                                                         onKeyDown={
                                                             handleReplyKeyDown
+                                                        }
+                                                        onPaste={(e) =>
+                                                            handleClipboardPaste(
+                                                                e,
+                                                                true,
+                                                            )
                                                         }
                                                         placeholder="返信を入力... (@でページをメンション)"
                                                         className="min-h-[60px] resize-none text-sm"

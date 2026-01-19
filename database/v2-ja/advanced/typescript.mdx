@@ -2,27 +2,27 @@
 title: TypeScript
 ---
 
-Inertia provides first-class TypeScript support. You may configure global types using declaration merging, and pass generics to hooks and router methods for type-safe props, forms, and state management.
+Inertia は TypeScript を第一級でサポートしています。宣言マージによってグローバル型を設定したり、フックやルーターメソッドにジェネリクスを渡すことで、props・フォーム・状態管理を型安全に扱えます。
 
-## Using pnpm
+## pnpm の使用
 
-Due to pnpm's strict dependency isolation, `@inertiajs/core` is not accessible at `node_modules/@inertiajs/core`. Instead, it's nested inside `.pnpm/`, which prevents TypeScript module augmentation from resolving the module.
+pnpm の厳格な依存関係分離により、`@inertiajs/core` は `node_modules/@inertiajs/core` からは参照できません。代わりに `.pnpm/` 内にネストされるため、TypeScript のモジュール拡張がモジュールを解決できなくなります。
 
-You may fix this by configuring pnpm to [hoist the package](https://pnpm.io/settings#publichoistpattern). Add the following to your `.npmrc` file and run `pnpm install`.
+これを解決するには、pnpm を設定して [パッケージを hoist](https://pnpm.io/settings#publichoistpattern) してください。`.npmrc` ファイルに以下を追加し、`pnpm install` を実行します。
 
 ```ini
 public-hoist-pattern[]=@inertiajs/core
 ```
 
-Alternatively, you may add `@inertiajs/core` as a direct dependency in your project.
+または、`@inertiajs/core` をプロジェクトの直接依存関係として追加することもできます。
 
 ```bash
 pnpm add @inertiajs/core
 ```
 
-## Global Configuration
+## グローバル設定
 
-You may configure Inertia's types globally by augmenting the `InertiaConfig` interface in the `@inertiajs/core` module. This is typically done in a `global.d.ts` file in your project's root or `types` directory.
+`@inertiajs/core` モジュール内の `InertiaConfig` インターフェースを拡張することで、Inertia の型をグローバルに設定できます。これは通常、プロジェクトのルートや `types` ディレクトリにある `global.d.ts` ファイルで行います。
 
 ```ts
 // global.d.ts
@@ -41,12 +41,12 @@ declare module "@inertiajs/core" {
 ```
 
 <Note>
-For module augmentation to work, your `tsconfig.json` needs to include `.d.ts` files. Make sure a pattern like `"resources/js/**/*.d.ts"` is present in the `include` array, adjusted to match your project's directory structure.
+モジュール拡張を有効にするには、`tsconfig.json` に `.d.ts` ファイルを含める必要があります。`include` 配列に `"resources/js/**/*.d.ts"` のようなパターンが含まれていることを確認し、プロジェクトのディレクトリ構成に合わせて調整してください。
 </Note>
 
-### Shared Page Props
+### 共有ページ Props
 
-The `sharedPageProps` option defines the type of data that is [shared](/v2/data-props/shared-data) with every page in your application. With this configuration, `page.props.auth` and `page.props.appName` will be properly typed everywhere.
+`sharedPageProps` オプションは、アプリケーション内のすべてのページで[共有](/v2/data-props/shared-data)されるデータの型を定義します。この設定により、`page.props.auth` や `page.props.appName` はどこでも正しく型付けされます。
 
 ```ts
 sharedPageProps: {
@@ -55,9 +55,9 @@ sharedPageProps: {
 }
 ```
 
-### Flash Data
+### フラッシュデータ
 
-The `flashDataType` option defines the type of [flash data](/v2/data-props/flash-data) in your application.
+`flashDataType` オプションは、アプリケーション内の[フラッシュデータ](/v2/data-props/flash-data)の型を定義します。
 
 ```ts
 flashDataType: {
@@ -65,21 +65,21 @@ flashDataType: {
 }
 ```
 
-### Error Values
+### エラー値
 
-By default, validation error values are typed as `string`. You may configure TypeScript to expect arrays instead for [multiple errors per field](/v2/the-basics/validation#multiple-errors-per-field).
+デフォルトでは、バリデーションエラーの値は `string` として型付けされます。[1 フィールドに複数のエラー](/v2/the-basics/validation#multiple-errors-per-field)を扱うために、配列を期待するよう TypeScript を設定することもできます。
 
 ```ts
 errorValueType: string[]
 ```
 
 <Note>
-The next version of [Laravel Wayfinder](https://github.com/laravel/wayfinder/tree/next) may automatically generate these types for you by analyzing your Laravel application. It generates TypeScript types for shared props, page props, form requests, and Eloquent models. This version is currently in beta.
+次期バージョンの [Laravel Wayfinder](https://github.com/laravel/wayfinder/tree/next) では、Laravel アプリケーションを解析してこれらの型を自動生成できる可能性があります。共有 props、ページ props、フォームリクエスト、Eloquent モデル用の TypeScript 型を生成します。このバージョンは現在ベータ版です。
 </Note>
 
-## Page Components
+## ページコンポーネント
 
-You may type the `import.meta.glob` result for better type safety when resolving page components.
+ページコンポーネントを解決する際の型安全性を高めるために、`import.meta.glob` の結果に型を付けることができます。
 
 <CodeGroup>
 
@@ -128,9 +128,9 @@ createInertiaApp({
 
 </CodeGroup>
 
-## Page Props
+## ページ Props
 
-You may type page-specific props by passing a generic to `usePage()`. These are merged with your global `sharedPageProps`, giving you autocomplete and type checking for both shared and page-specific data.
+`usePage()` にジェネリクスを渡すことで、ページ固有の props に型を付けられます。これらはグローバルな `sharedPageProps` とマージされ、共有データとページ固有データの両方に対してオートコンプリートと型チェックが有効になります。
 
 <CodeGroup>
 
@@ -174,9 +174,9 @@ export default function Posts() {
 
 </CodeGroup>
 
-## Form Helper
+## フォームヘルパー
 
-The [form helper](/v2/the-basics/forms#form-helper) accepts a generic type parameter for type-safe form data and error handling. This provides autocomplete for form fields and errors, and prevents typos in field names.
+[フォームヘルパー](/v2/the-basics/forms#form-helper)は、型安全なフォームデータとエラー処理のためにジェネリック型パラメータを受け取ります。これにより、フォームフィールドやエラーに対するオートコンプリートが提供され、フィールド名のタイプミスを防げます。
 
 <CodeGroup>
 
@@ -232,9 +232,9 @@ export default function CreateUser() {
 
 </CodeGroup>
 
-### Nested Data and Arrays
+### ネストされたデータと配列
 
-Form types fully support nested objects and arrays. You may access and update nested fields using dot notation, and error keys are automatically typed to match.
+フォームの型は、ネストされたオブジェクトや配列を完全にサポートします。ドット記法を使用してネストされたフィールドにアクセス・更新でき、エラーキーも自動的に一致するよう型付けされます。
 
 ```ts
 import { useForm } from "@inertiajs/react";
@@ -248,9 +248,9 @@ const form = useForm<{
 });
 ```
 
-## Remembering State
+## 状態の記憶
 
-The `useRemember` hook accepts a generic type parameter for type-safe local state persistence, providing autocomplete and ensuring values match the expected types.
+`useRemember` フックは、型安全なローカル状態の永続化のためにジェネリック型パラメータを受け取ります。これによりオートコンプリートが提供され、値が期待される型と一致することが保証されます。
 
 <CodeGroup>
 
@@ -300,9 +300,9 @@ export default function Users() {
 
 </CodeGroup>
 
-## Restoring State
+## 状態の復元
 
-The `router.restore()` method accepts a generic for typing state restored from [history](/v2/data-props/remembering-state#manually-saving-state).
+`router.restore()` メソッドは、[履歴](/v2/data-props/remembering-state#manually-saving-state)から復元される状態に型を付けるためのジェネリックを受け取ります。
 
 ```ts
 import { router } from "@inertiajs/react";
@@ -320,9 +320,9 @@ if (restored) {
 }
 ```
 
-## Router Requests
+## ルーターリクエスト
 
-Router methods accept a generic for typing request data, providing type checking for the data being sent.
+ルーターメソッドは、送信されるデータに対する型チェックを提供するため、リクエストデータに型を付けるジェネリックを受け取ります。
 
 ```ts
 import { router } from "@inertiajs/react";
@@ -338,9 +338,9 @@ router.post<CreateUserData>("/users", {
 });
 ```
 
-## Scoped Flash Data
+## スコープ付きフラッシュデータ
 
-The `router.flash()` method accepts a generic for typing page or section-specific flash data, separate from the global `flashDataType` configuration.
+`router.flash()` メソッドは、グローバルな `flashDataType` 設定とは別に、ページまたはセクション固有のフラッシュデータに型を付けるためのジェネリックを受け取ります。
 
 ```ts
 import { router } from "@inertiajs/react";
@@ -348,9 +348,9 @@ import { router } from "@inertiajs/react";
 router.flash<{ paymentError: string }>({ paymentError: "Card declined" });
 ```
 
-## Client-Side Visits
+## クライアントサイド遷移
 
-The `router.push()` and `router.replace()` methods accept a generic for typing [client-side visit](/v2/the-basics/manual-visits#client-side-visits) props.
+`router.push()` および `router.replace()` メソッドは、[クライアントサイド遷移](/v2/the-basics/manual-visits#client-side-visits)の props に型を付けるためのジェネリックを受け取ります。
 
 ```ts
 import { router } from "@inertiajs/react";

@@ -1,5 +1,5 @@
 ---
-title: Forms
+title: フォーム
 ---
 
 import { ClientSpecific } from "/snippets/client-specific.jsx"
@@ -7,11 +7,11 @@ import { ReactSpecific } from "/snippets/react-specific.jsx"
 import { SvelteSpecific } from "/snippets/svelte-specific.jsx"
 import { VueSpecific } from "/snippets/vue-specific.jsx"
 
-Inertia provides two primary ways to build forms: the `<Form>` component and the `useForm` helper. Both integrate with your server-side framework's validation and handle form submissions without full page reloads.
+Inertia は、フォームを構築するための 2 つの主要な方法を提供します。`<Form>` コンポーネントと `useForm` ヘルパーです。どちらもサーバーサイドフレームワークのバリデーションと統合されており、フルページのリロードなしでフォーム送信を処理します。
 
-## Form Component
+## Form コンポーネント
 
-Inertia provides a `<Form>` component that behaves much like a classic HTML form, but uses Inertia under the hood to avoid full page reloads. This is the simplest way to get started with forms in Inertia.
+Inertia は、従来の HTML フォームとよく似た挙動をする `<Form>` コンポーネントを提供しますが、内部では Inertia を使用してフルページのリロードを回避します。これは、Inertia でフォームを始める最も簡単な方法です。
 
 <CodeGroup>
 
@@ -56,10 +56,10 @@ export default () => (
 </CodeGroup>
 
 <ClientSpecific>
-Just like a traditional HTML form, there is no need to attach <VueSpecific>a `v-model`</VueSpecific><ReactSpecific>an `onChange` handler </ReactSpecific><SvelteSpecific>a `bind:`</SvelteSpecific>to your input fields, just give each input a `name` attribute <ReactSpecific>and a `defaultValue` (if applicable) </ReactSpecific>and the `Form` component will handle the data submission for you.
+従来の HTML フォームと同様に、入力フィールドに <VueSpecific>`v-model`</VueSpecific><ReactSpecific>`onChange` ハンドラー </ReactSpecific><SvelteSpecific>`bind:`</SvelteSpecific>を追加する必要はありません。各入力に `name` 属性 <ReactSpecific>および（該当する場合は）`defaultValue` </ReactSpecific>を指定するだけで、`Form` コンポーネントがデータ送信を処理してくれます。
 </ClientSpecific>
 
-The component also supports nested data structures, file uploads, and dotted key notation.
+このコンポーネントは、ネストされたデータ構造、ファイルアップロード、ドット区切りのキー記法にも対応しています。
 
 <CodeGroup>
 
@@ -70,7 +70,7 @@ The component also supports nested data structures, file uploads, and dotted key
         <textarea name="report[description]"></textarea>
         <input type="text" name="report[tags][]" />
         <input type="file" name="documents" multiple />
-        <button type="submit">Create Report</button>
+        <button type="submit">レポートを作成</button>
     </Form>
 </template>
 ```
@@ -81,7 +81,7 @@ The component also supports nested data structures, file uploads, and dotted key
     <textarea name="report[description]"></textarea>
     <input type="text" name="report[tags][]" />
     <input type="file" name="documents" multiple />
-    <button type="submit">Create Report</button>
+    <button type="submit">レポートを作成</button>
 </Form>
 ```
 
@@ -91,13 +91,13 @@ The component also supports nested data structures, file uploads, and dotted key
     <textarea name="report[description]"></textarea>
     <input type="text" name="report[tags][]" />
     <input type="file" name="documents" multiple />
-    <button type="submit">Create Report</button>
+    <button type="submit">レポートを作成</button>
 </Form>
 ```
 
 </CodeGroup>
 
-You can pass a `transform` prop to modify the form data before submission. This is useful for injecting additional fields or transforming existing data, although hidden inputs work too.
+送信前にフォームデータを変更するために、`transform` プロパティを渡すことができます。これは追加のフィールドを注入したり、既存のデータを変換したりするのに便利ですが、hidden input を使う方法でも可能です。
 
 <CodeGroup>
 
@@ -109,7 +109,7 @@ You can pass a `transform` prop to modify the form data before submission. This 
         :transform="data => ({ ...data, user_id: 123 })"
     >
         <input type="text" name="title" />
-        <button type="submit">Create Post</button>
+        <button type="submit">投稿を作成</button>
     </Form>
 </template>
 ```
@@ -121,7 +121,7 @@ You can pass a `transform` prop to modify the form data before submission. This 
     transform={data => ({ ...data, user_id: 123 })}
 >
     <input type="text" name="title" />
-    <button type="submit">Create Post</button>
+    <button type="submit">投稿を作成</button>
 </Form>
 ```
 
@@ -132,15 +132,16 @@ You can pass a `transform` prop to modify the form data before submission. This 
     transform={data => ({ ...data, user_id: 123 })}
 >
     <input type="text" name="title" />
-    <button type="submit">Create Post</button>
+    <button type="submit">投稿を作成</button>
 </Form>
 ```
 
 </CodeGroup>
 
+
 ### Wayfinder
 
-When using [Wayfinder](https://github.com/laravel/wayfinder), you can pass the resulting object directly to the `action` prop. The Form component will infer the HTTP method and URL from the Wayfinder object.
+[Wayfinder](https://github.com/laravel/wayfinder) を使用する場合、生成されたオブジェクトをそのまま `action` プロパティに渡すことができます。Form コンポーネントは、Wayfinder オブジェクトから HTTP メソッドと URL を自動的に推論します。
 
 <CodeGroup>
 
@@ -187,10 +188,11 @@ export default () => (
 
 </CodeGroup>
 
-### Default Values
+
+### デフォルト値
 
 <ClientSpecific>
-You can set default values for form inputs using standard HTML attributes. Use <ReactSpecific>`defaultValue`</ReactSpecific><VueSpecific>`defaultValue`</VueSpecific><SvelteSpecific>`value`</SvelteSpecific>for text inputs and textareas, and <ReactSpecific>`defaultChecked`</ReactSpecific><VueSpecific>`defaultChecked`</VueSpecific><SvelteSpecific>`checked`</SvelteSpecific>for checkboxes and radios.
+標準の HTML 属性を使用して、フォーム入力のデフォルト値を設定できます。テキスト入力とテキストエリアには <ReactSpecific>`defaultValue`</ReactSpecific><VueSpecific>`defaultValue`</VueSpecific><SvelteSpecific>`value`</SvelteSpecific> を使用し、チェックボックスとラジオボタンには <ReactSpecific>`defaultChecked`</ReactSpecific><VueSpecific>`defaultChecked`</VueSpecific><SvelteSpecific>`checked`</SvelteSpecific> を使用します。
 </ClientSpecific>
 
 <CodeGroup>
@@ -247,13 +249,14 @@ You can set default values for form inputs using standard HTML attributes. Use <
 
 </CodeGroup>
 
-### Checkbox Inputs
 
-When working with checkboxes, you may want to add an explicit `value` attribute such as `value="1"`. Without a value attribute, checked checkboxes will submit as `"on"`, which some server-side validation rules may not recognize as a proper boolean value.
+### チェックボックス入力
 
-### Slot Props
+チェックボックスを扱う際には、`value="1"` のように明示的な `value` 属性を追加したくなる場合があります。`value` 属性がない場合、チェックされたチェックボックスは `"on"` として送信されますが、これは一部のサーバーサイドのバリデーションルールでは適切な boolean 値として認識されないことがあります。
 
-The `<Form>` component exposes reactive state and helper methods through its default slot, giving you access to form processing state, errors, and utility functions.
+### スロットプロパティ
+
+`<Form>` コンポーネントは、デフォルトスロットを通じてリアクティブな状態やヘルパーメソッドを公開します。これにより、フォームの処理状態、エラー、ユーティリティ関数にアクセスできます。
 
 <CodeGroup>
 
@@ -393,9 +396,9 @@ The `<Form>` component exposes reactive state and helper methods through its def
 
 </CodeGroup>
 
-The `defaults` method allows you to update the form's default values to match the current field values. When called, subsequent `reset()` calls will restore fields to these new defaults, and the `isDirty` property will track changes from these updated defaults. Unlike `useForm`, this method accepts no arguments and always uses all current form values.
+`defaults` メソッドを使用すると、現在のフィールド値に合わせてフォームのデフォルト値を更新できます。これを呼び出すと、その後の `reset()` 呼び出しではフィールドがこれらの新しいデフォルト値に復元され、`isDirty` プロパティは更新後のデフォルトからの変更を追跡します。`useForm` とは異なり、このメソッドは引数を受け取らず、常に現在のすべてのフォーム値を使用します。
 
-The `errors` object uses dotted notation for nested fields, allowing you to display validation messages for complex form structures.
+`errors` オブジェクトはネストされたフィールドに対してドット記法を使用するため、複雑なフォーム構造のバリデーションメッセージを表示できます。
 
 <CodeGroup>
 
@@ -437,9 +440,9 @@ The `errors` object uses dotted notation for nested fields, allowing you to disp
 
 </CodeGroup>
 
-### Props and Options
+### Props とオプション
 
-In addition to `action` and `method`, the `<Form>` component accepts several props. Many of them are identical to the options available in Inertia's [visit options](/v2/the-basics/manual-visits).
+`action` と `method` に加えて、`<Form>` コンポーネントはいくつかの props を受け取ります。その多くは、Inertia の [visit オプション](/v2/the-basics/manual-visits) で利用可能なオプションと同一です。
 
 <CodeGroup>
 
@@ -525,13 +528,13 @@ In addition to `action` and `method`, the `<Form>` component accepts several pro
 
 </CodeGroup>
 
-Some props are intentionally grouped under `options` instead of being top-level to avoid confusion. For example, `only`, `except`, and `reset` relate to *partial reloads*, not *partial submissions*. The general rule: top-level props are for the form submission itself, while `options` control how Inertia handles the subsequent visit.
+一部の props は、混乱を避けるためにトップレベルではなく、意図的に `options` の下にまとめられています。たとえば、`only`、`except`、`reset` は *部分的なリロード* に関連するものであり、*部分的な送信* には関係しません。一般的なルールとして、トップレベルの props はフォーム送信そのものに関するもので、`options` はその後の visit を Inertia がどのように処理するかを制御します。
 
 <ClientSpecific>
-When setting the <ReactSpecific>`disableWhileProcessing`</ReactSpecific><SvelteSpecific>`disableWhileProcessing`</SvelteSpecific><VueSpecific>`disable-while-processing`</VueSpecific>prop, the `Form` component will add the `inert` attribute to the HTML `form`tag while the form is processing to prevent user interaction.
+<ReactSpecific>`disableWhileProcessing`</ReactSpecific><SvelteSpecific>`disableWhileProcessing`</SvelteSpecific><VueSpecific>`disable-while-processing`</VueSpecific>prop を設定すると、フォームの処理中に `Form` コンポーネントは HTML の `form` タグに `inert` 属性を追加し、ユーザー操作を防止します。
 </ClientSpecific>
 
-To style the form while it's processing, you can target the inert form in the following ways.
+処理中のフォームをスタイリングするには、次の方法で `inert` 状態のフォームを対象にできます。
 
 <CodeGroup>
 
@@ -542,7 +545,7 @@ To style the form while it's processing, you can target the inert form in the fo
     disableWhileProcessing
     className="inert:opacity-50 inert:pointer-events-none"
 >
-    {/* Your form fields here */}
+    {/* フォームフィールドをここに */}
 </Form>
 ```
 
@@ -555,9 +558,10 @@ form[inert] {
 
 </CodeGroup>
 
-### Events
 
-The `<Form>` component emits all the standard visit [events](/v2/advanced/events) for form submissions.
+### イベント
+
+`<Form>` コンポーネントは、フォーム送信時に標準の訪問 [イベント](/v2/advanced/events) をすべて発火します。
 
 <CodeGroup>
 
@@ -637,125 +641,127 @@ The `<Form>` component emits all the standard visit [events](/v2/advanced/events
 
 </CodeGroup>
 
-### Resetting the Form
 
-The `Form` component provides several attributes that allow you to reset the form after a submission.
+### フォームのリセット
 
-`resetOnSuccess` may be used to reset the form after a successful submission.
+`Form` コンポーネントには、送信後にフォームをリセットできるいくつかの属性が用意されています。
+
+`resetOnSuccess` は、送信が成功した後にフォームをリセットするために使用できます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <template>
-    <!-- Reset the entire form on success -->
+    <!-- 成功時にフォーム全体をリセット -->
     <Form action="/users" method="post" resetOnSuccess>
         <input type="text" name="name" />
         <input type="email" name="email" />
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </Form>
 
-    <!-- Reset specific fields on success -->
+    <!-- 成功時に特定のフィールドのみをリセット -->
     <Form action="/users" method="post" :resetOnSuccess="['name']">
         <input type="text" name="name" />
         <input type="email" name="email" />
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </Form>
 </template>
 ```
 
 ```jsx React icon="react"
-// Reset the entire form on success
+// 成功時にフォーム全体をリセット
 <Form action="/users" method="post" resetOnSuccess>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 
-// Reset specific fields on success
+// 成功時に特定のフィールドのみをリセット
 <Form action="/users" method="post" resetOnSuccess={['name']}>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
 ```svelte Svelte icon="s"
-<!-- Reset the entire form on success -->
+<!-- 成功時にフォーム全体をリセット -->
 <Form action="/users" method="post" resetOnSuccess>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 
-<!-- Reset specific fields on success -->
+<!-- 成功時に特定のフィールドのみをリセット -->
 <Form action="/users" method="post" resetOnSuccess={['name']}>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
 </CodeGroup>
 
-`resetOnError` may be used to reset the form after errors.
+`resetOnError` は、エラー発生後にフォームをリセットするために使用できます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <template>
-    <!-- Reset the entire form on success -->
+    <!-- エラー時にフォーム全体をリセット -->
     <Form action="/users" method="post" resetOnError>
         <input type="text" name="name" />
         <input type="email" name="email" />
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </Form>
 
-    <!-- Reset specific fields on success -->
+    <!-- エラー時に特定のフィールドのみをリセット -->
     <Form action="/users" method="post" :resetOnError="['name']">
         <input type="text" name="name" />
         <input type="email" name="email" />
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </Form>
 </template>
 ```
 
 ```jsx React icon="react"
-// Reset the entire form on success
+// エラー時にフォーム全体をリセット
 <Form action="/users" method="post" resetOnError>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 
-// Reset specific fields on success
+// エラー時に特定のフィールドのみをリセット
 <Form action="/users" method="post" resetOnError={['name']}>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
 ```svelte Svelte icon="s"
-<!-- Reset the entire form on success -->
+<!-- エラー時にフォーム全体をリセット -->
 <Form action="/users" method="post" resetOnError>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 
-<!-- Reset specific fields on success -->
+<!-- エラー時に特定のフィールドのみをリセット -->
 <Form action="/users" method="post" resetOnError={['name']}>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
 </CodeGroup>
 
-### Setting New Default Values
 
-The `Form` component provides the `setDefaultsOnSuccess` attribute to set the current form values as the new defaults after a successful submission.
+### 新しいデフォルト値の設定
+
+`Form` コンポーネントは `setDefaultsOnSuccess` プロパティを提供しており、送信が成功した後に現在のフォームの値を新しいデフォルト値として設定できます。
 
 <CodeGroup>
 
@@ -764,7 +770,7 @@ The `Form` component provides the `setDefaultsOnSuccess` attribute to set the cu
     <Form action="/users" method="post" setDefaultsOnSuccess>
         <input type="text" name="name" />
         <input type="email" name="email" />
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </Form>
 </template>
 ```
@@ -773,7 +779,7 @@ The `Form` component provides the `setDefaultsOnSuccess` attribute to set the cu
 <Form action="/users" method="post" setDefaultsOnSuccess>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
@@ -781,15 +787,15 @@ The `Form` component provides the `setDefaultsOnSuccess` attribute to set the cu
 <Form action="/users" method="post" setDefaultsOnSuccess>
     <input type="text" name="name" />
     <input type="email" name="email" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
 </CodeGroup>
 
-### Dotted Key Notation
+### ドット記法（Dotted Key Notation）
 
-The `<Form>` component supports dotted key notation for creating nested objects from flat input names. This provides a convenient way to structure form data.
+`<Form>` コンポーネントは、フラットな入力名からネストされたオブジェクトを作成するためにドット記法をサポートしています。これにより、フォームデータを便利に構造化できます。
 
 <CodeGroup>
 
@@ -799,7 +805,7 @@ The `<Form>` component supports dotted key notation for creating nested objects 
         <input type="text" name="user.name" />
         <input type="text" name="user.skills[]" />
         <input type="text" name="address.street" />
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </Form>
 </template>
 ```
@@ -809,7 +815,7 @@ The `<Form>` component supports dotted key notation for creating nested objects 
     <input type="text" name="user.name" />
     <input type="text" name="user.skills[]" />
     <input type="text" name="address.street" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
@@ -818,13 +824,13 @@ The `<Form>` component supports dotted key notation for creating nested objects 
     <input type="text" name="user.name" />
     <input type="text" name="user.skills[]" />
     <input type="text" name="address.street" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 ```
 
 </CodeGroup>
 
-The example above would generate the following data structure.
+上記の例では、以下のデータ構造が生成されます。
 
 ```json
 {
@@ -838,7 +844,7 @@ The example above would generate the following data structure.
 }
 ```
 
-If you need literal dots in your field names (not as nested object separators), you can escape them using backslashes.
+もしフィールド名に文字通りのドットを使いたい場合（ネストの区切りとしてではなく）、バックスラッシュでエスケープできます。
 
 <CodeGroup>
 
@@ -847,7 +853,7 @@ If you need literal dots in your field names (not as nested object separators), 
     <Form action="/config" method="post">
         <input type="text" name="app\.name" />
         <input type="text" name="settings.theme\.mode" />
-        <button type="submit">Save</button>
+        <button type="submit">保存</button>
     </Form>
 </template>
 ```
@@ -856,7 +862,7 @@ If you need literal dots in your field names (not as nested object separators), 
 <Form action="/config" method="post">
     <input type="text" name="app\.name" />
     <input type="text" name="settings.theme\.mode" />
-    <button type="submit">Save</button>
+    <button type="submit">保存</button>
 </Form>
 ```
 
@@ -864,13 +870,13 @@ If you need literal dots in your field names (not as nested object separators), 
 <Form action="/config" method="post">
     <input type="text" name="app\.name" />
     <input type="text" name="settings.theme\.mode" />
-    <button type="submit">Save</button>
+    <button type="submit">保存</button>
 </Form>
 ```
 
 </CodeGroup>
 
-The example above would generate the following data structure.
+上記の例では、以下のデータ構造が生成されます。
 
 ```json
 {
@@ -881,9 +887,9 @@ The example above would generate the following data structure.
 }
 ```
 
-### Programmatic Access
+### プログラムによるアクセス
 
-You can access the form's methods programmatically using refs. This provides an alternative to [slot props](#slot-props) when you need to trigger form actions from outside the form.
+`refs` を使うことで、フォームのメソッドにプログラムからアクセスできます。これは、フォームの外部からフォームのアクションをトリガーする必要がある場合に、[スロットプロップ](#slot-props) の代替手段として利用できます。
 
 <CodeGroup>
 
@@ -902,10 +908,10 @@ const handleSubmit = () => {
 <template>
     <Form ref="formRef" action="/users" method="post">
         <input type="text" name="name" />
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </Form>
 
-    <button @click="handleSubmit">Submit Programmatically</button>
+    <button @click="handleSubmit">プログラムから送信</button>
 </template>
 ```
 
@@ -923,10 +929,10 @@ export default function CreateUser() {
     return (
         <Form ref={formRef} action="/users" method="post">
             <input type="text" name="name" />
-            <button type="submit">Submit</button>
+            <button type="submit">送信</button>
         </Form>
 
-        <button onClick={handleSubmit}>Submit Programmatically</button>
+        <button onClick={handleSubmit}>プログラムから送信</button>
     )
 }
 ```
@@ -944,44 +950,46 @@ function handleSubmit() {
 
 <Form bind:this={formRef} action="/users" method="post">
     <input type="text" name="name" />
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </Form>
 
-<button on:click={handleSubmit}>Submit Programmatically</button>
+<button on:click={handleSubmit}>プログラムから送信</button>
 ```
 
 </CodeGroup>
 
-In React and Vue, refs provide access to all form methods and reactive state. In Svelte, refs expose only methods, so reactive state like `isDirty` and `errors` should be accessed via [slot props](#slot-props) instead.
+React と Vue では、refs を使うとフォームのすべてのメソッドとリアクティブな状態にアクセスできます。Svelte では refs はメソッドのみを提供するため、`isDirty` や `errors` のようなリアクティブな状態は [スロットプロップ](#slot-props) でアクセスする必要があります。
+
+---
 
 ### Precognition
 
 <Badge>v2.3+</Badge>
 
-The `<Form>` component includes built-in support for [Laravel Precognition](https://laravel.com/docs/precognition), enabling real-time form validation without duplicating your server-side validation rules on the client.
+`<Form>` コンポーネントは [Laravel Precognition](https://laravel.com/docs/precognition) に対応しており、クライアント側でサーバーのバリデーションルールを重複させることなく、リアルタイムでフォームの検証が可能です。
 
 <Note>
-Precognition requires server-side support. Laravel users should see the [Laravel Precognition documentation](https://laravel.com/docs/precognition) for setup instructions. For other frameworks, see the [protocol page](/v2/core-concepts/the-protocol#request-headers) for implementation details.
+Precognition を使用するにはサーバー側の対応が必要です。Laravel を使っている場合は [Laravel Precognition ドキュメント](https://laravel.com/docs/precognition) を参照してください。他のフレームワークでは、[プロトコルページ](/v2/core-concepts/the-protocol#request-headers) を確認してください。
 </Note>
 
-Once your server is configured, call `validate()` with a field name to trigger validation for that field. The `invalid()` helper checks if a field has validation errors, while `validating` indicates when a request is in progress.
+サーバーが設定されたら、`validate()` にフィールド名を渡すことでそのフィールドを検証できます。`invalid()` ヘルパーはフィールドにバリデーションエラーがあるかを確認し、`validating` はリクエストが進行中かどうかを示します。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <template>
     <Form action="/users" method="post" #default="{ errors, invalid, validate, validating }">
-        <label for="name">Name:</label>
+        <label for="name">名前:</label>
         <input id="name" name="name" @change="validate('name')" />
         <p v-if="invalid('name')">{{ errors.name }}</p>
 
-        <label for="email">Email:</label>
+        <label for="email">メール:</label>
         <input id="email" name="email" @change="validate('email')" />
         <p v-if="invalid('email')">{{ errors.email }}</p>
 
-        <p v-if="validating">Validating...</p>
+        <p v-if="validating">検証中...</p>
 
-        <button type="submit">Create User</button>
+        <button type="submit">ユーザー作成</button>
     </Form>
 </template>
 ```
@@ -990,17 +998,17 @@ Once your server is configured, call `validate()` with a field name to trigger v
 <Form action="/users" method="post">
     {({ errors, invalid, validate, validating }) => (
         <>
-            <label htmlFor="name">Name:</label>
+            <label htmlFor="name">名前:</label>
             <input id="name" name="name" onChange={() => validate('name')} />
             {invalid('name') && <p>{errors.name}</p>}
 
-            <label htmlFor="email">Email:</label>
+            <label htmlFor="email">メール:</label>
             <input id="email" name="email" onChange={() => validate('email')} />
             {invalid('email') && <p>{errors.email}</p>}
 
-            {validating && <p>Validating...</p>}
+            {validating && <p>検証中...</p>}
 
-            <button type="submit">Create User</button>
+            <button type="submit">ユーザー作成</button>
         </>
     )}
 </Form>
@@ -1015,60 +1023,60 @@ Once your server is configured, call `validate()` with a field name to trigger v
     let:validate
     let:validating
 >
-    <label for="name">Name:</label>
+    <label for="name">名前:</label>
     <input id="name" name="name" on:change={() => validate('name')} />
     {#if invalid('name')}
         <p>{errors.name}</p>
     {/if}
 
-    <label for="email">Email:</label>
+    <label for="email">メール:</label>
     <input id="email" name="email" on:change={() => validate('email')} />
     {#if invalid('email')}
         <p>{errors.email}</p>
     {/if}
 
     {#if validating}
-        <p>Validating...</p>
+        <p>検証中...</p>
     {/if}
 
-    <button type="submit">Create User</button>
+    <button type="submit">ユーザー作成</button>
 </Form>
 ```
 
 ```svelte Svelte 5 icon="s"
 <Form action="/users" method="post">
     {#snippet children({ errors, invalid, validate, validating })}
-        <label for="name">Name:</label>
+        <label for="name">名前:</label>
         <input id="name" name="name" onchange={() => validate('name')} />
         {#if invalid('name')}
             <p>{errors.name}</p>
         {/if}
 
-        <label for="email">Email:</label>
+        <label for="email">メール:</label>
         <input id="email" name="email" onchange={() => validate('email')} />
         {#if invalid('email')}
             <p>{errors.email}</p>
         {/if}
 
         {#if validating}
-            <p>Validating...</p>
+            <p>検証中...</p>
         {/if}
 
-        <button type="submit">Create User</button>
+        <button type="submit">ユーザー作成</button>
     {/snippet}
 </Form>
 ```
 
 </CodeGroup>
 
-You may also use the `valid()` helper to check if a field has passed validation.
+`valid()` ヘルパーを使うことで、フィールドがバリデーションに成功したかどうかも確認できます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <Form action="/users" method="post" #default="{ errors, invalid, valid, validate }">
     <input name="email" @change="validate('email')" />
-    <p v-if="valid('email')">Valid email address</p>
+    <p v-if="valid('email')">有効なメールアドレスです</p>
     <p v-if="invalid('email')">{{ errors.email }}</p>
 </Form>
 ```
@@ -1078,7 +1086,7 @@ You may also use the `valid()` helper to check if a field has passed validation.
     {({ errors, invalid, valid, validate }) => (
         <>
             <input name="email" onChange={() => validate('email')} />
-            {valid('email') && <p>Valid email address</p>}
+            {valid('email') && <p>有効なメールアドレスです</p>}
             {invalid('email') && <p>{errors.email}</p>}
         </>
     )}
@@ -1089,7 +1097,7 @@ You may also use the `valid()` helper to check if a field has passed validation.
 <Form action="/users" method="post" let:errors let:invalid let:valid let:validate>
     <input name="email" on:change={() => validate('email')} />
     {#if valid('email')}
-        <p>Valid email address</p>
+        <p>有効なメールアドレスです</p>
     {/if}
     {#if invalid('email')}
         <p>{errors.email}</p>
@@ -1102,7 +1110,7 @@ You may also use the `valid()` helper to check if a field has passed validation.
     {#snippet children({ errors, invalid, valid, validate })}
         <input name="email" onchange={() => validate('email')} />
         {#if valid('email')}
-            <p>Valid email address</p>
+            <p>有効なメールアドレスです</p>
         {/if}
         {#if invalid('email')}
             <p>{errors.email}</p>
@@ -1114,18 +1122,20 @@ You may also use the `valid()` helper to check if a field has passed validation.
 </CodeGroup>
 
 <Warning>
-A form input will only appear as valid or invalid once it has changed and a validation response has been received.
+フォームの入力は、変更があってバリデーションレスポンスを受け取るまでは有効/無効として表示されません。
 </Warning>
 
-#### Validating Multiple Fields
+---
 
-You may validate multiple fields at once using the `only` option. This is particularly useful when building wizard-style forms where you want to validate all visible fields before proceeding to the next step.
+#### 複数フィールドの検証
+
+`only` オプションを使うと、複数のフィールドを一度に検証できます。これはウィザード形式のフォームで、次のステップに進む前に表示されているすべてのフィールドを検証したい場合に便利です。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 <Form action="/users" method="post" #default="{ validate }">
-    <!-- Step 1 fields -->
+    <!-- ステップ1のフィールド -->
     <input name="name" />
     <input name="email" />
 
@@ -1137,7 +1147,7 @@ You may validate multiple fields at once using the `only` option. This is partic
             onValidationError: () => showErrors(),
         })"
     >
-        Next Step
+        次のステップ
     </button>
 </Form>
 ```
@@ -1146,7 +1156,7 @@ You may validate multiple fields at once using the `only` option. This is partic
 <Form action="/users" method="post">
     {({ validate }) => (
         <>
-            {/* Step 1 fields */}
+            {/* ステップ1のフィールド */}
             <input name="name" />
             <input name="email" />
 
@@ -1158,7 +1168,7 @@ You may validate multiple fields at once using the `only` option. This is partic
                     onValidationError: () => showErrors(),
                 })}
             >
-                Next Step
+                次のステップ
             </button>
         </>
     )}
@@ -1167,7 +1177,7 @@ You may validate multiple fields at once using the `only` option. This is partic
 
 ```svelte Svelte 4 icon="s"
 <Form action="/users" method="post" let:validate>
-    <!-- Step 1 fields -->
+    <!-- ステップ1のフィールド -->
     <input name="name" />
     <input name="email" />
 
@@ -1179,7 +1189,7 @@ You may validate multiple fields at once using the `only` option. This is partic
             onValidationError: () => showErrors(),
         })}
     >
-        Next Step
+        次のステップ
     </button>
 </Form>
 ```
@@ -1187,7 +1197,7 @@ You may validate multiple fields at once using the `only` option. This is partic
 ```svelte Svelte 5 icon="s"
 <Form action="/users" method="post">
     {#snippet children({ validate })}
-        <!-- Step 1 fields -->
+        <!-- ステップ1のフィールド -->
         <input name="name" />
         <input name="email" />
 
@@ -1199,7 +1209,7 @@ You may validate multiple fields at once using the `only` option. This is partic
                 onValidationError: () => showErrors(),
             })}
         >
-            Next Step
+            次のステップ
         </button>
     {/snippet}
 </Form>
@@ -1207,9 +1217,11 @@ You may validate multiple fields at once using the `only` option. This is partic
 
 </CodeGroup>
 
-#### Touch and Validate
+---
 
-The `touch()` method marks fields as "touched" without triggering validation. You may then validate all touched fields by calling `validate()` without arguments.
+#### Touch と Validate
+
+`touch()` メソッドは、バリデーションをトリガーせずにフィールドを「タッチ済み」とマークします。その後、引数なしで `validate()` を呼ぶことで、タッチ済みのすべてのフィールドを検証できます。
 
 <CodeGroup>
 
@@ -1219,9 +1231,9 @@ The `touch()` method marks fields as "touched" without triggering validation. Yo
     <input name="email" @blur="touch('email')" />
     <input name="phone" @blur="touch('phone')" />
 
-    <button type="button" @click="validate()">Validate Touched Fields</button>
+    <button type="button" @click="validate()">タッチ済みフィールドを検証</button>
 
-    <p v-if="touched('name')">Name has been touched</p>
+    <p v-if="touched('name')">名前がタッチされました</p>
 </Form>
 ```
 
@@ -1233,9 +1245,9 @@ The `touch()` method marks fields as "touched" without triggering validation. Yo
             <input name="email" onBlur={() => touch('email')} />
             <input name="phone" onBlur={() => touch('phone')} />
 
-            <button type="button" onClick={() => validate()}>Validate Touched Fields</button>
+            <button type="button" onClick={() => validate()}>タッチ済みフィールドを検証</button>
 
-            {touched('name') && <p>Name has been touched</p>}
+            {touched('name') && <p>名前がタッチされました</p>}
         </>
     )}
 </Form>
@@ -1247,10 +1259,10 @@ The `touch()` method marks fields as "touched" without triggering validation. Yo
     <input name="email" on:blur={() => touch('email')} />
     <input name="phone" on:blur={() => touch('phone')} />
 
-    <button type="button" on:click={() => validate()}>Validate Touched Fields</button>
+    <button type="button" on:click={() => validate()}>タッチ済みフィールドを検証</button>
 
     {#if touched('name')}
-        <p>Name has been touched</p>
+        <p>名前がタッチされました</p>
     {/if}
 </Form>
 ```
@@ -1262,10 +1274,10 @@ The `touch()` method marks fields as "touched" without triggering validation. Yo
         <input name="email" onblur={() => touch('email')} />
         <input name="phone" onblur={() => touch('phone')} />
 
-        <button type="button" onclick={() => validate()}>Validate Touched Fields</button>
+        <button type="button" onclick={() => validate()}>タッチ済みフィールドを検証</button>
 
         {#if touched('name')}
-            <p>Name has been touched</p>
+            <p>名前がタッチされました</p>
         {/if}
     {/snippet}
 </Form>
@@ -1273,30 +1285,32 @@ The `touch()` method marks fields as "touched" without triggering validation. Yo
 
 </CodeGroup>
 
-The `touched()` helper may also be called without arguments to check if any field has been touched. The `reset()` method clears the touched state for reset fields.
+`touched()` ヘルパーは引数なしで呼び出すと、どのフィールドでもタッチ済みかを確認できます。`reset()` メソッドは、リセット対象のフィールドのタッチ状態をクリアします。
 
-#### Options
+---
 
-The `validate()` method accepts an options object with callbacks and configuration.
+#### オプション
+
+`validate()` メソッドは、コールバックや設定を含むオプションオブジェクトを受け取れます。
 
 ```js
 validate('username', {
     onSuccess: () => {
-        // Validation passed...
+        // バリデーション成功時の処理
     },
     onValidationError: (response) => {
-        // Validation failed (422 response)...
+        // バリデーション失敗時の処理 (422レスポンスなど)
     },
     onBeforeValidation: (newRequest, oldRequest) => {
-        // Return false to prevent validation...
+        // falseを返すとバリデーションを防止
     },
     onFinish: () => {
-        // Always runs after validation...
+        // バリデーション後に常に実行される
     },
 })
 ```
 
-You may also call `validate()` with only an options object to validate specific fields.
+オプションオブジェクトのみを渡して特定のフィールドを検証することも可能です。
 
 ```js
 validate({
@@ -1305,7 +1319,7 @@ validate({
 })
 ```
 
-Validation requests are automatically debounced. The first request fires immediately, then subsequent changes are debounced (1500ms by default). You may customize this timeout.
+バリデーションリクエストは自動的にデバウンスされます。最初のリクエストは即時に発火し、その後の変更はデフォルトで 1500ms デバウンスされます。このタイムアウトはカスタマイズ可能です。
 
 <CodeGroup>
 
@@ -1329,7 +1343,7 @@ Validation requests are automatically debounced. The first request fires immedia
 
 </CodeGroup>
 
-By default, files are excluded from validation requests to avoid unnecessary uploads. You may enable file validation when you need to validate file inputs like size or mime type.
+デフォルトでは、不要なアップロードを避けるためファイルはバリデーションリクエストに含まれません。ファイルサイズや MIME タイプの検証が必要な場合は、ファイルバリデーションを有効化できます。
 
 <CodeGroup>
 
@@ -1353,7 +1367,7 @@ By default, files are excluded from validation requests to avoid unnecessary upl
 
 </CodeGroup>
 
-By default, validation errors are simplified to strings (the first error message). You may keep errors as arrays to display all error messages for fields with multiple validation rules.
+デフォルトでは、バリデーションエラーは文字列（最初のエラーメッセージ）として簡略化されます。複数のバリデーションルールがあるフィールドのすべてのエラーを表示したい場合は、エラーを配列として保持できます。
 
 <CodeGroup>
 
@@ -1377,9 +1391,9 @@ By default, validation errors are simplified to strings (the first error message
 
 </CodeGroup>
 
-## Form Helper
+## フォームヘルパー
 
-In addition to the `<Form>` component, Inertia also provides a `useForm` helper for when you need programmatic control over your form's data and submission behavior.
+`<Form>` コンポーネントに加えて、Inertia はプログラム的にフォームのデータや送信動作を制御したい場合に便利な `useForm` ヘルパーも提供しています。
 
 <CodeGroup>
 
@@ -1493,7 +1507,7 @@ function submit(e) {
 
 </CodeGroup>
 
-To submit the form, you may use the `get`, `post`, `put`, `patch`and `delete` methods.
+フォームを送信するには、`get`、`post`、`put`、`patch`、`delete` メソッドを使用できます。
 
 <CodeGroup>
 
@@ -1528,7 +1542,7 @@ $form.delete(url, options)
 
 </CodeGroup>
 
-The submit methods support all of the typical [visit options](/v2/the-basics/manual-visits), such as `preserveState`, `preserveScroll`, and event callbacks, which can be helpful for performing tasks on successful form submissions. For example, you might use the `onSuccess` callback to reset inputs to their original state.
+これらの送信メソッドは、`preserveState` や `preserveScroll`、イベントコールバックなど、通常の [visit オプション](/v2/the-basics/manual-visits) をサポートしています。例えば、`onSuccess` コールバックを使って、フォーム送信後に入力を初期状態にリセットすることが可能です。
 
 <CodeGroup>
 
@@ -1557,7 +1571,7 @@ $form.post('/profile', {
 
 </CodeGroup>
 
-If you need to modify the form data before it's sent to the server, you can do so via the `transform()` method.
+送信前にフォームデータを変換したい場合は、`transform()` メソッドを使うことができます。
 
 <CodeGroup>
 
@@ -1590,7 +1604,7 @@ $form
 
 </CodeGroup>
 
-You can use the `processing` property to track if a form is currently being submitted. This can be helpful for preventing double form submissions by disabling the submit button.
+`processing` プロパティを使うと、フォームが現在送信中かどうかを追跡できます。これにより、送信ボタンを無効化して二重送信を防ぐことができます。
 
 <CodeGroup>
 
@@ -1610,7 +1624,7 @@ const { processing } = useForm({ ... })
 
 </CodeGroup>
 
-If your form is uploading files, the current progress event is available via the `progress` property, allowing you to easily display the upload progress.
+ファイルをアップロードしている場合、`progress` プロパティから現在の進捗を取得できるので、アップロード進行状況を簡単に表示できます。
 
 <CodeGroup>
 
@@ -1640,9 +1654,9 @@ const { progress } = useForm({ ... })
 
 </CodeGroup>
 
-### Form Errors
+### フォームのエラー
 
-If there are form validation errors, they are available via the `errors` property. When building Laravel powered Inertia applications, form errors will automatically be populated when your application throws instances of `ValidationException`, such as when using `{'$request->validate()'}`.
+バリデーションエラーは `errors` プロパティから取得できます。Laravel をバックエンドに使う Inertia アプリケーションでは、`ValidationException` がスローされると、フォームエラーは自動的にセットされます。例えば `$request->validate()` のようなケースです。
 
 <CodeGroup>
 
@@ -1664,167 +1678,167 @@ const { errors } = useForm({ ... })
 
 </CodeGroup>
 
-For a more thorough discussion of form validation and errors, please consult the [validation documentation](/v2/the-basics/validation).
+フォームのバリデーションやエラーについて詳しくは、[バリデーションのドキュメント](/v2/the-basics/validation) を参照してください。
 
-To determine if a form has any errors, you may use the `hasErrors` property. To clear form errors, use the `clearErrors()` method.
+フォームにエラーがあるか確認するには `hasErrors` プロパティを使います。エラーをクリアする場合は `clearErrors()` メソッドを使用します。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
-// Clear all errors...
+// 全てのエラーをクリア
 form.clearErrors()
 
-// Clear errors for specific fields...
+// 特定のフィールドのエラーをクリア
 form.clearErrors('field', 'anotherfield')
 ```
 
 ```js React icon="react"
 const { clearErrors } = useForm({ ... })
 
-// Clear all errors...
+// 全てのエラーをクリア
 clearErrors()
 
-// Clear errors for specific fields...
+// 特定のフィールドのエラーをクリア
 clearErrors('field', 'anotherfield')
 ```
 
 ```js Svelte icon="s"
-// Clear all errors...
+// 全てのエラーをクリア
 $form.clearErrors()
 
-// Clear errors for specific fields...
+// 特定のフィールドのエラーをクリア
 $form.clearErrors('field', 'anotherfield')
 ```
 
 </CodeGroup>
 
-If you're using client-side input validation libraries or do client-side validation manually, you can set your own errors on the form using the `setErrors()` method.
+クライアントサイドで独自にバリデーションを行う場合や手動で入力を検証する場合は、`setErrors()` メソッドでフォームに任意のエラーを設定できます。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
-// Set a single error...
-form.setError('field', 'Your error message.');
+// 単一のエラーを設定
+form.setError('field', 'エラーメッセージ');
 
-// Set multiple errors at once...
+// 複数のエラーを一度に設定
 form.setError({
-    foo: 'Your error message for the foo field.',
-    bar: 'Some other error for the bar field.'
+    foo: 'foo フィールド用のエラーメッセージ',
+    bar: 'bar フィールド用の別のエラー'
 });
 ```
 
 ```js React icon="react"
 const { setError } = useForm({ ... })
 
-// Set a single error...
-setError('field', 'Your error message.');
+// 単一のエラーを設定
+setError('field', 'エラーメッセージ');
 
-// Set multiple errors at once...
+// 複数のエラーを一度に設定
 setError({
-    foo: 'Your error message for the foo field.',
-    bar: 'Some other error for the bar field.'
+    foo: 'foo フィールド用のエラーメッセージ',
+    bar: 'bar フィールド用の別のエラー'
 });
 ```
 
 ```js Svelte icon="s"
-// Set a single error
-$form.setError('field', 'Your error message.');
+// 単一のエラーを設定
+$form.setError('field', 'エラーメッセージ');
 
-// Set multiple errors at once
+// 複数のエラーを一度に設定
 $form.setError({
-    foo: 'Your error message for the foo field.',
-    bar: 'Some other error for the bar field.'
+    foo: 'foo フィールド用のエラーメッセージ',
+    bar: 'bar フィールド用の別のエラー'
 });
 ```
 
 </CodeGroup>
 
-Unlike an actual form submission, the page's props remain unchanged when manually setting errors on a form instance.
+手動でエラーを設定しても、ページの props は変更されません。
 
-When a form has been successfully submitted, the `wasSuccessful` property will be `true`. In addition to this, forms have a `recentlySuccessful` property, which will be set to `true` for two seconds after a successful form submission. This property can be utilized to show temporary success messages.
+フォームが正常に送信された場合、`wasSuccessful` プロパティは `true` になります。また、`recentlySuccessful` プロパティは送信成功後 2 秒間 `true` になり、一時的な成功メッセージを表示するのに利用できます。
 
-You may customize the duration of the `recentlySuccessful` state by setting the `form.recentlySuccessfulDuration` option in your [application defaults](/v2/installation/client-side-setup#configuring-defaults). The default value is `2000` milliseconds.
+`recentlySuccessful` の持続時間は、[アプリケーションデフォルト](/v2/installation/client-side-setup#configuring-defaults) で `form.recentlySuccessfulDuration` オプションを設定してカスタマイズ可能です。デフォルトは 2000 ミリ秒です。
 
-### Resetting the Form
+### フォームのリセット
 
-To reset the form's values back to their default values, you can use the `reset()` method.
+フォームの値を初期値に戻すには `reset()` メソッドを使用します。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
-// Reset the form...
+// フォーム全体をリセット
 form.reset()
 
-// Reset specific fields...
+// 特定のフィールドだけリセット
 form.reset('field', 'anotherfield')
 ```
 
 ```js React icon="react"
 const { reset } = useForm({ ... })
 
-// Reset the form...
+// フォーム全体をリセット
 reset()
 
-// Reset specific fields...
+// 特定のフィールドだけリセット
 reset('field', 'anotherfield')
 ```
 
 ```js Svelte icon="s"
-// Reset the form...
+// フォーム全体をリセット
 $form.reset()
 
-// Reset specific fields...
+// 特定のフィールドだけリセット
 $form.reset('field', 'anotherfield')
 ```
 
 </CodeGroup>
 
-Sometimes, you may want to restore your form fields to their default values and clear any validation errors at the same time. Instead of calling `reset()` and `clearErrors()` separately, you can use the `resetAndClearErrors()` method, which combines both actions into a single call.
+フォームを初期値に戻しつつバリデーションエラーも同時にクリアしたい場合は、`resetAndClearErrors()` メソッドを使うと、`reset()` と `clearErrors()` を一度に実行できます。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
-// Reset the form and clear all errors...
+// フォームをリセットして全てのエラーをクリア
 form.resetAndClearErrors()
 
-// Reset specific fields and clear their errors...
+// 特定のフィールドをリセットしてそのエラーをクリア
 form.resetAndClearErrors('field', 'anotherfield')
 ```
 
 ```js React icon="react"
 const { resetAndClearErrors } = useForm({ ... })
 
-// Reset the form and clear all errors...
+// フォームをリセットして全てのエラーをクリア
 resetAndClearErrors()
 
-// Reset specific fields and clear their errors...
+// 特定のフィールドをリセットしてそのエラーをクリア
 resetAndClearErrors('field', 'anotherfield')
 ```
 
 ```js Svelte icon="s"
-// Reset the form and clear all errors...
+// フォームをリセットして全てのエラーをクリア
 $form.resetAndClearErrors()
 
-// Reset specific fields and clear their errors...
+// 特定のフィールドをリセットしてそのエラーをクリア
 $form.resetAndClearErrors('field', 'anotherfield')
 ```
 
 </CodeGroup>
 
-### Setting New Default Values
+### 新しいデフォルト値の設定
 
-If your form's default values become outdated, you can use the `defaults()` method to update them. Then, the form will be reset to the correct values the next time the `reset()` method is invoked.
+フォームのデフォルト値が古くなった場合は、`defaults()` メソッドを使って更新できます。こうすることで、次回 `reset()` メソッドを呼び出した際にフォームは正しい値にリセットされます。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
-// Set the form's current values as the new defaults...
+// 現在のフォームの値を新しいデフォルト値として設定...
 form.defaults()
 
-// Update the default value of a single field...
+// 単一フィールドのデフォルト値を更新...
 form.defaults('email', 'updated-default@example.com')
 
-// Update the default value of multiple fields...
+// 複数フィールドのデフォルト値を更新...
 form.defaults({
     name: 'Updated Example',
     email: 'updated-default@example.com',
@@ -1834,13 +1848,13 @@ form.defaults({
 ```js React icon="react"
 const { setDefaults } = useForm({ ... })
 
-// Set the form's current values as the new defaults...
+// 現在のフォームの値を新しいデフォルト値として設定...
 setDefaults()
 
-// Update the default value of a single field...
+// 単一フィールドのデフォルト値を更新...
 setDefaults('email', 'updated-default@example.com')
 
-// Update the default value of multiple fields...
+// 複数フィールドのデフォルト値を更新...
 setDefaults({
     name: 'Updated Example',
     email: 'updated-default@example.com',
@@ -1848,13 +1862,13 @@ setDefaults({
 ```
 
 ```js Svelte icon="s"
-// Set the form's current values as the new defaults...
+// 現在のフォームの値を新しいデフォルト値として設定...
 $form.defaults()
 
-// Update the default value of a single field...
+// 単一フィールドのデフォルト値を更新...
 $form.defaults('email', 'updated-default@example.com')
 
-// Change the default value of multiple fields...
+// 複数フィールドのデフォルト値を更新...
 $form.defaults({
     name: 'Updated Example',
     email: 'updated-default@example.com',
@@ -1863,33 +1877,33 @@ $form.defaults({
 
 </CodeGroup>
 
-### Form Field Change Tracking
+### フォームフィールドの変更追跡
 
-To determine if a form has any changes, you may use the `isDirty` property.
+フォームに変更があるか確認するには、`isDirty` プロパティを使用します。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
-<div v-if="form.isDirty">There are unsaved form changes.</div>
+<div v-if="form.isDirty">保存されていない変更があります。</div>
 ```
 
 ```jsx React icon="react"
 const { isDirty } = useForm({ ... })
 
-{isDirty && <div>There are unsaved form changes.</div>}
+{isDirty && <div>保存されていない変更があります。</div>}
 ```
 
 ```svelte Svelte icon="s"
 {#if $form.isDirty}
-    <div>There are unsaved form changes.</div>
+    <div>保存されていない変更があります。</div>
 {/if}
 ```
 
 </CodeGroup>
 
-### Canceling Form Submissions
+### フォーム送信のキャンセル
 
-To cancel a form submission, use the `cancel()` method.
+フォーム送信をキャンセルするには、`cancel()` メソッドを使用します。
 
 <CodeGroup>
 
@@ -1909,44 +1923,44 @@ $form.cancel()
 
 </CodeGroup>
 
-### Form Data and History State
+### フォームデータと履歴状態
 
-To instruct Inertia to store a form's data and errors in [history state](/v2/data-props/remembering-state), you can provide a unique form key as the first argument when instantiating your form.
-
-<CodeGroup>
-
-```js Vue icon="vuejs"
-import { useForm } from '@inertiajs/vue3'
-
-const form = useForm('CreateUser', data)
-const form = useForm(`EditUser:${user.id}\
-```
-
-```js React icon="react"
-import { useForm } from '@inertiajs/react'
-
-const form = useForm('CreateUser', data)
-const form = useForm(`EditUser:${user.id}\
-```
-
-```js Svelte icon="s"
-import { useForm } from '@inertiajs/svelte'
-
-const form = useForm('CreateUser', data)
-const form = useForm(`EditUser:${user.id}\
-```
-
-</CodeGroup>
-
-#### Excluding Fields
-
-Sometimes you may wish to prevent certain fields from being stored in history state. For example, you may want to exclude password fields for security reasons.
+Inertia にフォームのデータやエラーを [履歴状態](/v2/data-props/remembering-state) に保存させるには、フォーム生成時に一意のキーを最初の引数として渡します。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
 import { useForm } from '@inertiajs/vue3'
 
+const form = useForm('CreateUser', data)
+const form = useForm(`EditUser:${user.id}`)
+```
+
+```js React icon="react"
+import { useForm } from '@inertiajs/react'
+
+const form = useForm('CreateUser', data)
+const form = useForm(`EditUser:${user.id}`)
+```
+
+```js Svelte icon="s"
+import { useForm } from '@inertiajs/svelte'
+
+const form = useForm('CreateUser', data)
+const form = useForm(`EditUser:${user.id}`)
+```
+
+</CodeGroup>
+
+#### フィールドの除外
+
+場合によっては、特定のフィールドを履歴状態に保存しないようにしたいことがあります。たとえば、セキュリティ上の理由でパスワードフィールドを除外することができます。
+
+<CodeGroup>
+
+```js Vue icon="vuejs"
+import { useForm } from '@inertiajs/vue3'
+
 const form = useForm('LoginForm', {
     email: '',
     password: '',
@@ -1973,21 +1987,21 @@ const form = useForm('LoginForm', {
 
 </CodeGroup>
 
-Multiple fields may be excluded by passing additional arguments.
+複数のフィールドを除外する場合は、追加の引数として渡します。
 
 ```js
 form.dontRemember('password', 'password_confirmation')
 ```
 
 <Note>
-Some browsers trigger a "save password" prompt whenever password field values are written to history state, even without form submission. Excluding password fields avoids this issue.
+一部のブラウザでは、パスワードフィールドの値が履歴状態に書き込まれると、フォーム送信がなくても「パスワードを保存しますか？」というプロンプトが表示されることがあります。パスワードフィールドを除外することでこの問題を回避できます。
 </Note>
 
 ### Wayfinder
 
 <Badge>v2.0.6+</Badge>
 
-When using [Wayfinder](https://github.com/laravel/wayfinder) in conjunction with the form helper, you can simply pass the resulting object directly to the `form.submit` method. The form helper will infer the HTTP method and URL from the Wayfinder object.
+[Wayfinder](https://github.com/laravel/wayfinder) をフォームヘルパーと併用する場合、生成されたオブジェクトを直接 `form.submit` に渡すだけで、HTTP メソッドや URL が自動的に推測されます。
 
 <CodeGroup>
 
@@ -2033,10 +2047,10 @@ form.submit(store())
 
 <Badge>v2.3+</Badge>
 
-Just like the `<Form>` component, the `useForm` helper supports [Precognition](#precognition) for real-time validation. You may enable it by chaining the `withPrecognition()` method with the HTTP method and endpoint for validation requests.
+`<Form>` コンポーネントと同様に、`useForm` ヘルパーはリアルタイムバリデーションの [Precognition](#precognition) に対応しています。HTTP メソッドとバリデーション用エンドポイントを指定して `withPrecognition()` をチェーンすることで有効化できます。
 
 <Note>
-Precognition requires server-side support. Laravel users should see the [Laravel Precognition documentation](https://laravel.com/docs/precognition) for setup instructions. For other frameworks, see the [protocol page](/v2/core-concepts/the-protocol#request-headers) for implementation details.
+Precognition はサーバーサイドの対応が必要です。Laravel の場合は [Laravel Precognition ドキュメント](https://laravel.com/docs/precognition) を参照してください。他のフレームワークの場合は [プロトコルページ](/v2/core-concepts/the-protocol#request-headers) を参照してください。
 </Note>
 
 <CodeGroup>
@@ -2070,7 +2084,7 @@ const form = useForm({
 
 </CodeGroup>
 
-For backwards compatibility with the `laravel-precognition` packages, you may also pass the method and URL as the first arguments to `useForm()`.
+互換性のため、`laravel-precognition` パッケージと同様に、最初の引数にメソッドと URL を渡すこともできます。
 
 ```js
 const form = useForm('post', '/users', {
@@ -2080,10 +2094,10 @@ const form = useForm('post', '/users', {
 ```
 
 <Tip>
-Since Precognition is now built-in, you may remove the `laravel-precognition` package and import `useForm` from your Inertia adapter instead.
+Precognition は現在組み込み済みのため、`laravel-precognition` パッケージを削除し、Inertia アダプターから `useForm` をインポートしてください。
 </Tip>
 
-You may also use [Wayfinder](https://github.com/laravel/wayfinder) when enabling Precognition.
+Wayfinder と組み合わせて Precognition を使用することも可能です。
 
 ```js
 import { store } from 'App/Http/Controllers/UserController'
@@ -2093,14 +2107,14 @@ const form = useForm({
     email: '',
 }).withPrecognition(store())
 
-// Or passing Wayfinder as the first argument...
+// または Wayfinder を最初の引数として渡す...
 const form = useForm(store(), {
     name: '',
     email: '',
 })
 ```
 
-Once Precognition is enabled, call `validate()` with a field name to trigger validation for that field. The `invalid()` helper checks if a field has validation errors, while `validating` indicates when a request is in progress.
+Precognition を有効化したら、特定のフィールドのバリデーションを実行するには `validate()` を呼び出します。`invalid()` ヘルパーでエラーの有無を確認でき、`validating` はリクエスト進行中を示します。
 
 <CodeGroup>
 
@@ -2124,7 +2138,7 @@ const form = useForm('post', '/users', {
 
         <p v-if="form.validating">Validating...</p>
 
-        <button type="submit">Create User</button>
+        <button type="submit">ユーザー作成</button>
     </form>
 </template>
 ```
@@ -2152,12 +2166,12 @@ return (
 
         {validating && <p>Validating...</p>}
 
-        <button type="submit">Create User</button>
+        <button type="submit">ユーザー作成</button>
     </form>
 )
 ```
 
-```svelte Svelte 4 icon="s"
+```svelte Svelte icon="s"
 <script>
 import { useForm } from '@inertiajs/svelte'
 
@@ -2182,46 +2196,17 @@ const form = useForm('post', '/users', {
         <p>Validating...</p>
     {/if}
 
-    <button type="submit">Create User</button>
-</form>
-```
-
-```svelte Svelte 5 icon="s"
-<script>
-import { useForm } from '@inertiajs/svelte'
-
-const form = useForm('post', '/users', {
-    name: '',
-    email: '',
-})
-</script>
-
-<form onsubmit={(e) => { e.preventDefault(); $form.post('/users') }}>
-    <input bind:value={$form.name} onchange={() => $form.validate('name')} />
-    {#if $form.invalid('name')}
-        <p>{$form.errors.name}</p>
-    {/if}
-
-    <input bind:value={$form.email} onchange={() => $form.validate('email')} />
-    {#if $form.invalid('email')}
-        <p>{$form.errors.email}</p>
-    {/if}
-
-    {#if $form.validating}
-        <p>Validating...</p>
-    {/if}
-
-    <button type="submit">Create User</button>
+    <button type="submit">ユーザー作成</button>
 </form>
 ```
 
 </CodeGroup>
 
-You may also use the `valid()` helper to check if a field has passed validation.
+`valid()` ヘルパーで、フィールドがバリデーションを通過しているか確認できます。
 
-#### Touch and Validate
+#### タッチとバリデーション
 
-The `touch()` method marks fields as "touched" without triggering validation. You may then validate all touched fields by calling `validate()` without arguments. The `touched()` helper checks if a field has been touched. The `reset()` method clears the touched state for reset fields.
+`touch()` メソッドでフィールドを「タッチ済み」とマークできます（バリデーションは発生しません）。その後、引数なしで `validate()` を呼び出すと、タッチ済みフィールドすべてをバリデートできます。`touched()` ヘルパーでフィールドがタッチ済みか確認でき、`reset()` でタッチ状態をリセットします。
 
 <CodeGroup>
 
@@ -2229,36 +2214,36 @@ The `touch()` method marks fields as "touched" without triggering validation. Yo
 <input v-model="form.name" @blur="form.touch('name')" />
 <input v-model="form.email" @blur="form.touch('email')" />
 
-<button type="button" @click="form.validate()">Validate Touched Fields</button>
+<button type="button" @click="form.validate()">タッチ済みフィールドをバリデート</button>
 
-<p v-if="form.touched('name')">Name has been touched</p>
+<p v-if="form.touched('name')">名前がタッチされました</p>
 ```
 
 ```jsx React icon="react"
 <input value={data.name} onChange={e => setData('name', e.target.value)} onBlur={() => touch('name')} />
 <input value={data.email} onChange={e => setData('email', e.target.value)} onBlur={() => touch('email')} />
 
-<button type="button" onClick={() => validate()}>Validate Touched Fields</button>
+<button type="button" onClick={() => validate()}>タッチ済みフィールドをバリデート</button>
 
-{touched('name') && <p>Name has been touched</p>}
+{touched('name') && <p>名前がタッチされました</p>}
 ```
 
 ```svelte Svelte icon="s"
 <input bind:value={$form.name} on:blur={() => $form.touch('name')} />
 <input bind:value={$form.email} on:blur={() => $form.touch('email')} />
 
-<button type="button" on:click={() => $form.validate()}>Validate Touched Fields</button>
+<button type="button" on:click={() => $form.validate()}>タッチ済みフィールドをバリデート</button>
 
 {#if $form.touched('name')}
-    <p>Name has been touched</p>
+    <p>名前がタッチされました</p>
 {/if}
 ```
 
 </CodeGroup>
 
-#### Options
+#### オプション
 
-Validation requests are automatically debounced. The first request fires immediately, then subsequent changes are debounced (1500ms by default). You may customize this timeout using `setValidationTimeout()`.
+バリデーションリクエストは自動でデバウンスされます。最初のリクエストは即座に実行され、その後の変更はデフォルトで 1500ms デバウンスされます。`setValidationTimeout()` でこのタイムアウトを変更可能です。
 
 <CodeGroup>
 
@@ -2286,7 +2271,7 @@ $form.setValidationTimeout(500)
 
 </CodeGroup>
 
-By default, files are excluded from validation requests to avoid unnecessary uploads. You may enable file validation using `validateFiles()`.
+デフォルトではファイルはバリデーションリクエストから除外され、不要なアップロードを防ぎます。`validateFiles()` を使うことでファイルバリデーションを有効化できます。
 
 <CodeGroup>
 
@@ -2314,7 +2299,7 @@ $form.validateFiles()
 
 </CodeGroup>
 
-By default, validation errors are simplified to strings (the first error message). You can indicate you would like all errors as arrays using `withAllErrors()`.
+デフォルトでは、バリデーションエラーは文字列（最初のエラーメッセージ）のみ簡略化されます。`withAllErrors()` を使うと、すべてのエラーを配列として取得可能です。
 
 <CodeGroup>
 
@@ -2342,11 +2327,11 @@ $form.withAllErrors()
 
 </CodeGroup>
 
-With Precognition enabled, you may call `submit()` without arguments to submit to the configured endpoint.
+Precognition が有効な場合、`submit()` を引数なしで呼び出すと、設定されたエンドポイントに送信されます。
 
-## Server-Side Responses
+## サーバーサイドのレスポンス
 
-When using Inertia, you don't typically inspect form responses client-side like you would with traditional XHR/fetch requests. Instead, your server-side route or controller issues a [redirect](/v2/the-basics/redirects) response after processing the form, often redirecting to a success page.
+Inertia を使う場合、従来の XHR や fetch のようにクライアント側でフォームレスポンスを直接確認することはほとんどありません。代わりに、サーバーサイドのルートやコントローラーでフォーム処理後に [リダイレクト](/v2/the-basics/redirects) を返すのが一般的です。
 
 ```php
 class UsersController extends Controller
@@ -2371,19 +2356,19 @@ class UsersController extends Controller
 }
 ```
 
-This redirect-based approach works with all form submission methods: the `<Form>` component, `useForm` helper, and manual router submissions. It makes handling Inertia forms feel very similar to classic server-side form submissions.
+このリダイレクトベースのアプローチは、`<Form>` コンポーネント、`useForm` ヘルパー、手動ルーター送信のすべてで機能します。Inertia のフォーム処理を従来のサーバーサイドフォーム送信と同じ感覚で扱えます。
 
-## Server-Side Validation
+## サーバーサイドバリデーション
 
-Both the `<Form>` component and `useForm` helper automatically handle server-side validation errors. When your server returns validation errors, they're automatically available in the `errors` object without any additional configuration.
+`<Form>` コンポーネントや `useForm` ヘルパーは、サーバーサイドのバリデーションエラーを自動で処理します。サーバーがバリデーションエラーを返すと、追加の設定なしで `errors` オブジェクトで利用可能になります。
 
-Unlike traditional XHR/fetch requests where you might check for a `422` status code, Inertia handles validation errors as part of its redirect-based flow, just like classic server-side form submissions, but without the full page reload.
+従来の XHR や fetch リクエストで `422` ステータスコードをチェックする必要がある場合とは異なり、Inertia はバリデーションエラーをリダイレクトベースのフローの一部として処理します。これは従来のサーバーサイドフォーム送信と同じですが、ページ全体のリロードは発生しません。
 
-For a complete guide on validation error handling, including error bags and advanced scenarios, see the [validation documentation](/v2/the-basics/validation).
+エラーバッグや高度なシナリオを含むバリデーションエラーの完全なガイドは、[バリデーションのドキュメント](/v2/the-basics/validation)をご覧ください。
 
-## Manual Form Submissions
+## 手動フォーム送信
 
-It's also possible to submit forms manually using Inertia's `router` methods directly, without using the `<Form>` component or `useForm` helper:
+`<Form>` コンポーネントや `useForm` ヘルパーを使わずに、Inertia の `router` メソッドを直接使ってフォームを手動で送信することも可能です。
 
 <CodeGroup>
 
@@ -2516,12 +2501,12 @@ function submit(e) {
 
 </CodeGroup>
 
-## File Uploads
+## ファイルアップロード
 
-When making requests or form submissions that include files, Inertia will automatically convert the request data into a `FormData` object. This works with the `<Form>` component, `useForm`helper, and manual router submissions.
+ファイルを含むリクエストやフォーム送信を行う場合、Inertia は自動的に送信データを `FormData` オブジェクトに変換します。これは `<Form>` コンポーネント、`useForm` ヘルパー、手動の router 送信すべてで機能します。
 
-For more information on file uploads, including progress tracking, see the [file uploads documentation](/v2/the-basics/file-uploads).
+進行状況の追跡を含むファイルアップロードの詳細は、[ファイルアップロードのドキュメント](/v2/the-basics/file-uploads)をご覧ください。
 
-## XHR / Fetch Submissions
+## XHR / Fetch 送信
 
-Using Inertia to submit forms works great for the vast majority of situations. However, in the event that you need more control over the form submission, you're free to make plain XHR or `fetch` requests instead, using the library of your choice.
+Inertia を使ったフォーム送信はほとんどの状況で問題なく動作します。しかし、フォーム送信の制御をより細かく行いたい場合は、従来の XHR や `fetch` を使って好きなライブラリで送信することも可能です。

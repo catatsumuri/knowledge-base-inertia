@@ -1,12 +1,12 @@
 ---
-title: Links
+title: リンク
 ---
 
-To create links to other pages within an Inertia app, you will typically use the Inertia `<Link>` component. This component is a light wrapper around a standard anchor `<a>` link that intercepts click events and prevents full page reloads. This is [how Inertia provides a single-page app experience](/v2/core-concepts/how-it-works) once your application has been loaded.
+Inertia アプリ内で他のページへのリンクを作成するには、通常 Inertia の `<Link>` コンポーネントを使用します。このコンポーネントは、標準のアンカー `<a>` リンクを軽くラップしたもので、クリックイベントをインターセプトし、ページ全体のリロードを防ぎます。これが、アプリケーションの読み込み後に Inertia がシングルページアプリ体験を提供する[仕組み](/v2/core-concepts/how-it-works)です。
 
-## Creating Links
+## リンクの作成
 
-To create an Inertia link, use the Inertia `<Link>` component. Any attributes you provide to this component will be proxied to the underlying HTML tag.
+Inertia リンクを作成するには、Inertia の `<Link>` コンポーネントを使用します。このコンポーネントに指定した属性は、基になる HTML タグにプロキシされます。
 
 <CodeGroup>
 
@@ -32,7 +32,7 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-By default, Inertia renders links as anchor `<a>` elements. However, you can change the tag using the `as` prop.
+デフォルトでは、Inertia はリンクをアンカー `<a>` 要素としてレンダリングします。ただし、`as` プロップを使用してタグを変更できます。
 
 <CodeGroup>
 
@@ -41,7 +41,7 @@ import { Link } from '@inertiajs/vue3'
 
 <Link href="/logout" method="post" as="button">Logout</Link>
 
-// Renders as...
+// レンダリング結果...
 <button type="button">Logout</button>
 ```
 
@@ -50,7 +50,7 @@ import { Link } from '@inertiajs/react'
 
 <Link href="/logout" method="post" as="button">Logout</Link>
 
-// Renders as...
+// レンダリング結果...
 <button type="button">Logout</button>
 ```
 
@@ -59,19 +59,19 @@ import { Link } from '@inertiajs/svelte'
 
 <Link href="/logout" method="post" as="button">Logout</Link>
 
-// Renders as...
+// レンダリング結果...
 <button type="button">Logout</button>
 ```
 
 </CodeGroup>
 
 <Info>
-    Creating `POST`/`PUT`/`PATCH`/ `DELETE` anchor `<a>` links is discouraged as it causes "Open Link in New Tab / Window" accessibility issues. The component automatically renders a{` `} `<button>` element when using these methods.
+    `POST` / `PUT` / `PATCH` / `DELETE` のアンカー `<a>` リンクを作成することは、「新しいタブ / ウィンドウでリンクを開く」際のアクセシビリティ問題を引き起こすため推奨されません。これらのメソッドを使用する場合、コンポーネントは自動的に{` `} `<button>` 要素をレンダリングします。
 </Info>
 
-## Method
+## メソッド
 
-You can specify the HTTP request method for an Inertia link request using the `method` prop. The default method used by links is `GET`, but you can use the `method` prop to make `POST`, `PUT`, `PATCH`, and `DELETE` requests via links.
+Inertia リンクのリクエストに使用する HTTP メソッドは、`method` プロップで指定できます。リンクで使用されるデフォルトのメソッドは `GET` ですが、`method` プロップを使うことで、リンク経由で `POST`、`PUT`、`PATCH`、`DELETE` リクエストを送信できます。
 
 <CodeGroup>
 
@@ -101,7 +101,7 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 <Badge>v2.0.6+</Badge>
 
-When using [Wayfinder](https://github.com/laravel/wayfinder) in conjunction with the `Link`component, you can simply pass the resulting object directly to the `href` prop. The `Link` will infer the HTTP method and URL directly from the Wayfinder object.
+[Wayfinder](https://github.com/laravel/wayfinder) を `Link` コンポーネントと併用する場合、生成されたオブジェクトをそのまま `href` プロップに渡すことができます。`Link` は Wayfinder オブジェクトから HTTP メソッドと URL を自動的に推論します。
 
 <CodeGroup>
 
@@ -130,9 +130,9 @@ import { show } from 'App/Http/Controllers/UserController'
 
 </CodeGroup>
 
-## Data
+## データ
 
-When making `POST` or `PUT` requests, you may wish to add additional data to the request. You can accomplish this using the `data` prop. The provided data can be an `object` or `FormData` instance.
+`POST` または `PUT` リクエストを行う際、追加のデータをリクエストに含めたい場合があります。これは `data` プロップを使用して実現できます。指定するデータは `object` または `FormData` のインスタンスにできます。
 
 <CodeGroup>
 
@@ -158,9 +158,9 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-## Custom Headers
+## カスタムヘッダー
 
-The `headers` prop allows you to add custom headers to an Inertia link. However, the headers Inertia uses internally to communicate its state to the server take priority and therefore cannot be overwritten.
+`headers` プロップを使用すると、Inertia リンクにカスタムヘッダーを追加できます。ただし、Inertia が内部的に状態をサーバーへ伝達するために使用するヘッダーが優先されるため、これらを上書きすることはできません。
 
 <CodeGroup>
 
@@ -186,9 +186,9 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-## Browser History
+## ブラウザ履歴
 
-The `replace` prop allows you to specify the browser's history behavior. By default, page visits push (new) state (`window.history.pushState`) into the history; however, it's also possible to replace state (`window.history.replaceState`) by setting the `replace` prop to `true`. This will cause the visit to replace the current history state instead of adding a new history state to the stack.
+`replace` プロップを使用すると、ブラウザの履歴の挙動を指定できます。デフォルトでは、ページ遷移は新しい状態を履歴にプッシュ（`window.history.pushState`）しますが、`replace` プロップを `true` に設定することで、現在の履歴状態を置き換える（`window.history.replaceState`）ことも可能です。これにより、履歴スタックに新しい状態を追加する代わりに、現在の状態が置き換えられます。
 
 <CodeGroup>
 
@@ -214,9 +214,9 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-## State Preservation
+## 状態の保持
 
-You can preserve a page component's local state using the `preserve-state` prop. This will prevent a page component from fully re-rendering. The `preserve-state` prop is especially helpful on pages that contain forms, since you can avoid manually repopulating input fields and can also maintain a focused input.
+`preserve-state` プロップを使用すると、ページコンポーネントのローカル状態を保持できます。これにより、ページコンポーネントが完全に再レンダリングされるのを防ぎます。`preserve-state` プロップは、フォームを含むページで特に有用で、入力フィールドを手動で再設定する必要を避けられるほか、フォーカス中の入力を維持することもできます。
 
 <CodeGroup>
 
@@ -248,9 +248,9 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-## Scroll Preservation
+## スクロールの保持
 
-You can use the `preserveScroll` prop to prevent Inertia from automatically resetting the scroll position when making a page visit.
+`preserveScroll` プロップを使用すると、ページ遷移時に Inertia が自動的にスクロール位置をリセットするのを防ぐことができます。
 
 <CodeGroup>
 
@@ -276,11 +276,11 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-For more information on managing scroll position, check out the documentation on [scroll management](/v2/advanced/scroll-management).
+スクロール位置の管理について詳しくは、[スクロール管理](/v2/advanced/scroll-management)のドキュメントを参照してください。
 
-## Partial Reloads
+## 部分リロード
 
-The `only` prop allows you to specify that only a subset of a page's props (data) should be retrieved from the server on subsequent visits to that page.
+`only` プロップを使用すると、そのページへの後続の訪問時に、ページのプロップ（データ）の一部のみをサーバーから取得するよう指定できます。
 
 <CodeGroup>
 
@@ -306,11 +306,11 @@ import { inertia, Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-For more information on this topic, check out the complete documentation on [partial reloads](/v2/data-props/partial-reloads).
+このトピックについて詳しくは、[部分リロード](/v2/data-props/partial-reloads)に関する完全なドキュメントを参照してください。
 
-## View Transitions
+## ビュートランジション
 
-You may enable [View transitions](/v2/the-basics/view-transitions) for a link by setting the `viewTransition` prop to `true`. This will use the browser's View Transitions API to animate the page transition.
+`viewTransition` プロップを `true` に設定することで、リンクに[ビュートランジション](/v2/the-basics/view-transitions)を有効にできます。これにより、ブラウザの View Transitions API を使用してページ遷移をアニメーション表示します。
 
 <CodeGroup>
 
@@ -334,25 +334,25 @@ import { Link } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-## Active States
+## アクティブ状態
 
-It's common to set an active state for navigation links based on the current page. This can be accomplished when using Inertia by inspecting the `page` object and doing string comparisons against the `page.url` and `page.component` properties.
+現在のページに基づいてナビゲーションリンクにアクティブ状態を設定するのは一般的です。Inertia では、`page` オブジェクトを参照し、`page.url` や `page.component` プロパティに対して文字列比較を行うことでこれを実現できます。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 import { Link } from '@inertiajs/vue3'
 
-// URL exact match...
+// URL の完全一致...
 <Link href="/users" :class="{ 'active': $page.url === '/users' }">Users</Link>
 
-// Component exact match...
+// コンポーネントの完全一致...
 <Link href="/users" :class="{ 'active': $page.component === 'Users/Index' }">Users</Link>
 
-// URL starts with (/users, /users/create, /users/1, etc.)...
+// URL の先頭一致（/users, /users/create, /users/1 など）...
 <Link href="/users" :class="{ 'active': $page.url.startsWith('/users') }">Users</Link>
 
-// Component starts with (Users/Index, Users/Create, Users/Show, etc.)...
+// コンポーネントの先頭一致（Users/Index, Users/Create, Users/Show など）...
 <Link href="/users" :class="{ 'active': $page.component.startsWith('Users') }">Users</Link>
 ```
 
@@ -361,41 +361,41 @@ import { usePage } from '@inertiajs/react'
 
 const { url, component } = usePage()
 
-// URL exact match...
+// URL の完全一致...
 <Link href="/users" className={url === '/users' ? 'active' : ''}>Users</Link>
 
-// Component exact match...
+// コンポーネントの完全一致...
 <Link href="/users" className={component === 'Users/Index' ? 'active' : ''}>Users</Link>
 
-// URL starts with (/users, /users/create, /users/1, etc.)...
+// URL の先頭一致（/users, /users/create, /users/1 など）...
 <Link href="/users" className={url.startsWith('/users') ? 'active' : ''}>Users</Link>
 
-// Component starts with (Users/Index, Users/Create, Users/Show, etc.)...
+// コンポーネントの先頭一致（Users/Index, Users/Create, Users/Show など）...
 <Link href="/users" className={component.startsWith('Users') ? 'active' : ''}>Users</Link>
 ```
 
 ```svelte Svelte icon="s"
 import { inertia, Link, page } from '@inertiajs/svelte'
 
-// URL exact match...
+// URL の完全一致...
 <a href="/users" use:inertia class:active={$page.url === '/users'}>Users</a>
 
-// Component exact match...
+// コンポーネントの完全一致...
 <a href="/users" use:inertia class:active={$page.component === 'Users/Index'}>Users</a>
 
-// URL starts with (/users, /users/create, /users/1, etc.)...
+// URL の先頭一致（/users, /users/create, /users/1 など）...
 <Link href="/users" class={$page.url.startsWith('/users') ? 'active' : ''}>Users</Link>
 
-// Component starts with (Users/Index, Users/Create, Users/Show, etc.)...
+// コンポーネントの先頭一致（Users/Index, Users/Create, Users/Show など）...
 <Link href="/users" class={$page.component.startsWith('Users') ? 'active' : ''}>Users</Link>
 ```
 
 </CodeGroup>
 
-You can perform exact match comparisons (`===`), `startsWith()` comparisons (useful for matching a subset of pages), or even more complex comparisons using regular expressions.
+完全一致（`===`）、`startsWith()` による比較（ページのサブセットを一致させるのに便利）、あるいは正規表現を用いたより複雑な比較も行えます。
 
-Using this approach, you're not limited to just setting class names. You can use this technique to conditionally render any markup on active state, such as different link text or even an SVG icon that represents the link is active.
+この方法を使えば、クラス名の設定だけに限定されません。アクティブ状態に応じて、リンクテキストを変更したり、リンクがアクティブであることを示す SVG アイコンなど、任意のマークアップを条件付きでレンダリングできます。
 
-## Data Loading Attribute
+## データ読み込み属性
 
-While a link is making an active request, a `data-loading` attribute is added to the link element. This allows you to style the link while it's in a loading state. The attribute is removed once the request is complete.
+リンクがアクティブなリクエストを実行している間、リンク要素に `data-loading` 属性が追加されます。これにより、読み込み中の状態に応じてリンクをスタイルできます。リクエストが完了すると、この属性は削除されます。

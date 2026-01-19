@@ -1,25 +1,25 @@
 ---
-title: Flash Data
+title: フラッシュデータ
 ---
 
 <Badge>v2.3.3+</Badge>
 
-Sometimes you may wish to send one-time data to your frontend that shouldn't reappear when users navigate through browser history. Unlike regular props, flash data isn't persisted in history state, making it ideal for success messages, newly created IDs, or other temporary values.
+場合によっては、ブラウザの履歴を移動したときに再表示されてほしくない、一度きりのデータをフロントエンドに送信したいことがあります。通常の props と異なり、フラッシュデータは履歴の state に永続化されないため、成功メッセージ、新しく作成された ID、その他の一時的な値に最適です。
 
-## Flashing Data
+## データをフラッシュする
 
-You may flash data using the `Inertia::flash()` method, passing a key and value or an array of key-value pairs.
+`Inertia::flash()` メソッドを使用して、キーと値、またはキーと値の配列を渡すことでデータをフラッシュできます。
 
 ```php
 public function store(Request $request)
 {
     $user = User::create($request->validated());
 
-    Inertia::flash('message', 'User created successfully!');
+    Inertia::flash('message', 'ユーザーが正常に作成されました！');
 
-    // Or flash multiple values at once...
+    // または、複数の値を一度にフラッシュすることもできます...
     Inertia::flash([
-        'message' => 'User created!',
+        'message' => 'ユーザーが作成されました！',
         'newUserId' => $user->id,
     ]);
 
@@ -27,30 +27,30 @@ public function store(Request $request)
 }
 ```
 
-Chaining with `back()` is also supported.
+`back()` とのチェーンもサポートされています。
 
 ```php
 return Inertia::flash('newUserId', $user->id)->back();
 ```
 
-You may also chain `flash()` onto `render()`, or vice versa.
+`render()` に `flash()` をチェーンすることも、その逆も可能です。
 
 ```php
 return Inertia::render('Projects/Index', [
     'projects' => $projects,
 ])->flash('highlight', $project->id);
 
-// Or...
+// または...
 
 return Inertia::flash('highlight', $project->id)
     ->render('Projects/Index', ['projects' => $projects]);
 ```
 
-Flash data is scoped to the current request. The middleware automatically persists it to the session when redirecting. After the flash data is sent to the client, it is cleared and will not appear in subsequent requests.
+フラッシュデータは現在のリクエストにスコープされます。リダイレクト時には、ミドルウェアが自動的にセッションへ永続化します。フラッシュデータがクライアントに送信されるとクリアされ、以降のリクエストでは表示されません。
 
-## Accessing Flash Data
+## フラッシュデータへのアクセス
 
-Flash data is available on `page.flash`. You may also listen for the global `flash` event or use the `onFlash` callback.
+フラッシュデータは `page.flash` で利用できます。また、グローバルな `flash` イベントをリッスンするか、`onFlash` コールバックを使用することもできます。
 
 <CodeGroup>
 
@@ -95,9 +95,9 @@ export default function Layout({ children }) {
 
 </CodeGroup>
 
-## The onFlash Callback
+## onFlash コールバック
 
-You may use the `onFlash` callback to handle flash data when making requests.
+リクエストを行う際に、`onFlash` コールバックを使用してフラッシュデータを処理できます。
 
 <CodeGroup>
 
@@ -133,9 +133,9 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-## Global Flash Event
+## グローバルフラッシュイベント
 
-You may use the global `flash` event to handle flash data in a central location, such as a layout component. For more information on events, see the [events documentation](/v2/advanced/events).
+レイアウトコンポーネントなど、中央集約的な場所でフラッシュデータを処理するために、グローバルな `flash` イベントを使用できます。イベントの詳細については、[イベントのドキュメント](/v2/advanced/events) を参照してください。
 
 <CodeGroup>
 
@@ -172,10 +172,10 @@ router.on('flash', (event) => {
 </CodeGroup>
 
 <Warning>
-Event listeners registered inside components should be cleaned up when the component unmounts to prevent them from accumulating and firing multiple times. This is especially important in non-persistent layouts. See [removing event listeners](/v2/advanced/events#removing-listeners) for more information.
+コンポーネント内で登録されたイベントリスナーは、コンポーネントのアンマウント時にクリーンアップする必要があります。そうしないと、リスナーが蓄積され、複数回発火してしまいます。これは特に非永続レイアウトで重要です。詳細は [イベントリスナーの削除](/v2/advanced/events#removing-listeners) を参照してください。
 </Warning>
 
-Native browser events are also supported.
+ネイティブのブラウザイベントもサポートされています。
 
 <CodeGroup>
 
@@ -199,11 +199,11 @@ document.addEventListener('inertia:flash', (event) => {
 
 </CodeGroup>
 
-The `flash` event is not cancelable. During [partial reloads](/v2/data-props/partial-reloads), it only fires if the flash data has changed.
+`flash` イベントはキャンセルできません。[部分的なリロード](/v2/data-props/partial-reloads) 中は、フラッシュデータが変更された場合にのみ発火します。
 
-## Client-Side Flash
+## クライアントサイドのフラッシュ
 
-You may set flash data on the client without a server request using the `router.flash()` method. Values are merged with existing flash data.
+`router.flash()` メソッドを使用すると、サーバーリクエストなしでクライアント側からフラッシュデータを設定できます。値は既存のフラッシュデータとマージされます。
 
 <CodeGroup>
 
@@ -230,7 +230,7 @@ router.flash({ foo: 'bar' })
 
 </CodeGroup>
 
-A callback may also be passed to access the current flash data or replace it entirely.
+現在のフラッシュデータにアクセスしたり、完全に置き換えたりするために、コールバックを渡すこともできます。
 
 <CodeGroup>
 
@@ -259,8 +259,8 @@ router.flash(() => ({}))
 
 ## TypeScript
 
-You may configure the flash data type globally using [TypeScript's declaration merging](/v2/advanced/typescript#flash-data).
+[TypeScript の宣言マージ](/v2/advanced/typescript#flash-data) を使用して、フラッシュデータの型をグローバルに設定できます。
 
-## Testing
+## テスト
 
-For information on testing flash data, see the [testing documentation](/v2/advanced/testing#testing-flash-data).
+フラッシュデータのテストについては、[テストのドキュメント](/v2/advanced/testing#testing-flash-data) を参照してください。

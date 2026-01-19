@@ -1,10 +1,10 @@
 ---
-title: Redirects
+title: リダイレクト
 ---
 
-When making a non-GET Inertia request manually or via a `<Link>` element, you should ensure that you always respond with a proper Inertia redirect response.
+非 GET の Inertia リクエストを手動で、または `<Link>` 要素経由で行う場合は、常に適切な Inertia のリダイレクトレスポンスを返すようにしてください。
 
-For example, if your controller is creating a new user, your "store" endpoint should return a redirect back to a standard `GET` endpoint, such as your user "index" page. Inertia will automatically follow this redirect and update the page accordingly.
+たとえば、コントローラで新しいユーザーを作成する場合、「store」エンドポイントは、ユーザーの「index」ページのような標準の `GET` エンドポイントへリダイレクトを返す必要があります。Inertia はこのリダイレクトを自動的に追従し、それに応じてページを更新します。
 
 ```php
 class UsersController extends Controller
@@ -30,18 +30,18 @@ class UsersController extends Controller
 }
 ```
 
-## 303 Response Code
+## 303 レスポンスコード
 
-When redirecting after a `PUT`, `PATCH`, or `DELETE` request, you must use a `303` response code, otherwise the subsequent request will not be treated as a `GET`request. A `303` redirect is very similar to a `302` redirect; however, the follow-up request is explicitly changed to a `GET` request.
+`PUT`、`PATCH`、または `DELETE` リクエストの後にリダイレクトする場合は、`303` レスポンスコードを使用する必要があります。そうしないと、後続のリクエストが `GET` リクエストとして扱われません。`303` リダイレクトは `302` リダイレクトと非常に似ていますが、フォローアップのリクエストが明示的に `GET` リクエストへ変更されます。
 
-If you're using one of our official server-side adapters, all redirects will automatically be converted to `303` redirects.
+公式のサーバーサイドアダプターのいずれかを使用している場合、すべてのリダイレクトは自動的に `303` リダイレクトへ変換されます。
 
-## External Redirects
+## 外部リダイレクト
 
-Sometimes it's necessary to redirect to an external website, or even another non-Inertia endpoint in your app while handling an Inertia request. This can be accomplished using a server-side initiated `window.location` visit via the `Inertia::location()` method.
+Inertia リクエストを処理している最中に、外部の Web サイトや、アプリ内の別の非 Inertia エンドポイントへリダイレクトする必要がある場合があります。これは、`Inertia::location()` メソッドを使用して、サーバーサイドで開始される `window.location` の遷移を行うことで実現できます。
 
 ```php
 return Inertia::location($url);
 ```
 
-The `Inertia::location()` method will generate a `409 Conflict` response and include the destination URL in the `X-Inertia-Location` header. When this response is received client-side, Inertia will automatically perform a `window.location = url` visit.
+`Inertia::location()` メソッドは `409 Conflict` レスポンスを生成し、遷移先の URL を `X-Inertia-Location` ヘッダーに含めます。このレスポンスがクライアントサイドで受信されると、Inertia は自動的に `window.location = url` の遷移を実行します。

@@ -1,5 +1,5 @@
 ---
-title: Pages
+title: ページ
 ---
 
 import { ClientSpecific } from "/snippets/client-specific.jsx"
@@ -7,13 +7,13 @@ import { ReactSpecific } from "/snippets/react-specific.jsx"
 import { SvelteSpecific } from "/snippets/svelte-specific.jsx"
 import { VueSpecific } from "/snippets/vue-specific.jsx"
 
-When building applications using Inertia, each page in your application typically has its own controller / route and a corresponding JavaScript component. This allows you to retrieve just the data necessary for that page - no API required.
+Inertia を使用してアプリケーションを構築する場合、アプリケーション内の各ページは通常、それぞれ独自のコントローラ／ルートと、それに対応する JavaScript コンポーネントを持ちます。これにより、そのページに必要なデータだけを取得でき、API は不要です。
 
-In addition, all of the data needed for the page can be retrieved before the page is ever rendered by the browser, eliminating the need for displaying "loading" states when users visit your application.
+さらに、ページに必要なすべてのデータは、ブラウザがページをレンダリングする前に取得できるため、ユーザーがアプリケーションを訪れた際に「読み込み中」の状態を表示する必要がなくなります。
 
-## Creating Pages
+## ページの作成
 
-Inertia pages are simply JavaScript components. If you have ever written a Vue, React, or Svelte component, you will feel right at home. As you can see in the example below, pages receive data from your application's controllers as props.
+Inertia のページは単なる JavaScript コンポーネントです。Vue、React、または Svelte のコンポーネントを書いたことがあれば、すぐに馴染めるでしょう。以下の例から分かるように、ページはアプリケーションのコントローラから props としてデータを受け取ります。
 
 <CodeGroup>
 
@@ -86,7 +86,7 @@ export default function Welcome({ user }) {
 </CodeGroup>
 
 <ClientSpecific>
-Given the page above, you can render the page by returning an [Inertia response](/v2/the-basics/responses) from a controller or route. In this example, let's assume this page is stored at <VueSpecific>`resources/js/Pages/User/Show.vue`</VueSpecific><ReactSpecific>`resources/js/Pages/User/Show.jsx`</ReactSpecific><SvelteSpecific>`resources/js/Pages/User/Show.svelte`</SvelteSpecific>within a Laravel application.
+上記のページがある場合、コントローラまたはルートから [Inertia レスポンス](/v2/the-basics/responses) を返すことで、そのページをレンダリングできます。この例では、このページが Laravel アプリケーション内の <VueSpecific>`resources/js/Pages/User/Show.vue`</VueSpecific><ReactSpecific>`resources/js/Pages/User/Show.jsx`</ReactSpecific><SvelteSpecific>`resources/js/Pages/User/Show.svelte`</SvelteSpecific> に保存されていると仮定します。
 </ClientSpecific>
 
 ```php
@@ -103,11 +103,11 @@ class UserController extends Controller
 }
 ```
 
-If you attempt to render a page that does not exist, the response will typically be a blank screen. To prevent this, you may set the `inertia.ensure_pages_exist` configuration option to `true`. The Laravel adapter will then throw an `Inertia\ComponentNotFoundException` when a page cannot be found.
+存在しないページをレンダリングしようとすると、通常は空白の画面が返されます。これを防ぐには、`inertia.ensure_pages_exist` 設定オプションを `true` に設定します。すると Laravel アダプタは、ページが見つからない場合に `Inertia\ComponentNotFoundException` をスローします。
 
-## Creating Layouts
+## レイアウトの作成
 
-While not required, for most projects it makes sense to create a layout component that all of your pages can use. You may have noticed in our page example above that we're wrapping the page content within a `<Layout>` component. Here's an example of such a component:
+必須ではありませんが、ほとんどのプロジェクトでは、すべてのページで使用できるレイアウトコンポーネントを作成するのが理にかなっています。上記のページ例で、ページの内容を `<Layout>` コンポーネントでラップしていることにお気づきでしょう。以下は、そのようなコンポーネントの例です。
 
 <CodeGroup>
 
@@ -186,14 +186,14 @@ export default function Layout({ children }) {
 </CodeGroup>
 
 <ClientSpecific>
-As you can see, there is nothing Inertia specific within this template. This is just a typical <VueSpecific>Vue</VueSpecific><ReactSpecific>React</ReactSpecific><SvelteSpecific>Svelte</SvelteSpecific> component.
+ご覧のとおり、このテンプレートには Inertia 固有のものは何も含まれていません。これは単なる通常の <VueSpecific>Vue</VueSpecific><ReactSpecific>React</ReactSpecific><SvelteSpecific>Svelte</SvelteSpecific> コンポーネントです。
 </ClientSpecific>
 
-## Persistent Layouts
+## 永続レイアウト
 
-While it's simple to implement layouts as children of page components, it forces the layout instance to be destroyed and recreated between visits. This means you cannot have persistent layout state when navigating between pages.
+ページコンポーネントの子としてレイアウトを実装するのは簡単ですが、その場合、ページ遷移のたびにレイアウトのインスタンスが破棄されて再作成されます。つまり、ページ間を移動する際にレイアウトの状態を保持できません。
 
-For example, maybe you have an audio player on a podcast website that you want to continue playing as users navigate the site. Or, maybe you simply want to maintain the scroll position in your sidebar navigation between page visits. In these situations, the solution is to leverage Inertia's persistent layouts.
+例えば、ポッドキャストサイトで、ユーザーがサイト内を移動しても再生を続けたいオーディオプレイヤーがある場合や、単にページ遷移間でサイドバーのスクロール位置を保持したい場合などです。このような場合の解決策が、Inertia の永続レイアウトを活用することです。
 
 <CodeGroup>
 
@@ -202,10 +202,10 @@ For example, maybe you have an audio player on a podcast website that you want t
 import Layout from './Layout'
 
 export default {
-    // Using a render function...
+    // レンダー関数を使用する場合...
     layout: (h, page) => h(Layout, [page]),
 
-    // Using shorthand syntax...
+    // 省略記法を使用する場合...
     layout: Layout,
 }
 </script>
@@ -265,7 +265,7 @@ export default Home
 
 </CodeGroup>
 
-You can also create more complex layout arrangements using nested layouts.
+ネストされたレイアウトを使用することで、より複雑なレイアウト構成を作成することもできます。
 
 <CodeGroup>
 
@@ -275,12 +275,12 @@ import SiteLayout from './SiteLayout'
 import NestedLayout from './NestedLayout'
 
 export default {
-    // Using a render function...
+    // レンダー関数を使用する場合...
     layout: (h, page) => {
         return h(SiteLayout, () => h(NestedLayout, () => page))
     },
 
-    // Using the shorthand...
+    // 省略記法を使用する場合...
     layout: [SiteLayout, NestedLayout],
 }
 </script>
@@ -322,12 +322,12 @@ export default Home
     import SiteLayout from './SiteLayout.svelte'
     import NestedLayout from './NestedLayout.svelte'
 
-    // Using a render function...
+    // レンダー関数を使用する場合...
     export const layout = (h, page) => {
         return h(SiteLayout, [h(NestedLayout, [page])])
     }
 
-    // Using the shorthand...
+    // 省略記法を使用する場合...
     export const layout = [SiteLayout, NestedLayout]
 </script>
 
@@ -344,12 +344,12 @@ export default Home
     import SiteLayout from './SiteLayout.svelte'
     import NestedLayout from './NestedLayout.svelte'
 
-    // Using a render function...
+    // レンダー関数を使用する場合...
     export const layout = (h, page) => {
         return h(SiteLayout, [h(NestedLayout, [page])])
     }
 
-    // Using the shorthand...
+    // 省略記法を使用する場合...
     export const layout = [SiteLayout, NestedLayout]
 </script>
 
@@ -365,7 +365,7 @@ export default Home
 
 <VueSpecific>
 
-If you're using Vue 3.3+, you can alternatively use [defineOptions](https://vuejs.org/api/sfc-script-setup.html#defineoptions) to define a layout within `<script setup>`. Older versions of Vue can use the [defineOptions plugin](https://vue-macros.sxzz.moe/macros/define-options.html):
+Vue 3.3 以降を使用している場合は、`<script setup>` 内でレイアウトを定義するために、代わりに [defineOptions](https://vuejs.org/api/sfc-script-setup.html#defineoptions) を使用することもできます。古いバージョンの Vue では、[defineOptions プラグイン](https://vue-macros.sxzz.moe/macros/define-options.html) を使用できます。
 
 ```vue
 <script setup>
@@ -375,9 +375,9 @@ defineOptions({ layout: Layout })
 ```
 </VueSpecific>
 
-## Default Layouts
+## デフォルトレイアウト
 
-If you're using persistent layouts, you may find it convenient to define the default page layout in the `resolve()` callback of your application's main JavaScript file.
+永続レイアウトを使用している場合、アプリケーションのメイン JavaScript ファイル内の `resolve()` コールバックで、デフォルトのページレイアウトを定義すると便利なことがあります。
 
 <CodeGroup>
 
@@ -424,9 +424,9 @@ createInertiaApp({
 
 </CodeGroup>
 
-This will automatically set the page layout to `Layout` if a layout has not already been set for that page.
+これにより、そのページにまだレイアウトが設定されていない場合、自動的にページレイアウトが `Layout` に設定されます。
 
-You can even go a step further and conditionally set the default page layout based on the page `name`, which is available to the `resolve()` callback. For example, maybe you don't want the default layout to be applied to your public pages.
+さらに一歩進んで、`resolve()` コールバックで利用可能なページの `name` に基づいて、条件付きでデフォルトのページレイアウトを設定することもできます。例えば、公開ページにはデフォルトのレイアウトを適用したくない場合などです。
 
 <CodeGroup>
 

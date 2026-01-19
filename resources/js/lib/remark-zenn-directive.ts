@@ -13,6 +13,17 @@ interface ContainerDirectiveNode extends Node {
     };
 }
 
+interface InlineDirectiveNode extends Node {
+    type: 'leafDirective' | 'textDirective';
+    name: string;
+    attributes?: Record<string, string | undefined>;
+    children?: Node[];
+    data?: {
+        hName?: string;
+        hProperties?: Record<string, unknown>;
+    };
+}
+
 /**
  * Zenn式のディレクティブ構文をサポートするremarkプラグイン
  *
@@ -26,7 +37,25 @@ interface ContainerDirectiveNode extends Node {
 export function remarkZennDirective() {
     return (tree: Root) => {
         visit(tree, (node: Node) => {
-            if (node.type !== 'containerDirective') {
+            if (
+                node.type !== 'containerDirective' &&
+                node.type !== 'leafDirective' &&
+                node.type !== 'textDirective'
+            ) {
+                return;
+            }
+
+            if (node.type === 'leafDirective' || node.type === 'textDirective') {
+                const directiveNode = node as InlineDirectiveNode;
+
+                if (directiveNode.name === 'badge') {
+                    const data = directiveNode.data || (directiveNode.data = {});
+                    data.hName = 'span';
+                    data.hProperties = {
+                        className: 'badge',
+                    };
+                }
+
                 return;
             }
 

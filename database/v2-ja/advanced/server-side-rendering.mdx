@@ -1,29 +1,22 @@
 ---
-title: Server-Side Rendering (SSR)
+title: サーバーサイドレンダリング（SSR）
 ---
 
-import { ClientSpecific } from "/snippets/client-specific.jsx"
-import { ReactSpecific } from "/snippets/react-specific.jsx"
-import { SvelteSpecific } from "/snippets/svelte-specific.jsx"
-import { Svelte4Specific } from "/snippets/svelte4-specific.jsx"
-import { Svelte5Specific } from "/snippets/svelte5-specific.jsx"
-import { VueSpecific } from "/snippets/vue-specific.jsx"
+サーバーサイドレンダリングは、サーバー上で JavaScript ページを事前にレンダリングし、訪問者がアプリケーションにアクセスした際に、完全にレンダリングされた HTML を受け取れるようにします。完全にレンダリングされた HTML がアプリケーションから提供されるため、検索エンジンによるサイトのインデックス化も容易になります。
 
-Server-side rendering pre-renders your JavaScript pages on the server, allowing your visitors to receive fully rendered HTML when they visit your application. Since fully rendered HTML is served by your application, it's also easier for search engines to index your site.
+サーバーサイドレンダリングでは、バックグラウンドプロセスで Node.js を使用してページをレンダリングします。そのため、サーバーサイドレンダリングを正しく動作させるには、サーバー上で Node が利用可能である必要があります。
 
-Server-side rendering uses Node.js to render your pages in a background process; therefore, Node must be available on your server for server-side rendering to function properly.
+## Laravel スターターキット
 
-## Laravel Starter Kits
-
-If you are using [Laravel Starter Kits](https://laravel.com/docs/starter-kits), Inertia SSR is [supported](https://laravel.com/docs/starter-kits#inertia-ssr) through a build command:
+[Laravel スターターキット](https://laravel.com/docs/starter-kits) を使用している場合、Inertia SSR はビルドコマンドを通じて [サポート](https://laravel.com/docs/starter-kits#inertia-ssr) されています。
 
 ```bash
 npm run build:ssr
 ```
 
-## Install Dependencies
+## 依存関係のインストール
 
-If you are not using a Laravel starter kit and would like to manually configure SSR, we'll first install the additional dependencies required for server-side rendering. This is only necessary for the Vue adapters, so you can skip this step if you're using React or Svelte.
+Laravel スターターキットを使用しておらず、SSR を手動で設定したい場合は、まずサーバーサイドレンダリングに必要な追加の依存関係をインストールします。これは Vue アダプターのみで必要となるため、React や Svelte を使用している場合はこの手順をスキップできます。
 
 <CodeGroup>
 
@@ -32,24 +25,24 @@ npm install @vue/server-renderer
 ```
 
 ```js React icon="react"
-// No additional dependencies required
+// 追加の依存関係は不要です
 ```
 
 ```js Svelte icon="s"
-// No additional dependencies required
+// 追加の依存関係は不要です
 ```
 
 </CodeGroup>
 
-## Add Server Entry-Point
+## サーバーエントリーポイントの追加
 
-Next, we'll create a `resources/js/ssr.js` file within our Laravel project that will serve as our SSR entry point.
+次に、Laravel プロジェクト内に `resources/js/ssr.js` ファイルを作成し、これを SSR のエントリーポイントとして使用します。
 
 ```bash
 touch resources/js/ssr.js
 ```
 
-This file is going to look very similar to your `resources/js/app.js` file, except it's not going to run in the browser, but rather in Node.js. Here's a complete example.
+このファイルは `resources/js/app.js` ファイルと非常によく似ていますが、ブラウザではなく Node.js 上で実行される点が異なります。以下は完全な例です。
 
 <CodeGroup>
 
@@ -133,13 +126,13 @@ createServer(page =>
 
 </CodeGroup>
 
-When creating this file, be sure to add anything that's missing from your `app.js` file that makes sense to run in SSR mode, such as plugins or custom mixins.
+このファイルを作成する際は、SSR モードで実行するのに適した、`app.js` ファイルに含まれているが不足しているもの（プラグインやカスタムミックスインなど）があれば追加してください。
 
-### Clustering
+### クラスタリング
 
-By default, the SSR server will run on a single thread. Clustering starts multiple Node servers on the same port, requests are then handled by each thread in a round-robin way.
+デフォルトでは、SSR サーバーは単一スレッドで実行されます。クラスタリングを有効にすると、同じポート上で複数の Node サーバーが起動され、リクエストはラウンドロビン方式で各スレッドによって処理されます。
 
-You can enable clustering by passing a second argument of options to `createServer`.
+`createServer` に第 2 引数としてオプションを渡すことで、クラスタリングを有効にできます。
 
 <CodeGroup>
 
@@ -197,11 +190,11 @@ createServer(page =>
 
 </CodeGroup>
 
-## Setup Vite
+## Vite のセットアップ
 
-Next, we need to update our Vite configuration to build our new `ssr.js` file. We can do this by adding a `ssr` property to Laravel's Vite plugin configuration in our `vite.config.js`file.
+次に、新しく作成した `ssr.js` ファイルをビルドするために、Vite の設定を更新します。`vite.config.js` ファイル内の Laravel の Vite プラグイン設定に `ssr` プロパティを追加します。
 
-```js vite.config.js
+```js:vite.config.js
 export default defineConfig({
     plugins: [
         laravel({
@@ -214,11 +207,11 @@ export default defineConfig({
 })
 ```
 
-## Update NPM Script
+## NPM スクリプトの更新
 
-Next, let's update the `build` script in our `package.json` file to also build our new `ssr.js` file.
+次に、`package.json` ファイル内の `build` スクリプトを更新し、新しい `ssr.js` ファイルもビルドされるようにします。
 
-```json package.json
+```json:package.json
 "scripts": {
     "dev": "vite",
    "build": "vite build" // [!code --]
@@ -226,41 +219,41 @@ Next, let's update the `build` script in our `package.json` file to also build o
 },
 ```
 
-Now you can build both your client-side and server-side bundles.
+これで、クライアントサイドおよびサーバーサイドの両方のバンドルをビルドできます。
 
 ```bash
 npm run build
 ```
 
-## Running the SSR Server
+## SSR サーバーの実行
 
-Now that you have built both your client-side and server-side bundles, you should be able run the Node-based Inertia SSR server using the following command.
+クライアントサイドとサーバーサイドの両方のバンドルをビルドしたら、次のコマンドを使用して Node ベースの Inertia SSR サーバーを実行できます。
 
 ```bash
 php artisan inertia:start-ssr
 ```
 
-You may use the `--runtime` option to specify which runtime you want to use. This allows you to switch from the default Node.js runtime to Bun.
+`--runtime` オプションを使用して、利用するランタイムを指定することもできます。これにより、デフォルトの Node.js ランタイムから Bun に切り替えることができます。
 
 ```bash
 php artisan inertia:start-ssr --runtime=bun
 ```
 
-With the server running, you should be able to access your app within the browser with server-side rendering enabled. In fact, you should be able to disable JavaScript entirely and still navigate around your application.
+サーバーが起動すると、サーバーサイドレンダリングが有効な状態でブラウザからアプリにアクセスできるようになります。実際、JavaScript を完全に無効にしても、アプリケーション内を移動できるはずです。
 
-## Client-Side Hydration
+## クライアントサイドハイドレーション
 
 <ClientSpecific>
-Since your website is now being server-side rendered, you can instruct <VueSpecific>Vue</VueSpecific><ReactSpecific>React</ReactSpecific><SvelteSpecific>Svelte</SvelteSpecific> to "hydrate" the static markup and make it interactive instead of re-rendering all the HTML that we just generated.
+ウェブサイトがサーバーサイドレンダリングされるようになったため、<VueSpecific>Vue</VueSpecific><ReactSpecific>React</ReactSpecific><SvelteSpecific>Svelte</SvelteSpecific> に対して、生成されたすべての HTML を再レンダリングする代わりに、静的マークアップを「ハイドレート」してインタラクティブにするよう指示できます。
 </ClientSpecific>
 
-<VueSpecific>To enable client-side hydration in a Vue app, update your `ssr.js` file to use `createSSRApp` instead of `createApp`.</VueSpecific>
+<VueSpecific>Vue アプリでクライアントサイドハイドレーションを有効にするには、`ssr.js` ファイルで `createApp` の代わりに `createSSRApp` を使用するよう更新してください。</VueSpecific>
 
-<ReactSpecific>To enable client-side hydration in a React app, update your `ssr.js` file to use `hydrateRoot` instead of `createRoot`.</ReactSpecific>
+<ReactSpecific>React アプリでクライアントサイドハイドレーションを有効にするには、`ssr.js` ファイルで `createRoot` の代わりに `hydrateRoot` を使用するよう更新してください。</ReactSpecific>
 
-<Svelte4Specific>To enable client-side hydration in a Svelte 4 app, set the `hydrate` option to `true` in your `ssr.js` file.</Svelte4Specific>
+<Svelte4Specific>Svelte 4 アプリでクライアントサイドハイドレーションを有効にするには、`ssr.js` ファイルで `hydrate` オプションを `true` に設定してください。</Svelte4Specific>
 
-<Svelte5Specific>To enable client-side hydration in a Svelte 5 app, update your `ssr.js` file to use `hydrate` instead of `mount` when server rendering.</Svelte5Specific>
+<Svelte5Specific>Svelte 5 アプリでクライアントサイドハイドレーションを有効にするには、サーバーレンダリング時に `mount` の代わりに `hydrate` を使用するよう `ssr.js` ファイルを更新してください。</Svelte5Specific>
 
 <CodeGroup>
 
@@ -340,7 +333,7 @@ createInertiaApp({
 
 <Svelte4Specific>
 
-You will also need to set the `hydratable` compiler option to `true` in your `vite.config.js` file:
+また、`vite.config.js` ファイルで `hydratable` コンパイラオプションを `true` に設定する必要があります。
 
 ```js vite.config.js
 import { svelte } from '@sveltejs/vite-plugin-svelte'
@@ -365,9 +358,9 @@ export default defineConfig({
 ```
 </Svelte4Specific>
 
-## Disabling SSR
+## SSR の無効化
 
-Sometimes you may wish to disable server-side rendering for certain pages or routes in your application. You may do so by setting the `inertia.ssr.enabled` configuration value to `false` for the current request, typically in a service provider or middleware.
+場合によっては、アプリケーション内の特定のページやルートでサーバーサイドレンダリングを無効にしたいことがあります。その場合、現在のリクエストに対して `inertia.ssr.enabled` 設定値を `false` に設定します。通常はサービスプロバイダやミドルウェア内で行います。
 
 ```php
 if (request()->is('admin/*')) {
@@ -375,44 +368,44 @@ if (request()->is('admin/*')) {
 }
 ```
 
-## Deployment
+## デプロイ
 
-When deploying your SSR enabled app to production, you'll need to build both the client-side (`app.js`) and server-side bundles (`ssr.js`), and then run the SSR server as a background process, typically using a process monitoring tool such as Supervisor.
+SSR を有効にしたアプリを本番環境にデプロイする際は、クライアントサイド（`app.js`）とサーバーサイド（`ssr.js`）の両方のバンドルをビルドし、その後、Supervisor などのプロセス監視ツールを使用して SSR サーバーをバックグラウンドプロセスとして実行する必要があります。
 
 ```bash
 php artisan inertia:start-ssr
 ```
 
-To stop the SSR server, for instance when you deploy a new version of your website, you may utilize the `inertia:stop-ssr` Artisan command. Your process monitor (such as Supervisor) should be responsible for automatically restarting the SSR server after it has stopped.
+新しいバージョンのウェブサイトをデプロイする際などに SSR サーバーを停止するには、`inertia:stop-ssr` Artisan コマンドを使用できます。プロセスモニター（Supervisor など）が、停止後に SSR サーバーを自動的に再起動する役割を担う必要があります。
 
 ```bash
 php artisan inertia:stop-ssr
 ```
 
-You may use the `inertia:check-ssr` Artisan command to verify that the SSR server is running. This can be helpful after deployment and works well as a Docker health check to ensure the server is responding as expected.
+`inertia:check-ssr` Artisan コマンドを使用すると、SSR サーバーが稼働していることを確認できます。これはデプロイ後に役立ち、Docker のヘルスチェックとしても、サーバーが期待どおりに応答していることを確認するのに有効です。
 
 ```bash
 php artisan inertia:check-ssr
 ```
 
-By default, a check is performed to ensure the server-side bundle exists before dispatching a request to the SSR server. In some cases, such as when your app runs on multiple servers or is containerized, the web server may not have access to the SSR bundle. To disable this check, you may set the `inertia.ssr.ensure_bundle_exists` configuration value to `false`.
+デフォルトでは、SSR サーバーにリクエストを送信する前に、サーバーサイドバンドルが存在することを確認するチェックが行われます。アプリが複数のサーバーで実行されている場合や、コンテナ化されている場合など、ウェブサーバーが SSR バンドルにアクセスできないケースでは、このチェックを無効にするために `inertia.ssr.ensure_bundle_exists` 設定値を `false` に設定できます。
 
 ### Laravel Cloud
 
-To run the SSR server on Laravel Cloud, you may use Cloud's [native support for Inertia SSR](https://cloud.laravel.com/docs/compute#inertia-ssr).
+Laravel Cloud で SSR サーバーを実行するには、Cloud の [Inertia SSR ネイティブサポート](https://cloud.laravel.com/docs/compute#inertia-ssr) を使用できます。
 
 ### Laravel Forge
 
-To run the SSR server on Forge, you should create a new daemon that runs `php artisan inertia:start-ssr` from the root of your app. Or, you may utilize the built-in Inertia integration from your Forge application's management dashboard.
+Forge で SSR サーバーを実行するには、アプリのルートディレクトリから `php artisan inertia:start-ssr` を実行する新しいデーモンを作成してください。または、Forge アプリケーションの管理ダッシュボードにある組み込みの Inertia 連携を利用することもできます。
 
-Next, whenever you deploy your application, you can automatically restart the SSR server by calling the `php artisan inertia:stop-ssr` command. This will stop the existing SSR server, forcing a new one to be started by your process monitor.
+以降、アプリケーションをデプロイするたびに `php artisan inertia:stop-ssr` コマンドを呼び出すことで、SSR サーバーを自動的に再起動できます。これにより、既存の SSR サーバーが停止され、プロセスモニターによって新しいサーバーが起動されます。
 
 ### Heroku
 
-To run the SSR server on Heroku, update the `web` configuration in your `Procfile` to run the SSR server before starting your web server.
+Heroku で SSR サーバーを実行するには、`Procfile` の `web` 設定を更新し、ウェブサーバーを起動する前に SSR サーバーを実行するようにします。
 
 ```bash
 web: php artisan inertia:start-ssr & vendor/bin/heroku-php-apache2 public/
 ```
 
-Note, you must have the `heroku/nodejs` buildpack installed in addition to the `heroku/php` buildback for the SSR server to run.
+なお、SSR サーバーを実行するには、`heroku/php` ビルドパックに加えて `heroku/nodejs` ビルドパックがインストールされている必要があります。

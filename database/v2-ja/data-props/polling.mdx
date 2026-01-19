@@ -1,12 +1,12 @@
 ---
-title: Polling
+title: ポーリング
 ---
 
-## Poll Helper
+## ポールヘルパー
 
-Polling your server for new information on the current page is common, so Inertia provides a poll helper designed to help reduce the amount of boilerplate code. In addition, the poll helper will automatically stop polling when the page is unmounted.
+現在のページで新しい情報を取得するためにサーバーをポーリングすることは一般的です。そのため Inertia には、ボイラープレートコードの量を減らすために設計されたポールヘルパーが用意されています。さらに、ポールヘルパーはページがアンマウントされると自動的にポーリングを停止します。
 
-The only required argument is the polling interval in milliseconds.
+必須の引数は、ミリ秒単位のポーリング間隔のみです。
 
 <CodeGroup>
 
@@ -30,7 +30,7 @@ usePoll(2000)
 
 </CodeGroup>
 
-If you need to pass additional request options to the poll helper, you can pass any of the `router.reload` options as the second parameter.
+ポールヘルパーに追加のリクエストオプションを渡したい場合は、第 2 引数として `router.reload` のオプションをそのまま渡すことができます。
 
 <CodeGroup>
 
@@ -75,7 +75,7 @@ usePoll(2000, {
 
 </CodeGroup>
 
-If you'd like more control over the polling behavior, the poll helper provides `stop` and `start` methods that allow you to manually start and stop polling. You can pass the `autoStart: false` option to the poll helper to prevent it from automatically starting polling when the component is mounted.
+ポーリングの挙動をより細かく制御したい場合、ポールヘルパーにはポーリングを手動で開始・停止できる `stop` および `start` メソッドが用意されています。コンポーネントのマウント時に自動的にポーリングを開始させたくない場合は、`autoStart: false` オプションをポールヘルパーに渡してください。
 
 <CodeGroup>
 
@@ -121,9 +121,9 @@ const { start, stop } = usePoll(2000, {}, {
 
 </CodeGroup>
 
-## Throttling
+## スロットリング
 
-By default, the poll helper will throttle requests by 90% when the browser tab is in the background. If you'd like to disable this behavior, you can pass the `keepAlive` option to the poll helper.
+デフォルトでは、ブラウザタブがバックグラウンドにある場合、ポールヘルパーはリクエストを 90% スロットリングします。この挙動を無効にしたい場合は、`keepAlive` オプションをポールヘルパーに渡してください。
 
 <CodeGroup>
 

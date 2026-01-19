@@ -1,20 +1,20 @@
 ---
-title: Error Handling
+title: エラーハンドリング
 ---
 
-## Development
+## 開発
 
-One of the advantages to working with a robust server-side framework is the built-in exception handling you get for free. For example, Laravel ships with a beautiful error reporting tool which displays a nicely formatted stack trace in local development.
+堅牢なサーバーサイドフレームワークで作業する利点のひとつは、例外ハンドリングが最初から組み込まれていることです。たとえば、Laravel には美しいエラーレポートツールが同梱されており、ローカル開発時に整形されたスタックトレースを表示してくれます。
 
-The challenge is, if you're making an XHR request (which Inertia does) and you hit a server-side error, you're typically left digging through the network tab in your browser's devtools to diagnose the problem.
+課題となるのは、XHR リクエスト（Inertia が行っているもの）を送信してサーバーサイドでエラーが発生した場合、問題を診断するためにブラウザの開発者ツールのネットワークタブを掘り下げる必要がある点です。
 
-Inertia solves this issue by showing all non-Inertia responses in a modal. This means you get the same beautiful error-reporting you're accustomed to, even though you've made that request over XHR.
+Inertia はこの問題を、Inertia 以外のすべてのレスポンスをモーダルで表示することで解決します。これにより、XHR 経由のリクエストであっても、慣れ親しんだ美しいエラーレポートをそのまま利用できます。
 
-## Dialog Element
+## Dialog 要素
 
-By default, Inertia displays error modals using a custom `<div>` overlay. However, you can opt-in to using the native HTML `<dialog>` element instead, which provides built-in modal functionality including backdrop handling.
+デフォルトでは、Inertia はカスタムの `<div>` オーバーレイを使用してエラーモーダルを表示します。しかし、代わりにネイティブの HTML `<dialog>` 要素を使用するようオプトインすることもできます。これにより、バックドロップ処理を含む組み込みのモーダル機能を利用できます。
 
-To enable this, configure the `future.useDialogForErrorModal` option in your [application defaults](/v2/installation/client-side-setup#configuring-defaults).
+これを有効にするには、[アプリケーションのデフォルト設定](/v2/installation/client-side-setup#configuring-defaults)で `future.useDialogForErrorModal` オプションを設定してください。
 
 ```js
 createInertiaApp({
@@ -27,11 +27,11 @@ createInertiaApp({
 })
 ```
 
-## Production
+## 本番環境
 
-In production you will want to return a proper Inertia error response instead of relying on the modal-driven error reporting that is present during development. To accomplish this, you'll need to update your framework's default exception handler to return a custom error page.
+本番環境では、開発時に提供されるモーダル駆動のエラーレポートに依存するのではなく、適切な Inertia エラーレスポンスを返すようにする必要があります。これを実現するには、フレームワークのデフォルトの例外ハンドラを更新し、カスタムのエラーページを返すようにします。
 
-When building Laravel applications, you can accomplish this by using the `respond` exception method in your application's `bootstrap/app.php` file.
+Laravel アプリケーションを構築している場合、アプリケーションの `bootstrap/app.php` ファイルで `respond` 例外メソッドを使用することで実現できます。
 
 ```php
 use Illuminate\Http\Request;
@@ -57,7 +57,7 @@ use Inertia\Inertia;
 })
 ```
 
-You may have noticed we're returning an `ErrorPage` page component in the example above. You'll need to actually create this component, which will serve as the generic error page for your application. Here's an example error component you can use as a starting point.
+上記の例では `ErrorPage` というページコンポーネントを返していることにお気づきかもしれません。このコンポーネントを実際に作成する必要があります。これはアプリケーション全体で使用される汎用的なエラーページとなります。以下は、出発点として使えるエラーコンポーネントの例です。
 
 <CodeGroup>
 

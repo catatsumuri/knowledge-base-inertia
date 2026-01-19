@@ -1,8 +1,8 @@
 ---
-title: Manual Visits
+title: 手動訪問
 ---
 
-In addition to [creating links](/v2/the-basics/links), it's also possible to manually make Inertia visits / requests programmatically via JavaScript. This is accomplished via the `router.visit()` method.
+[リンクの作成](/v2/the-basics/links)に加えて、JavaScript からプログラム的に Inertia の訪問／リクエストを手動で行うことも可能です。これは `router.visit()` メソッドを使用して実現します。
 
 <CodeGroup>
 
@@ -113,7 +113,7 @@ router.visit(url, {
 
 </CodeGroup>
 
-However, it's generally more convenient to use one of Inertia's shortcut request methods. These methods share all the same options as `router.visit()`.
+ただし、一般的には Inertia が提供するショートカットリクエストメソッドのいずれかを使用する方が便利です。これらのメソッドは、`router.visit()` と同じオプションをすべて共有します。
 
 <CodeGroup>
 
@@ -125,7 +125,7 @@ router.post(url, data, options)
 router.put(url, data, options)
 router.patch(url, data, options)
 router.delete(url, options)
-router.reload(options) // Uses the current URL
+router.reload(options) // 現在の URL を使用
 ```
 
 ```js React icon="react"
@@ -136,7 +136,7 @@ router.post(url, data, options)
 router.put(url, data, options)
 router.patch(url, data, options)
 router.delete(url, options)
-router.reload(options) // Uses the current URL
+router.reload(options) // 現在の URL を使用
 ```
 
 ```js Svelte icon="s"
@@ -147,16 +147,16 @@ router.post(url, data, options)
 router.put(url, data, options)
 router.patch(url, data, options)
 router.delete(url, options)
-router.reload(options) // Uses the current URL
+router.reload(options) // 現在の URL を使用
 ```
 
 </CodeGroup>
 
-The `reload()` method is a convenient, shorthand method that automatically visits the current page with `preserveState` and `preserveScroll` both set to `true`, making it the perfect method to invoke when you just want to reload the current page's data.
+`reload()` メソッドは、`preserveState` と `preserveScroll` の両方を自動的に `true` に設定して現在のページを訪問する、便利なショートハンドメソッドです。現在のページのデータを単に再読み込みしたい場合に最適です。
 
-## Method
+## メソッド
 
-When making manual visits, you may use the `method` option to set the request's HTTP method to `get`, `post`, `put`, `patch` or `delete`. The default method is `get`.
+手動で訪問を行う際には、`method` オプションを使用してリクエストの HTTP メソッドを `get`、`post`、`put`、`patch`、`delete` に設定できます。デフォルトのメソッドは `get` です。
 
 <CodeGroup>
 
@@ -180,13 +180,13 @@ router.visit(url, { method: 'post' })
 
 </CodeGroup>
 
-Uploading files via `put` or `patch` is not supported in Laravel. Instead, make the request via `post`, including a `_method` field set to `put` or `patch`. This is called [form method spoofing](https://laravel.com/docs/routing#form-method-spoofing).
+Laravel では、`put` や `patch` によるファイルアップロードはサポートされていません。代わりに、`post` を使用し、`_method` フィールドに `put` または `patch` を設定してリクエストを行ってください。これは [フォームメソッドスプーフィング](https://laravel.com/docs/routing#form-method-spoofing) と呼ばれます。
 
 ## Wayfinder
 
 <Badge>v2.1.2+</Badge>
 
-When using [Wayfinder](https://github.com/laravel/wayfinder), you can pass the resulting object directly to any router method. The router will infer the HTTP method and URL from the Wayfinder object.
+[Wayfinder](https://github.com/laravel/wayfinder) を使用している場合、生成されたオブジェクトをそのまま任意の router メソッドに渡すことができます。router は Wayfinder オブジェクトから HTTP メソッドと URL を自動的に推測します。
 
 <CodeGroup>
 
@@ -219,7 +219,7 @@ router.delete(destroy(1))
 
 </CodeGroup>
 
-If you provide both a Wayfinder object and specify the `method` option, the `method`option will take precedence.
+Wayfinder オブジェクトを渡しつつ `method` オプションも指定した場合は、`method` オプションが優先されます。
 
 <CodeGroup>
 
@@ -246,9 +246,9 @@ router.visit(update(1), { method: 'patch' })
 
 </CodeGroup>
 
-## Data
+## データ
 
-You may use the `data` option to add data to the request.
+`data` オプションを使用して、リクエストにデータを追加できます。
 
 <CodeGroup>
 
@@ -290,7 +290,7 @@ router.visit('/users', {
 
 </CodeGroup>
 
-For convenience, the `get()`, `post()`, `put()`, and `patch()`methods all accept `data` as their second argument.
+利便性のため、`get()`、`post()`、`put()`、`patch()` メソッドは、いずれも第 2 引数として `data` を受け取ります。
 
 <CodeGroup>
 
@@ -323,9 +323,9 @@ router.post('/users', {
 
 </CodeGroup>
 
-## Custom Headers
+## カスタムヘッダー
 
-The `headers` option allows you to add custom headers to a request.
+`headers` オプションを使用すると、リクエストにカスタムヘッダーを追加できます。
 
 <CodeGroup>
 
@@ -361,11 +361,11 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-The headers Inertia uses internally to communicate its state to the server take priority and therefore cannot be overwritten.
+Inertia が内部で状態をサーバーに伝えるために使用するヘッダーは優先されるため、上書きすることはできません。
 
-## Global Visit Options
+## グローバル訪問オプション
 
-You may configure a `visitOptions` callback when [initializing your Inertia app](/v2/installation/client-side-setup#configuring-defaults) to modify visit options globally for every request. The callback receives the target URL and the current visit options, and should return an object with any options you want to override.
+[Inertia アプリの初期化](/v2/installation/client-side-setup#configuring-defaults)時に `visitOptions` コールバックを設定することで、すべてのリクエストに対して訪問オプションをグローバルに変更できます。このコールバックは対象 URL と現在の訪問オプションを受け取り、上書きしたいオプションを含むオブジェクトを返す必要があります。
 
 <CodeGroup>
 
@@ -427,9 +427,9 @@ createInertiaApp({
 
 </CodeGroup>
 
-## File Uploads
+## ファイルアップロード
 
-When making visits / requests that include files, Inertia will automatically convert the request data into a `FormData` object. If you would like the request to always use a `FormData` object, you may use the `forceFormData` option.
+ファイルを含む訪問／リクエストを行う場合、Inertia はリクエストデータを自動的に `FormData` オブジェクトへ変換します。常に `FormData` オブジェクトを使用したい場合は、`forceFormData` オプションを使用できます。
 
 <CodeGroup>
 
@@ -459,11 +459,11 @@ router.post('/companies', data, {
 
 </CodeGroup>
 
-For more information on uploading files, check out the dedicated [file uploads](/v2/the-basics/file-uploads) documentation.
+ファイルアップロードの詳細については、専用の [ファイルアップロード](/v2/the-basics/file-uploads) ドキュメントを参照してください。
 
-## Browser History
+## ブラウザ履歴
 
-When making visits, Inertia automatically adds a new entry into the browser history. However, it's also possible to replace the current history entry by setting the `replace` option to `true`.
+訪問を行うと、Inertia は自動的にブラウザ履歴に新しいエントリを追加します。ただし、`replace` オプションを `true` に設定することで、現在の履歴エントリを置き換えることも可能です。
 
 <CodeGroup>
 
@@ -487,11 +487,11 @@ router.get('/users', { search: 'John' }, { replace: true })
 
 </CodeGroup>
 
-Visits made to the same URL automatically set `replace` to `true`.
+同じ URL への訪問では、`replace` は自動的に `true` に設定されます。
 
-## Client Side Visits
+## クライアントサイド訪問
 
-You can use the `router.push` and `router.replace` method to make client-side visits. This method is useful when you want to update the browser's history without making a server request.
+`router.push` および `router.replace` メソッドを使用して、クライアントサイドのみの訪問を行うことができます。この方法は、サーバーリクエストを行わずにブラウザ履歴を更新したい場合に便利です。
 
 <CodeGroup>
 
@@ -551,11 +551,11 @@ router.push({
 
 </CodeGroup>
 
-All of the parameters are optional. By default, all passed paramaters (except `errorBag`) will be merged with the current page. This means you are responsible for overriding the current page's URL, component, and props.
+すべてのパラメータは任意です。デフォルトでは、渡されたすべてのパラメータ（`errorBag` を除く）が現在のページとマージされます。つまり、現在のページの URL、コンポーネント、props を上書きする責任はあなたにあります。
 
-If you need access to the current page's props, you can pass a function to the props option. This function will receive the current page's props as an argument and should return the new props.
+現在のページの props にアクセスする必要がある場合は、props オプションに関数を渡すことができます。この関数は現在のページの props を引数として受け取り、新しい props を返す必要があります。
 
-The `errorBag` option allows you to specify which error bag to use when handling validation errors in the `onError` callback.
+`errorBag` オプションを使用すると、`onError` コールバックでバリデーションエラーを処理する際に使用するエラーバッグを指定できます。
 
 <CodeGroup>
 
@@ -591,60 +591,60 @@ router.replace({
 
 </CodeGroup>
 
-Make sure that any route you push on the client side is also defined on the server side. If the user refreshes the page, the server will need to know how to render the page.
+クライアントサイドで push するルートは、必ずサーバー側でも定義されている必要があります。ユーザーがページをリフレッシュした場合、サーバーはそのページをどのようにレンダリングするかを把握している必要があります。
 
 <Warning>
-Some browsers limit the number of `history.pushState()` and `history.replaceState()` calls allowed within a short time period. Inertia catches this error and logs it to the console, but the state update will be lost. Avoid calling `router.push()` or `router.replace()` too frequently, and consider debouncing or batching updates in high-frequency scenarios.
+一部のブラウザでは、短時間に許可される `history.pushState()` および `history.replaceState()` の呼び出し回数に制限があります。Inertia はこのエラーをキャッチしてコンソールにログ出力しますが、状態の更新は失われます。`router.push()` や `router.replace()` を頻繁に呼び出すことは避け、高頻度なシナリオではデバウンスやバッチ処理を検討してください。
 </Warning>
 
-### Prop Helpers
+### Prop ヘルパー
 
-Inertia provides three helper methods for updating page props without making server requests. These methods are shortcuts to `router.replace()` and automatically set `preserveScroll` and `preserveState` to `true`.
+Inertia は、サーバーリクエストを行わずにページの props を更新するための 3 つのヘルパーメソッドを提供しています。これらのメソッドは `router.replace()` のショートカットであり、`preserveScroll` と `preserveState` を自動的に `true` に設定します。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
 import { router } from '@inertiajs/vue3'
 
-// Replace a prop value...
+// prop の値を置き換える…
 router.replaceProp('user.name', 'Jane Smith')
 
-// Append to an array prop...
+// 配列の prop に追加…
 router.appendToProp('messages', { id: 4, text: 'New message' })
 
-// Prepend to an array prop...
+// 配列の prop の先頭に追加…
 router.prependToProp('tags', 'urgent')
 ```
 
 ```js React icon="react"
 import { router } from '@inertiajs/react'
 
-// Replace a prop value...
+// prop の値を置き換える…
 router.replaceProp('user.name', 'Jane Smith')
 
-// Append to an array prop...
+// 配列の prop に追加…
 router.appendToProp('messages', { id: 4, text: 'New message' })
 
-// Prepend to an array prop...
+// 配列の prop の先頭に追加…
 router.prependToProp('tags', 'urgent')
 ```
 
 ```js Svelte icon="s"
 import { router } from '@inertiajs/svelte'
 
-// Replace a prop value...
+// prop の値を置き換える…
 router.replaceProp('user.name', 'Jane Smith')
 
-// Append to an array prop...
+// 配列の prop に追加…
 router.appendToProp('messages', { id: 4, text: 'New message' })
 
-// Prepend to an array prop...
+// 配列の prop の先頭に追加…
 router.prependToProp('tags', 'urgent')
 ```
 
 </CodeGroup>
 
-All three methods support dot notation for nested props and can accept a callback function that receives the current value as the first argument and the current page props as the second argument.
+これら 3 つのメソッドはいずれも、ネストされた props に対してドット記法をサポートしており、現在の値を第 1 引数、現在のページの props を第 2 引数として受け取るコールバック関数を指定することもできます。
 
 <CodeGroup>
 
@@ -677,15 +677,15 @@ router.prependToProp('notifications', (current, props) => {
 
 </CodeGroup>
 
-## State Preservation
+## 状態の保持
 
-By default, page visits to the same page create a fresh page component instance. This causes any local state, such as form inputs, scroll positions, and focus states to be lost.
+デフォルトでは、同じページへの訪問は新しいページコンポーネントインスタンスを作成します。これにより、フォーム入力、スクロール位置、フォーカス状態などのローカル状態は失われます。
 
-However, in some situations, it's necessary to preserve the page component state. For example, when submitting a form, you need to preserve your form data in the event that form validation fails on the server.
+しかし、状況によってはページコンポーネントの状態を保持する必要があります。たとえば、フォームを送信した際に、サーバー側でバリデーションエラーが発生した場合、フォームデータを保持する必要があります。
 
-For this reason, the `post`, `put`, `patch`, `delete`, and `reload` methods all set the `preserveState` option to `true` by default.
+このため、`post`、`put`、`patch`、`delete`、`reload` メソッドは、デフォルトで `preserveState` オプションを `true` に設定しています。
 
-You can instruct Inertia to preserve the component's state when using the `get` method by setting the `preserveState` option to `true`.
+`get` メソッド使用時にコンポーネントの状態を保持したい場合は、`preserveState` オプションを `true` に設定してください。
 
 <CodeGroup>
 
@@ -709,7 +709,7 @@ router.get('/users', { search: 'John' }, { preserveState: true })
 
 </CodeGroup>
 
-If you'd like to only preserve state if the response includes validation errors, set the `preserveState` option to "errors".
+レスポンスにバリデーションエラーが含まれている場合のみ状態を保持したい場合は、`preserveState` オプションを `"errors"` に設定してください。
 
 <CodeGroup>
 
@@ -733,7 +733,7 @@ router.get('/users', { search: 'John' }, { preserveState: 'errors' })
 
 </CodeGroup>
 
-You can also lazily evaluate the `preserveState` option based on the response by providing a callback.
+レスポンスに基づいて `preserveState` オプションを遅延評価するために、コールバックを指定することもできます。
 
 <CodeGroup>
 
@@ -763,11 +763,11 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-## Scroll Preservation
+## スクロールの保持
 
-When navigating between pages, Inertia mimics default browser behavior by automatically resetting the scroll position of the document body (as well as any [scroll regions](/v2/advanced/scroll-management#scroll-regions) you've defined) back to the top of the page.
+ページ間を移動する際、Inertia はデフォルトのブラウザ挙動を模倣し、ドキュメントボディ（および定義された [スクロール領域](/v2/advanced/scroll-management#scroll-regions)）のスクロール位置を自動的にページ上部へリセットします。
 
-You can disable this behavior by setting the `preserveScroll` option to `true`.
+この挙動を無効にしたい場合は、`preserveScroll` オプションを `true` に設定してください。
 
 <CodeGroup>
 
@@ -791,7 +791,7 @@ router.visit(url, { preserveScroll: true })
 
 </CodeGroup>
 
-If you'd like to only preserve the scroll position if the response includes validation errors, set the `preserveScroll` option to "errors".
+レスポンスにバリデーションエラーが含まれている場合のみスクロール位置を保持したい場合は、`preserveScroll` オプションを `"errors"` に設定してください。
 
 <CodeGroup>
 
@@ -815,7 +815,7 @@ router.visit(url, { preserveScroll: 'errors' })
 
 </CodeGroup>
 
-You can also lazily evaluate the `preserveScroll` option based on the response by providing a callback.
+レスポンスに基づいて `preserveScroll` オプションを遅延評価するために、コールバックを指定することもできます。
 
 <CodeGroup>
 
@@ -845,11 +845,11 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-For more information regarding this feature, please consult the [scroll management](/v2/advanced/scroll-management) documentation.
+この機能の詳細については、[スクロール管理](/v2/advanced/scroll-management) ドキュメントを参照してください。
 
-## Partial Reloads
+## 部分リロード
 
-The `only` option allows you to request a subset of the props (data) from the server on subsequent visits to the same page, thus making your application more efficient since it does not need to retrieve data that the page is not interested in refreshing.
+`only` オプションを使用すると、同じページへの後続の訪問時に、サーバーから props（データ）の一部のみをリクエストできます。これにより、ページが更新を必要としないデータを取得する必要がなくなり、アプリケーションをより効率的にできます。
 
 <CodeGroup>
 
@@ -873,11 +873,11 @@ router.get('/users', { search: 'John' }, { only: ['users'] })
 
 </CodeGroup>
 
-For more information on this feature, please consult the [partial reloads](/v2/data-props/partial-reloads) documentation.
+この機能の詳細については、[部分リロード](/v2/data-props/partial-reloads) ドキュメントを参照してください。
 
-## View Transitions
+## ビュートランジション
 
-You may enable [View transitions](/v2/the-basics/view-transitions) for a visit by setting the `viewTransition` option to `true`. This will use the browser's View Transitions API to animate the page transition.
+`viewTransition` オプションを `true` に設定することで、訪問時に [ビュートランジション](/v2/the-basics/view-transitions) を有効にできます。これにより、ブラウザの View Transitions API を使用してページ遷移をアニメーション化します。
 
 <CodeGroup>
 
@@ -901,9 +901,9 @@ router.visit('/another-page', { viewTransition: true })
 
 </CodeGroup>
 
-## Visit Cancellation
+## 訪問のキャンセル
 
-You can cancel a visit using a cancel token, which Inertia automatically generates and provides via the `onCancelToken()` callback prior to making the visit.
+キャンセルトークンを使用して訪問をキャンセルできます。Inertia は訪問を行う前に、自動的にキャンセルトークンを生成し、`onCancelToken()` コールバックを通じて提供します。
 
 <CodeGroup>
 
@@ -914,7 +914,7 @@ router.post('/users', data, {
     onCancelToken: (cancelToken) => (this.cancelToken = cancelToken),
 })
 
-// Cancel the visit...
+// 訪問をキャンセル…
 this.cancelToken.cancel()
 ```
 
@@ -925,7 +925,7 @@ router.post('/users', data, {
     onCancelToken: (cancelToken) => (this.cancelToken = cancelToken),
 })
 
-// Cancel the visit...
+// 訪問をキャンセル…
 this.cancelToken.cancel()
 ```
 
@@ -936,17 +936,17 @@ router.post('/users', data, {
     onCancelToken: (cancelToken) => (this.cancelToken = cancelToken),
 })
 
-// Cancel the visit...
+// 訪問をキャンセル…
 this.cancelToken.cancel()
 ```
 
 </CodeGroup>
 
-The `onCancel()` and `onFinish()` event callbacks will be executed when a visit is cancelled.
+訪問がキャンセルされた場合、`onCancel()` および `onFinish()` イベントコールバックが実行されます。
 
-## Event Callbacks
+## イベントコールバック
 
-In addition to Inertia's [global events](/v2/advanced/events), Inertia also provides a number of per-visit event callbacks.
+Inertia の [グローバルイベント](/v2/advanced/events) に加えて、訪問ごとに使用できる複数のイベントコールバックが提供されています。
 
 <CodeGroup>
 
@@ -1000,7 +1000,7 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-Returning `false` from the `onBefore()` callback will cause the visit to be cancelled.
+`onBefore()` コールバックから `false` を返すと、訪問はキャンセルされます。
 
 <CodeGroup>
 
@@ -1024,7 +1024,7 @@ router.delete(`/users/${user.id}\
 
 </CodeGroup>
 
-It's also possible to return a promise from the `onSuccess()` and `onError()` callbacks. When doing so, the "finish" event will be delayed until the promise has resolved.
+また、`onSuccess()` および `onError()` コールバックから Promise を返すことも可能です。その場合、Promise が解決されるまで「finish」イベントは遅延されます。
 
 <CodeGroup>
 
@@ -1039,7 +1039,7 @@ router.post(url, {
         ])
     }
     onFinish: visit => {
-        // Not called until firstTask() and secondTask() have finished
+        // firstTask() と secondTask() が完了するまで呼び出されない
     },
 })
 ```
@@ -1055,7 +1055,7 @@ router.post(url, {
         ])
     }
     onFinish: visit => {
-        // Not called until firstTask() and secondTask() have finished
+        // firstTask() と secondTask() が完了するまで呼び出されない
     },
 })
 ```
@@ -1071,7 +1071,7 @@ router.post(url, {
         ])
     }
     onFinish: visit => {
-        // Not called until firstTask() and secondTask() have finished
+        // firstTask() と secondTask() が完了するまで呼び出されない
     },
 })
 ```

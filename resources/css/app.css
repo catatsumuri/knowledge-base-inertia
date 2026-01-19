@@ -208,6 +208,12 @@ details .details-content {
     @apply p-4 pt-0;
 }
 
+/* Zenn式badgeのスタイル */
+.prose .badge {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold leading-none;
+    @apply border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200;
+}
+
 /* Tailwind Typographyの引用符を無効化 */
 .prose blockquote p::before,
 .prose blockquote p::after {

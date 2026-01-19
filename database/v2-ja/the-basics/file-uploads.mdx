@@ -1,12 +1,12 @@
 ---
-title: File Uploads
+title: ファイルアップロード
 ---
 
-## `FormData` Conversion
+## `FormData` への変換
 
-When making Inertia requests that include files (even nested files), Inertia will automatically convert the request data into a `FormData` object. This conversion is necessary in order to submit a `multipart/form-data` request via XHR.
+ファイル（ネストされたファイルを含む）を含む Inertia リクエストを行う場合、Inertia はリクエストデータを自動的に `FormData` オブジェクトへ変換します。この変換は、XHR を通じて `multipart/form-data` リクエストを送信するために必要です。
 
-If you would like the request to always use a `FormData` object regardless of whether a file is present in the data, you may provide the `forceFormData` option when making the request.
+データ内にファイルが含まれているかどうかに関わらず、常に `FormData` オブジェクトを使用したい場合は、リクエスト時に `forceFormData` オプションを指定できます。
 
 <CodeGroup>
 
@@ -36,11 +36,11 @@ router.post('/users', data, {
 
 </CodeGroup>
 
-You can learn more about the `FormData` interface via its [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/FormData).
+`FormData` インターフェースについての詳細は、[MDN ドキュメント](https://developer.mozilla.org/en-US/docs/Web/API/FormData)をご覧ください。
 
-## File Upload Example
+## ファイルアップロードの例
 
-Let's examine a complete file upload example using Inertia. This example includes both a `name` text input and an `avatar` file input.
+Inertia を使用した完全なファイルアップロードの例を見てみましょう。この例には、`name` のテキスト入力と `avatar` のファイル入力の両方が含まれています。
 
 <CodeGroup>
 
@@ -65,7 +65,7 @@ function submit() {
         <progress v-if="form.progress" :value="form.progress.percentage" max="100">
             {{ form.progress.percentage }}%
         </progress>
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </form>
 </template>
 ```
@@ -92,7 +92,7 @@ return (
                 {progress.percentage}%
             </progress>
         )}
-        <button type="submit">Submit</button>
+        <button type="submit">送信</button>
     </form>
 )
 ```
@@ -119,7 +119,7 @@ return (
             {$form.progress.percentage}%
         </progress>
     {/if}
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </form>
 ```
 
@@ -146,19 +146,19 @@ return (
             {$form.progress.percentage}%
         </progress>
     {/if}
-    <button type="submit">Submit</button>
+    <button type="submit">送信</button>
 </form>
 ```
 
 </CodeGroup>
 
-This example uses the [Inertia form helper](/v2/the-basics/forms#form-helper) for convenience, since the form helper provides easy access to the current upload progress. However, you are free to submit your forms using [manual Inertia visits](/v2/the-basics/manual-visits) as well.
+この例では、現在のアップロード進捗へ簡単にアクセスできるため、利便性を考慮して [Inertia フォームヘルパー](/v2/the-basics/forms#form-helper) を使用しています。ただし、[手動の Inertia ビジット](/v2/the-basics/manual-visits) を使ってフォームを送信することも可能です。
 
-## Multipart Limitations
+## Multipart の制限事項
 
-Uploading files using a `multipart/form-data` request is not natively supported in some server-side frameworks when using the `PUT`,`PATCH`, or `DELETE` HTTP methods. The simplest workaround for this limitation is to simply upload files using a `POST` request instead.
+`multipart/form-data` リクエストを使用したファイルアップロードは、`PUT`、`PATCH`、`DELETE` の HTTP メソッドを使用する場合、一部のサーバーサイドフレームワークではネイティブにサポートされていません。この制限に対する最も簡単な回避策は、ファイルのアップロードに `POST` リクエストを使用することです。
 
-However, some frameworks, such as [Laravel](https://laravel.com/docs/routing#form-method-spoofing) and [Rails ](https://guides.rubyonrails.org/form_helpers.html#how-do-forms-with-patch-put-or-delete-methods-work-questionmark), support form method spoofing, which allows you to upload the files using `POST`, but have the framework handle the request as a `PUT` or `PATCH` request. This is done by including a `_method` attribute in the data of your request.
+ただし、[Laravel](https://laravel.com/docs/routing#form-method-spoofing) や [Rails](https://guides.rubyonrails.org/form_helpers.html#how-do-forms-with-patch-put-or-delete-methods-work-questionmark) のように、フォームメソッドスプーフィングをサポートしているフレームワークもあります。これにより、`POST` を使ってファイルをアップロードしつつ、フレームワーク側ではリクエストを `PUT` や `PATCH` として処理させることができます。これは、リクエストデータに `_method` 属性を含めることで実現されます。
 
 <CodeGroup>
 

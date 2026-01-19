@@ -1,16 +1,16 @@
 ---
-title: Code Splitting
+title: コード分割
 ---
 
-Code splitting breaks apart the various pages of your application into smaller bundles, which are then loaded on demand when visiting new pages. This can significantly reduce the size of the initial JavaScript bundle loaded by the browser, improving the time to first render.
+コード分割は、アプリケーションのさまざまなページを小さなバンドルに分割し、新しいページにアクセスしたときに必要に応じて読み込む仕組みです。これにより、ブラウザが最初に読み込む JavaScript バンドルのサイズを大幅に削減でき、初回レンダリングまでの時間が改善されます。
 
-While code splitting is helpful for very large projects, it does require extra requests when visiting new pages. Generally speaking, if you're able to use a single bundle, your app is going to feel snappier.
+コード分割は非常に大規模なプロジェクトでは有用ですが、新しいページを訪れるたびに追加のリクエストが発生します。一般的に言えば、単一のバンドルを使用できる場合、その方がアプリはより軽快に感じられるでしょう。
 
-To enable code splitting, you will need to tweak the `resolve` callback in your `createInertiaApp()` configuration, and how you do this is different depending on which bundler you're using.
+コード分割を有効にするには、`createInertiaApp()` の設定内にある `resolve` コールバックを調整する必要があります。具体的な方法は、使用しているバンドラーによって異なります。
 
-## Using Vite
+## Vite を使用する場合
 
-Vite enables code splitting (or lazy-loading as they call it) by default when using their `import.meta.glob()` function, so simply omit the `{ eager: true }` option, or set it to `false`, to disable eager loading.
+Vite は、`import.meta.glob()` 関数を使用すると、デフォルトでコード分割（Vite では「遅延読み込み」と呼ばれています）を有効にします。そのため、`{ eager: true }` オプションを省略するか、`false` に設定して、即時読み込みを無効にするだけで構いません。
 
 <CodeGroup>
 
@@ -43,15 +43,15 @@ resolve: name => {
 
 </CodeGroup>
 
-## Using Webpack
+## Webpack を使用する場合
 
-To use code splitting with Webpack, you will first need to enable [dynamic imports](https://github.com/tc39/proposal-dynamic-import) via a Babel plugin. Let's install it now.
+Webpack でコード分割を使用するには、まず Babel プラグインを使って [dynamic imports](https://github.com/tc39/proposal-dynamic-import) を有効にする必要があります。では、インストールしましょう。
 
 ```bash
 npm install @babel/plugin-syntax-dynamic-import
 ```
 
-Next, create a `.babelrc` file in your project with the following configuration:
+次に、以下の設定を含む `.babelrc` ファイルをプロジェクトに作成します。
 
 ```json
 {
@@ -59,9 +59,9 @@ Next, create a `.babelrc` file in your project with the following configuration:
 }
 ```
 
-If you're using Laravel Mix, the dynamic imports Babel plugin is already installed and configured, and you can skip these steps. We recommend using Laravel Mix 6 or above, as there are known issues with older versions.
+Laravel Mix を使用している場合、dynamic imports 用の Babel プラグインはすでにインストールおよび設定されているため、これらの手順は省略できます。既知の問題があるため、Laravel Mix 6 以降の使用を推奨します。
 
-Finally, update the `resolve` callback in your app's initialization code to use `import`instead of `require`.
+最後に、アプリ初期化コード内の `resolve` コールバックを更新し、`require` の代わりに `import` を使用します。
 
 <CodeGroup>
 
@@ -82,7 +82,7 @@ resolve: name => import(`./Pages/${name}.svelte`), // [!code ++]
 
 </CodeGroup>
 
-You should also consider using cache busting to force browsers to load the latest version of your assets. To accomplish this, add the following configuration to your webpack configuration file.
+また、ブラウザに最新のアセットを強制的に読み込ませるために、キャッシュバスティングの使用も検討してください。これを実現するには、webpack の設定ファイルに以下の設定を追加します。
 
 ```js
 output: {

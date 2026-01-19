@@ -58,38 +58,38 @@ class ImportV2JaMarkdownCommand extends Command
         }
 
         $extractFrontMatter = static function (string $contents): array {
-            if (! preg_match('/\A---\R(.*?)\R---\R?/s', $contents, $matches)) {
+            if (! preg_match('/\A---\r?\n(.*?)\r?\n---\r?\n?/s', $contents, $matches)) {
                 return [null, null, $contents];
             }
 
             $frontMatter = $matches[1];
             $body = substr($contents, strlen($matches[0]));
-            $body = ltrim($body, "\r\n");
+            $body = preg_replace('/^\s+/', '', $body);
 
             $title = null;
             $type = null;
             $status = null;
 
-            foreach (preg_split('/\R/', $frontMatter) as $line) {
+            foreach (preg_split('/\r?\n/', $frontMatter) as $line) {
                 $line = trim((string) $line);
 
                 if (str_starts_with($line, 'title:')) {
                     $value = trim(substr($line, strlen('title:')));
-                    $title = trim($value, " \t\n\r\0\x0B\"'");
+                    $title = preg_replace('/^["\']|["\']$/', '', $value);
 
                     continue;
                 }
 
                 if (str_starts_with($line, 'type:')) {
                     $value = trim(substr($line, strlen('type:')));
-                    $type = trim($value, " \t\n\r\0\x0B\"'");
+                    $type = preg_replace('/^["\']|["\']$/', '', $value);
 
                     continue;
                 }
 
                 if (str_starts_with($line, 'status:')) {
                     $value = trim(substr($line, strlen('status:')));
-                    $status = trim($value, " \t\n\r\0\x0B\"'");
+                    $status = preg_replace('/^["\']|["\']$/', '', $value);
                 }
             }
 
@@ -291,6 +291,15 @@ class ImportV2JaMarkdownCommand extends Command
                 $body = preg_replace('/\]\((\/)(?!\/)([^)]+)\)/', ']($2)', $body);
             }
 
+            // *Specific snippet import lines are not needed in the output.
+            if (is_string($body)) {
+                $body = preg_replace(
+                    '/^import\s+\{\s*\w*Specific\s*\}\s+from\s+[\'"]\/snippets\/[^\'"]+[\'"]\s*(?:\r?\n)?/m',
+                    '',
+                    $body
+                );
+            }
+
             // 内部リンクにプレフィックスを付与
             if (is_string($body)) {
                 $body = preg_replace_callback(
@@ -317,7 +326,7 @@ class ImportV2JaMarkdownCommand extends Command
             // コードブロック記法の変換
             if (is_string($body)) {
                 $body = preg_replace_callback(
-                    '/^(\s*)```(\w+)\s+([A-Za-z]+)(\s+\d+)?\s+icon="[^"]*"\s*$/m',
+                    '/^(\s*)```(\w+)\s+([A-Za-z0-9._\/-]+)(\s+\d+)?(?:\s+icon="[^"]*")?\s*$/m',
                     function ($matches) {
                         $indent = $matches[1];
                         $language = $matches[2];
@@ -337,6 +346,23 @@ class ImportV2JaMarkdownCommand extends Command
 
                 // 閉じタグの変換: </CodeGroup> → :::
                 $body = preg_replace('/<\/CodeGroup>/', ':::', $body);
+            }
+
+            // Infoタグの変換
+            if (is_string($body)) {
+                $body = preg_replace('/<Info>/', ':::message', $body);
+                $body = preg_replace('/<\/Info>/', ':::', $body);
+            }
+
+            // Warningタグの変換
+            if (is_string($body)) {
+                $body = preg_replace('/<Warning>/', ':::message', $body);
+                $body = preg_replace('/<\/Warning>/', ':::', $body);
+            }
+
+            // Badgeタグの変換
+            if (is_string($body)) {
+                $body = preg_replace('/<Badge>(.*?)<\/Badge>/s', '::badge[$1]', $body);
             }
 
             // Steps/Stepコンポーネントを見出しに変換

@@ -1,14 +1,14 @@
 ---
-title: Shared Data
+title: 共有データー
 ---
 
-Sometimes you need to access specific pieces of data on numerous pages within your application. For example, you may need to display the current user in the site header. Passing this data manually in each response across your entire application is cumbersome. Thankfully, there is a better option: shared data.
+アプリケーション内の多数のページで、特定のデータにアクセスする必要がある場合があります。たとえば、サイトヘッダーに現在のユーザーを表示する必要があるかもしれません。アプリケーション全体のすべてのレスポンスで、このデータを毎回手動で渡すのは煩雑です。幸い、より良い方法があります。それが「共有データ」です。
 
-## Sharing Data
+## データの共有
 
-Inertia's server-side adapters all provide a method of making shared data available for every request. This is typically done outside of your controllers. Shared data will be automatically merged with the page props provided in your controller.
+Inertia のサーバーサイドアダプターには、すべてのリクエストで利用可能な共有データを定義するためのメソッドが用意されています。これは通常、コントローラーの外で行われます。共有データは、コントローラーで提供されるページプロップと自動的にマージされます。
 
-In Laravel applications, this is typically handled by the `HandleInertiaRequests` middleware that is automatically installed when installing the [server-side adapter](/v2/installation/server-side-setup#middleware).
+Laravel アプリケーションでは、これは通常、[サーバーサイドアダプター](/v2/installation/server-side-setup#middleware)をインストールした際に自動的に追加される `HandleInertiaRequests` ミドルウェアで処理されます。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -16,10 +16,10 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request)
     {
         return array_merge(parent::share($request), [
-            // Synchronously...
+            // 同期的に...
             'appName' => config('app.name'),
 
-            // Lazily...
+            // 遅延的に...
             'auth.user' => fn () => $request->user()
                 ? $request->user()->only('id', 'name', 'email')
                 : null,
@@ -28,28 +28,28 @@ class HandleInertiaRequests extends Middleware
 }
 ```
 
-Alternatively, you can manually share data using the `Inertia::share` method.
+または、`Inertia::share` メソッドを使用して手動でデータを共有することもできます。
 
 ```php
 use Inertia\Inertia;
 
-// Synchronously...
+// 同期的に...
 Inertia::share('appName', config('app.name'));
 
-// Lazily...
+// 遅延的に...
 Inertia::share('user', fn (Request $request) => $request->user()
     ? $request->user()->only('id', 'name', 'email')
     : null
 );
 ```
 
-Shared data should be used sparingly as all shared data is included with every response.
+共有データは、すべてのレスポンスに含まれるため、必要最小限に留めるべきです。
 
-Page props and shared data are merged together, so be sure to namespace your shared data appropriately to avoid collisions.
+ページプロップと共有データはマージされるため、衝突を避けるために共有データには適切な名前空間を付けてください。
 
-## Sharing Once Props
+## 一度だけ共有するプロップ
 
-You may share data that is resolved only once and remembered by the client across subsequent navigations using [once props](/v2/data-props/once-props).
+[once props](/v2/data-props/once-props) を使用すると、一度だけ解決され、以降のナビゲーションでもクライアント側で記憶されるデータを共有できます。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -63,7 +63,7 @@ class HandleInertiaRequests extends Middleware
 }
 ```
 
-Alternatively, you may define a dedicated `shareOnce()` method in the middleware. The middleware will evaluate both `share()` and `shareOnce()`, merging the results.
+または、ミドルウェアに専用の `shareOnce()` メソッドを定義することもできます。この場合、ミドルウェアは `share()` と `shareOnce()` の両方を評価し、その結果をマージします。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -77,15 +77,15 @@ class HandleInertiaRequests extends Middleware
 }
 ```
 
-You may also share once props manually using the `Inertia::shareOnce()` method.
+`Inertia::shareOnce()` メソッドを使用して、手動で once プロップを共有することも可能です。
 
 ```php
 Inertia::shareOnce('countries', fn () => Country::all());
 ```
 
-## Accessing Shared Data
+## 共有データへのアクセス
 
-Once you have shared the data server-side, you will be able to access it within any of your pages or components. Here's an example of how to access shared data in a layout component.
+サーバーサイドでデータを共有すると、任意のページやコンポーネント内でそのデータにアクセスできるようになります。以下は、レイアウトコンポーネントで共有データにアクセスする例です。
 
 <CodeGroup>
 
@@ -143,8 +143,8 @@ export default function Layout({ children }) {
 
 ## TypeScript
 
-You may configure the shared props type globally using [TypeScript's declaration merging](/v2/advanced/typescript#shared-page-props).
+[TypeScript の宣言マージ](/v2/advanced/typescript#shared-page-props)を使用して、共有プロップの型をグローバルに設定できます。
 
-## Flash Data
+## フラッシュデータ
 
-For one-time notifications like toast messages or success alerts, you may use [flash data](/v2/data-props/flash-data). Unlike shared data, flash data is not persisted in the browser's history state, so it won't reappear when navigating through history.
+トーストメッセージや成功アラートのような一度限りの通知には、[フラッシュデータ](/v2/data-props/flash-data)を使用できます。共有データとは異なり、フラッシュデータはブラウザーの履歴状態には保持されないため、履歴を遡ってナビゲーションした際に再表示されることはありません。

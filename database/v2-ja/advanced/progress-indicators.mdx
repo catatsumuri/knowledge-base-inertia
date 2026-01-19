@@ -1,32 +1,32 @@
 ---
-title: Progress Indicators
+title: 進捗インジケーター
 ---
 
-Since Inertia requests are made via XHR, there would typically not be a browser loading indicator when navigating from one page to another. To solve this, Inertia displays a progress indicator at the top of the page whenever you make an Inertia visit. However, [asynchronous requests](#visit-options) do not show the progress indicator unless explicitly configured.
+Inertia のリクエストは XHR 経由で行われるため、通常、ページ間を移動してもブラウザの読み込みインジケーターは表示されません。これを解決するため、Inertia では Inertia 訪問を行うたびに、ページ上部に進捗インジケーターを表示します。ただし、[非同期リクエスト](#visit-options) は、明示的に設定しない限り進捗インジケーターを表示しません。
 
-Of course, if you prefer, you can disable Inertia's default loading indicator and provide your own custom implementation. We'll discuss both approaches below.
+もちろん、必要であれば Inertia のデフォルトの読み込みインジケーターを無効にし、独自のカスタム実装を提供することもできます。以下では、両方のアプローチについて説明します。
 
-## Default
+## デフォルト
 
-Inertia's default progress indicator is a light-weight wrapper around the [NProgress](https://ricostacruz.com/nprogress/) library. You can customize it via the `progress` property of the `createInertiaApp()` function.
+Inertia のデフォルトの進捗インジケーターは、[NProgress](https://ricostacruz.com/nprogress/) ライブラリを軽量にラップしたものです。`createInertiaApp()` 関数の `progress` プロパティを通じてカスタマイズできます。
 
 ```js
 createInertiaApp({
     progress: {
-        // The delay after which the progress bar will appear, in milliseconds...
+        // 進捗バーが表示されるまでの遅延（ミリ秒）...
         delay: 250,
-        // The color of the progress bar...
+        // 進捗バーの色...
         color: '#29d',
-        // Whether to include the default NProgress styles...
+        // デフォルトの NProgress スタイルを含めるかどうか...
         includeCSS: true,
-        // Whether the NProgress spinner will be shown...
+        // NProgress のスピナーを表示するかどうか...
         showSpinner: false,
     },
     // ...
 })
 ```
 
-You can disable Inertia's default loading indicator by setting the `progress` property to `false`.
+`progress` プロパティを `false` に設定することで、Inertia のデフォルトの読み込みインジケーターを無効にできます。
 
 ```js
 createInertiaApp({
@@ -35,80 +35,80 @@ createInertiaApp({
 })
 ```
 
-## Programmatic Access
+## プログラムによる操作
 
-When you need to control the progress indicator outside of Inertia requests, for example, when making requests with Axios or other libraries, you can use Inertia's progress methods directly.
+Inertia リクエスト以外で進捗インジケーターを制御する必要がある場合、たとえば Axios や他のライブラリでリクエストを行うときは、Inertia の進捗メソッドを直接使用できます。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
 import { progress } from '@inertiajs/vue3'
 
-progress.start()      // Begin progress animation
-progress.set(0.25)    // Set to 25% complete
-progress.finish()     // Complete and fade out
-progress.reset()      // Reset to start
-progress.remove()     // Complete and remove from DOM
-progress.hide()       // Hide progress bar
-progress.reveal()     // Show progress bar
+progress.start()      // 進捗アニメーションを開始
+progress.set(0.25)    // 25% 完了に設定
+progress.finish()     // 完了してフェードアウト
+progress.reset()      // 開始状態にリセット
+progress.remove()     // 完了して DOM から削除
+progress.hide()       // 進捗バーを非表示
+progress.reveal()     // 進捗バーを表示
 
-progress.isStarted()  // Returns boolean
-progress.getStatus()  // Returns current percentage or null
+progress.isStarted()  // boolean を返す
+progress.getStatus()  // 現在のパーセンテージ、または null を返す
 ```
 
 ```js React icon="react"
 import { progress } from '@inertiajs/react'
 
-progress.start()      // Begin progress animation
-progress.set(0.25)    // Set to 25% complete
-progress.finish()     // Complete and fade out
-progress.reset()      // Reset to start
-progress.remove()     // Complete and remove from DOM
-progress.hide()       // Hide progress bar
-progress.reveal()     // Show progress bar
+progress.start()      // 進捗アニメーションを開始
+progress.set(0.25)    // 25% 完了に設定
+progress.finish()     // 完了してフェードアウト
+progress.reset()      // 開始状態にリセット
+progress.remove()     // 完了して DOM から削除
+progress.hide()       // 進捗バーを非表示
+progress.reveal()     // 進捗バーを表示
 
-progress.isStarted()  // Returns boolean
-progress.getStatus()  // Returns current percentage or null
+progress.isStarted()  // boolean を返す
+progress.getStatus()  // 現在のパーセンテージ、または null を返す
 ```
 
 ```js Svelte icon="s"
 import { progress } from '@inertiajs/svelte'
 
-progress.start()      // Begin progress animation
-progress.set(0.25)    // Set to 25% complete
-progress.finish()     // Complete and fade out
-progress.reset()      // Reset to start
-progress.remove()     // Complete and remove from DOM
-progress.hide()       // Hide progress bar
-progress.reveal()     // Show progress bar
+progress.start()      // 進捗アニメーションを開始
+progress.set(0.25)    // 25% 完了に設定
+progress.finish()     // 完了してフェードアウト
+progress.reset()      // 開始状態にリセット
+progress.remove()     // 完了して DOM から削除
+progress.hide()       // 進捗バーを非表示
+progress.reveal()     // 進捗バーを表示
 
-progress.isStarted()  // Returns boolean
-progress.getStatus()  // Returns current percentage or null
+progress.isStarted()  // boolean を返す
+progress.getStatus()  // 現在のパーセンテージ、または null を返す
 ```
 
 </CodeGroup>
 
-The `hide()` and `reveal()` methods work together to prevent conflicts when separate parts of your code need to control progress visibility. Each `hide()` call increments an internal counter, while `reveal()` decrements it. The progress bar only appears when this counter reaches zero.
+`hide()` と `reveal()` メソッドは、コードの別々の部分が進捗の表示・非表示を制御する必要がある場合に、競合を防ぐために連携して動作します。`hide()` が呼ばれるたびに内部カウンターがインクリメントされ、`reveal()` でデクリメントされます。このカウンターがゼロになったときにのみ、進捗バーが表示されます。
 
-However, `reveal()` accepts an optional `force` parameter that bypasses this counter. Inertia uses this pattern internally to hide progress during prefetching while ensuring it appears for actual navigation.
+ただし、`reveal()` にはこのカウンターを無視するオプションの `force` パラメータがあります。Inertia は内部的にこの仕組みを使い、プリフェッチ中は進捗を非表示にしつつ、実際のナビゲーション時には確実に表示されるようにしています。
 
 ```js
-progress.hide()    // Counter = 1, bar hidden
-progress.hide()    // Counter = 2, bar still hidden
-progress.reveal()  // Counter = 1, bar still hidden
-progress.reveal()  // Counter = 0, bar now visible
+progress.hide()    // カウンター = 1、バーは非表示
+progress.hide()    // カウンター = 2、引き続き非表示
+progress.reveal()  // カウンター = 1、引き続き非表示
+progress.reveal()  // カウンター = 0、バーが表示される
 
-// Force reveal bypasses the counter
+// force を指定するとカウンターを無視して表示
 progress.reveal(true)
 ```
 
-If you've disabled the progress indicator with `progress: false` in `createInertiaApp()`, these programmatic methods will not work.
+`createInertiaApp()` で `progress: false` を設定して進捗インジケーターを無効にしている場合、これらのプログラムによるメソッドは動作しません。
 
-## Custom
+## カスタム
 
-It's also possible to setup your own custom page loading indicators using Inertia [events](/v2/advanced/events). Let's explore how to do this using the [NProgress](https://ricostacruz.com/nprogress/) library as an example.
+Inertia の[イベント](/v2/advanced/events)を使用して、独自のページ読み込みインジケーターを設定することも可能です。ここでは例として [NProgress](https://ricostacruz.com/nprogress/) ライブラリを使った方法を見ていきます。
 
-First, disable Inertia's default loading indicator.
+まず、Inertia のデフォルトの読み込みインジケーターを無効にします。
 
 ```js
 createInertiaApp({
@@ -117,19 +117,19 @@ createInertiaApp({
 })
 ```
 
-Next, install the NProgress library.
+次に、NProgress ライブラリをインストールします。
 
 ```bash
 npm install nprogress
 ```
 
-After installation, you'll need to add the NProgress [styles](https://github.com/rstacruz/nprogress/blob/master/nprogress.css) to your project. You can do this using a CDN hosted copy of the styles.
+インストール後、NProgress の[スタイル](https://github.com/rstacruz/nprogress/blob/master/nprogress.css)をプロジェクトに追加する必要があります。CDN でホストされているスタイルを使用できます。
 
 ```html
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
 ```
 
-Then, import both `NProgress` and the Inertia `router` into your application.
+次に、`NProgress` と Inertia の `router` の両方をアプリケーションにインポートします。
 
 <CodeGroup>
 
@@ -150,25 +150,25 @@ import { router } from '@inertiajs/svelte'
 
 </CodeGroup>
 
-Next, add a `start` event listener. We'll use this listener to show the progress bar when a new Inertia visit begins.
+次に、`start` イベントリスナーを追加します。このリスナーは、新しい Inertia 訪問が開始されたときに進捗バーを表示するために使用します。
 
 ```js
 router.on('start', () => NProgress.start())
 ```
 
-Finally, add a `finish` event listener to hide the progress bar when the page visit finishes.
+最後に、ページ訪問が完了したときに進捗バーを非表示にするための `finish` イベントリスナーを追加します。
 
 ```js
 router.on('finish', () => NProgress.done())
 ```
 
-That's it! Now, as you navigate from one page to another, the progress bar will be added and removed from the page.
+これで完了です！ページ間を移動すると、進捗バーがページに追加され、削除されるようになります。
 
-### Handling Cancelled Visits
+### キャンセルされた訪問の処理
 
-While this custom progress implementation works great for page visits that finish properly, it would be nice to handle cancelled visits as well. First, for interrupted visits (those that get cancelled as a result of a new visit), the progress bar should simply be reset back to the start position. Second, for manually cancelled visits, the progress bar should be immediately removed from the page.
+このカスタム進捗実装は、正常に完了するページ訪問には最適ですが、キャンセルされた訪問も処理できると便利です。まず、（新しい訪問によってキャンセルされた）中断された訪問では、進捗バーを単純に開始位置にリセットします。次に、手動でキャンセルされた訪問では、進捗バーを即座にページから削除します。
 
-We can accomplish this by inspecting the `event.detail.visit` object that's provided to the finish event.
+これは、`finish` イベントに提供される `event.detail.visit` オブジェクトを確認することで実現できます。
 
 ```js
 router.on('finish', (event) => {
@@ -183,9 +183,9 @@ router.on('finish', (event) => {
 })
 ```
 
-### File Upload Progress
+### ファイルアップロードの進捗
 
-Let's take this a step further. When files are being uploaded, it would be great to update the loading indicator to reflect the upload progress. This can be done using the `progress` event.
+さらに一歩進めてみましょう。ファイルをアップロードしている間、アップロードの進捗を反映するように読み込みインジケーターを更新できると便利です。これは `progress` イベントを使用して実現できます。
 
 ```js
 router.on('progress', (event) => {
@@ -195,19 +195,19 @@ router.on('progress', (event) => {
 })
 ```
 
-Now, instead of the progress bar "trickling" while the files are being uploaded, it will actually update it's position based on the progress of the request. We limit the progress here to 90%, since we still need to wait for a response from the server.
+これで、ファイルのアップロード中に進捗バーが「徐々に進む」だけでなく、リクエストの進捗に基づいて実際に位置が更新されるようになります。ここでは進捗を 90% に制限しています。これは、サーバーからのレスポンスをまだ待つ必要があるためです。
 
-### Loading Indicator Delay
+### 読み込みインジケーターの遅延
 
-The last thing we're going to implement is a loading indicator delay. It's often preferable to delay showing the loading indicator until a request has taken longer than 250-500 milliseconds. This prevents the loading indicator from appearing constantly on quick page visits, which can be visually distracting.
+最後に実装するのは、読み込みインジケーターの遅延です。リクエストが 250〜500 ミリ秒以上かかった場合にのみ、読み込みインジケーターを表示する方が望ましいことがよくあります。これにより、素早いページ遷移のたびにインジケーターが表示されるのを防ぎ、視覚的な煩わしさを軽減できます。
 
-To implement the delay behavior, we'll use the `setTimeout` and `clearTimeout` functions. Let's start by defining a variable to keep track of the timeout.
+この遅延動作を実装するために、`setTimeout` と `clearTimeout` 関数を使用します。まず、タイムアウトを追跡するための変数を定義します。
 
 ```js
 let timeout = null
 ```
 
-Next, let's update the `start` event listener to start a new timeout that will show the progress bar after 250 milliseconds.
+次に、`start` イベントリスナーを更新し、250 ミリ秒後に進捗バーを表示する新しいタイムアウトを開始します。
 
 ```js
 router.on('start', () => {
@@ -215,7 +215,7 @@ router.on('start', () => {
 })
 ```
 
-Next, we'll update the `finish` event listener to clear any existing timeouts in the event that the page visit finishes before the timeout does.
+次に、ページ訪問がタイムアウトより先に終了した場合に、既存のタイムアウトをクリアするため、`finish` イベントリスナーを更新します。
 
 ```js
 router.on('finish', (event) => {
@@ -224,7 +224,7 @@ router.on('finish', (event) => {
 })
 ```
 
-In the `finish` event listener, we need to determine if the progress bar has actually started displaying progress, otherwise we'll inadvertently cause it to show before the timeout has finished.
+`finish` イベントリスナー内では、進捗バーが実際に表示を開始しているかどうかを判定する必要があります。そうしないと、タイムアウトが完了する前に誤って表示されてしまいます。
 
 ```js
 router.on('finish', (event) => {
@@ -237,7 +237,7 @@ router.on('finish', (event) => {
 })
 ```
 
-And, finally, we need to do the same check in the `progress` event listener.
+最後に、`progress` イベントリスナーでも同じチェックを行います。
 
 ```js
 router.on('progress', event => {
@@ -248,11 +248,11 @@ router.on('progress', event => {
 })
 ```
 
-That's it, you now have a beautiful custom page loading indicator!
+これで、美しいカスタムページ読み込みインジケーターの完成です！
 
-### Complete Example
+### 完全な例
 
-For convenience, here is the full source code of the final version of our custom loading indicator.
+参考までに、カスタム読み込みインジケーターの最終版の完全なソースコードを以下に示します。
 
 <CodeGroup>
 
@@ -360,13 +360,13 @@ router.on('finish', (event) => {
 
 </CodeGroup>
 
-## Visit Options
+## 訪問オプション
 
-In addition to these configurations, Inertia.js provides two visit options to control the loading indicator on a per-request basis: `showProgress` and `async`. These options offer greater control over how Inertia.js handles asynchronous requests and manages progress indicators.
+これらの設定に加えて、Inertia.js にはリクエストごとに読み込みインジケーターを制御するための 2 つの訪問オプション `showProgress` と `async` が用意されています。これらのオプションにより、非同期リクエストの扱いや進捗インジケーターの管理をより細かく制御できます。
 
 ### Showprogress
 
-The `showProgress` option provides fine-grained control over the visibility of the loading indicator during requests.
+`showProgress` オプションは、リクエスト中の読み込みインジケーターの表示・非表示を細かく制御するためのものです。
 
 ```js
 router.get('/settings', {}, { showProgress: false })
@@ -374,11 +374,11 @@ router.get('/settings', {}, { showProgress: false })
 
 ### Async
 
-The `async` option allows you to perform asynchronous requests without displaying the default progress indicator. It can be used in combination with the `showProgress` option.
+`async` オプションを使用すると、デフォルトの進捗インジケーターを表示せずに非同期リクエストを実行できます。`showProgress` オプションと組み合わせて使用することも可能です。
 
 ```js
-// Disable the progress indicator
+// 進捗インジケーターを無効化
 router.get('/settings', {}, { async: true })
-// Enable the progress indicator with async requests
+// 非同期リクエストで進捗インジケーターを有効化
 router.get('/settings', {}, { async: true, showProgress: true })
 ```

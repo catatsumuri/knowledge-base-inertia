@@ -1,24 +1,24 @@
 ---
-title: Merging Props
+title: Props のマージ
 ---
 
-Inertia overwrites props with the same name when reloading a page. However, you may need to merge new data with existing data instead. For example, when implementing a "load more" button for paginated results. The [Infinite scroll](/v2/data-props/infinite-scroll) component uses prop merging under the hood.
+Inertia はページを再読み込みする際、同じ名前の props を上書きします。しかし、場合によっては既存のデータに新しいデータをマージしたいこともあります。たとえば、ページネーションされた結果に対して「さらに読み込む」ボタンを実装する場合です。[Infinite scroll](/v2/data-props/infinite-scroll) コンポーネントは、内部で prop マージを使用しています。
 
-Prop merging only works during [partial reloads](/v2/data-props/partial-reloads). Full page visits will always replace props entirely, even if you've marked them for merging.
+Prop のマージは [部分的なリロード](/v2/data-props/partial-reloads) のときのみ動作します。フルページ遷移では、マージ対象としてマークされていても、props は常に完全に置き換えられます。
 
-## Merge Methods
+## マージ方法
 
-To merge a prop instead of overwriting it, you may use the `Inertia::merge()` method when returning your response.
+上書きではなくマージしたい場合は、レスポンスを返す際に `Inertia::merge()` メソッドを使用できます。
 
 ```php
 Route::get('/items', function () {
-    // Static array of tags...
+    // タグの静的配列...
     $allTags = [
         'Laravel', 'React', 'Vue', 'Tailwind', 'Inertia',
         'PHP', 'JavaScript', 'TypeScript', 'Docker', 'Vite',
     ];
 
-    // Get chunk of tags by page...
+    // ページごとにタグのチャンクを取得...
     $page = request()->input('page', 1);
     $perPage = 5;
     $offset = ($page - 1) * $perPage;
@@ -30,60 +30,60 @@ Route::get('/items', function () {
 });
 ```
 
-The `Inertia::merge()` method will append new items to existing arrays at the root level. You may change this behavior to prepend items instead.
+`Inertia::merge()` メソッドは、ルートレベルにある既存の配列に新しい要素を追加（append）します。この挙動は、代わりに先頭へ追加（prepend）するよう変更できます。
 
 ```php
-// Append at root level (default)...
+// ルートレベルで末尾に追加（デフォルト）...
 Inertia::merge($items);
 
-// Prepend at root level...
+// ルートレベルで先頭に追加...
 Inertia::merge($items)->prepend();
 ```
 
-For more precise control, you can target specific nested properties for merging while replacing the rest of the object.
+より細かい制御が必要な場合は、オブジェクトの他の部分を置き換えつつ、特定のネストされたプロパティのみをマージ対象にできます。
 
 ```php
-// Only append to the 'data' array, replace everything else...
+// 'data' 配列のみに追加し、それ以外はすべて置き換える...
 Inertia::merge(User::paginate())->append('data');
 
-// Prepend to the 'messages' array...
+// 'messages' 配列の先頭に追加...
 Inertia::merge($chatData)->prepend('messages');
 ```
 
-You can combine multiple operations and target several properties at once.
+複数の操作を組み合わせたり、同時に複数のプロパティを対象にすることもできます。
 
 ```php
 Inertia::merge($forumData)
     ->append('posts')
     ->prepend('announcements');
 
-// Target multiple properties...
+// 複数のプロパティを対象にする...
 Inertia::merge($dashboardData)
     ->append(['notifications', 'activities']);
 ```
 
-On the client side, Inertia handles all the merging automatically according to your server-side configuration.
+クライアント側では、サーバー側の設定に従って、Inertia がすべてのマージ処理を自動的に行います。
 
-## Matching Items
+## アイテムのマッチング
 
-When merging arrays, you may use the `matchOn` parameter to match existing items by a specific field and update them instead of appending new ones.
+配列をマージする際、`matchOn` パラメータを使用すると、特定のフィールドで既存のアイテムと照合し、新しいアイテムを追加する代わりに更新できます。
 
 ```php
-// Match posts by ID, update existing ones...
+// ID で投稿を照合し、既存のものを更新...
 Inertia::merge($postData)->append('data', matchOn: 'id');
 
-// Multiple properties with different match fields...
+// 異なるマッチフィールドを持つ複数のプロパティ...
 Inertia::merge($complexData)->append([
     'users.data' => 'id',
     'messages' => 'uuid',
 ]);
 ```
 
-In the first example, Inertia will iterate over the `data` array and attempt to match each item by its `id` field. If a match is found, the existing item will be replaced. If no match is found, the new item will be appended.
+最初の例では、Inertia は `data` 配列を反復処理し、各アイテムを `id` フィールドで照合しようとします。一致するものが見つかった場合、その既存アイテムは置き換えられます。一致しない場合は、新しいアイテムが追加されます。
 
-## Deep Merge
+## ディープマージ
 
-Instead of specifying which nested paths should be merged, you may use `Inertia::deepMerge()`to ensure a deep merge of the entire structure.
+どのネストされたパスをマージするかを指定する代わりに、`Inertia::deepMerge()` を使用して構造全体をディープマージすることもできます。
 
 ```php
 Route::get('/chat', function () {
@@ -101,15 +101,15 @@ Route::get('/chat', function () {
 });
 ```
 
-`Inertia::deepMerge()` was introduced before `Inertia::merge()` had support for prepending and targeting nested paths. In most cases, `Inertia::merge()` with its append and prepend methods should be sufficient.
+`Inertia::deepMerge()` は、`Inertia::merge()` に prepend やネストパスの指定がサポートされる前に導入されました。ほとんどの場合、append や prepend メソッドを備えた `Inertia::merge()` で十分です。
 
-## Client Side Visits
+## クライアントサイドの訪問
 
-You can also merge props directly on the client side without making a server request using [client side visits](/v2/the-basics/manual-visits#client-side-visits). Inertia provides [prop helper methods](/v2/the-basics/manual-visits#prop-helpers) that allow you to append, prepend, or replace prop values.
+[クライアントサイド訪問](/v2/the-basics/manual-visits#client-side-visits) を使用すれば、サーバーリクエストを行わずにクライアント側で直接 props をマージすることもできます。Inertia は、prop の値を追加・先頭追加・置き換えするための [prop ヘルパーメソッド](/v2/the-basics/manual-visits#prop-helpers) を提供しています。
 
-## Combining with Deferred Props
+## Deferred Props との併用
 
-You may combine [deferred props](/v2/data-props/deferred-props) with mergeable props to defer the loading of the prop and ultimately mark it as mergeable once it's loaded.
+[Deferred props](/v2/data-props/deferred-props) をマージ可能な props と組み合わせることで、prop の読み込みを遅延させ、読み込み完了後にマージ可能として扱うことができます。
 
 ```php
 Route::get('/users', function () {
@@ -122,9 +122,9 @@ Route::get('/users', function () {
 });
 ```
 
-## Combining with Once Props
+## Once Props との併用
 
-You may chain the `once()` modifier onto a merge prop to ensure the data is resolved only once and remembered by the client across subsequent navigations.
+マージ prop に `once()` 修飾子をチェーンすることで、データが一度だけ解決され、その後のナビゲーション間でクライアントに記憶されるようにできます。
 
 ```php
 return Inertia::render('Users/Index', [
@@ -132,13 +132,13 @@ return Inertia::render('Users/Index', [
 ]);
 ```
 
-For more information on once props, see the [once props](/v2/data-props/once-props) documentation.
+once props の詳細については、[once props](/v2/data-props/once-props) のドキュメントを参照してください。
 
-## Resetting Props
+## Props のリセット
 
-On the client side, you can indicate to the server that you would like to reset the prop. This is useful when you want to clear the prop value before merging new data, such as when the user enters a new search query on a paginated list.
+クライアント側から、prop をリセットしたいことをサーバーに伝えることができます。これは、ページネーションされたリストでユーザーが新しい検索クエリを入力した際など、新しいデータをマージする前に prop の値をクリアしたい場合に便利です。
 
-The `reset` request option accepts an array of the props keys you would like to reset.
+`reset` リクエストオプションには、リセットしたい prop のキーの配列を指定します。
 
 ```js
 router.reload({

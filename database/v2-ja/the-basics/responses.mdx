@@ -1,12 +1,12 @@
 ---
-title: Responses
+title: レスポンス
 ---
 
-## Creating Responses
+## レスポンスの作成
 
-Creating an Inertia response is simple. To get started, invoke the `Inertia::render()` method within your controller or route, providing both the name of the [JavaScript page component](/v2/the-basics/pages) that you wish to render, as well as any properties (data) for the page.
+Inertia のレスポンス作成は簡単です。まず、コントローラまたはルート内で `Inertia::render()` メソッドを呼び出し、レンダリングしたい [JavaScript ページコンポーネント](/v2/the-basics/pages) の名前と、そのページ用のプロパティ（データ）を指定します。
 
-In the example below, we will pass a single property (`event`) which contains four attributes (`id`, `title`, `start_date` and `description`) to the `Event/Show` page component.
+以下の例では、4 つの属性（`id`、`title`、`start_date`、`description`）を含む単一のプロパティ（`event`）を `Event/Show` ページコンポーネントに渡しています。
 
 ```php
 use Inertia\Inertia;
@@ -24,7 +24,7 @@ class EventsController extends Controller
             ),
         ]);
 
-        // Alternatively, you can use the inertia() helper...
+        // 代わりに inertia() ヘルパーを使用することもできます...
         return inertia('Event/Show', [
             'event' => $event->only(
                 'id',
@@ -38,52 +38,52 @@ class EventsController extends Controller
 ```
 
 <Tip>
-    To ensure that pages load quickly, only return the minimum data required for the page.
+    ページを高速に読み込むために、ページに必要な最小限のデータのみを返すようにしてください。
 </Tip>
 
 <Note>
-    Be aware that all data returned from the controllers will be visible client-side, so be sure to omit sensitive information.
+    コントローラから返されるすべてのデータはクライアントサイドで可視になるため、機密情報は必ず除外してください。
 </Note>
 
-## Properties
+## プロパティ
 
-To pass data from the server to your page components, you can use properties. You can pass various types of values as props, including primitive types, arrays, objects, and several Laravel-specific types that are automatically resolved:
+サーバーからページコンポーネントにデータを渡すには、プロパティを使用します。プリミティブ型、配列、オブジェクト、そして自動的に解決されるいくつかの Laravel 固有の型など、さまざまな値を props として渡すことができます。
 
 ```php
 use App\Models\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 Inertia::render('Dashboard', [
-    // Primitive values
+    // プリミティブ値
     'title' => 'Dashboard',
     'count' => 42,
     'active' => true,
 
-    // Arrays and objects
+    // 配列とオブジェクト
     'settings' => ['theme' => 'dark', 'notifications' => true],
 
-    // Arrayable objects (Collections, Models, etc.)
-    'user' => auth()->user(), // Eloquent model
-    'users' => User::all(), // Eloquent collection
+    // Arrayable オブジェクト（Collection、Model など）
+    'user' => auth()->user(), // Eloquent モデル
+    'users' => User::all(), // Eloquent コレクション
 
-    // API Resources
+    // API リソース
     'profile' => new UserResource(auth()->user()),
 
-    // Responsable objects
+    // Responsable オブジェクト
     'data' => new JsonResponse(['key' => 'value']),
 
-    // Closures
+    // クロージャ
     'timestamp' => fn() => now()->timestamp,
 ]);
 ```
 
-Arrayable objects like Eloquent models and collections are automatically converted using their `toArray()` method. Responsable objects like API resources and JSON responses are resolved through their `toResponse()` method.
+Eloquent モデルやコレクションのような Arrayable オブジェクトは、自動的に `toArray()` メソッドを使って変換されます。API リソースや JSON レスポンスのような Responsable オブジェクトは、`toResponse()` メソッドを通じて解決されます。
 
-## `ProvidesInertiaProperty` Interface
+## `ProvidesInertiaProperty` インターフェース
 
-When passing props to your components, you may want to create custom classes that can transform themselves into the appropriate data format. While Laravel's `Arrayable` interface simply converts objects to arrays, Inertia offers the more powerful `ProvidesInertiaProperty` interface for context-aware transformations.
+コンポーネントに props を渡す際、適切なデータ形式に自分自身を変換できるカスタムクラスを作成したい場合があります。Laravel の `Arrayable` インターフェースは単にオブジェクトを配列に変換するだけですが、Inertia では、より強力でコンテキストを考慮した変換を行える `ProvidesInertiaProperty` インターフェースが提供されています。
 
-This interface requires a `toInertiaProperty` method that receives a `PropertyContext`object containing the property key (`$context->key`), all props for the page (`$context->props`), and the request instance (`$context->request`).
+このインターフェースでは、`toInertiaProperty` メソッドを実装する必要があります。このメソッドは、プロパティキー（`$context->key`）、ページのすべての props（`$context->props`）、およびリクエストインスタンス（`$context->request`）を含む `PropertyContext` オブジェクトを受け取ります。
 
 ```php
 use Inertia\PropertyContext;
@@ -105,7 +105,7 @@ class UserAvatar implements ProvidesInertiaProperty
 }
 ```
 
-Once defined, you can use this class directly as a prop value.
+定義後、このクラスを prop の値として直接使用できます。
 
 ```php
 Inertia::render('Profile', [
@@ -114,7 +114,7 @@ Inertia::render('Profile', [
 ]);
 ```
 
-The `PropertyContext` gives you access to the property key, which enables powerful patterns like merging with shared data.
+`PropertyContext` を使うことでプロパティキーにアクセスでき、共有データとマージするといった強力なパターンが可能になります。
 
 ```php
 use Inertia\Inertia;
@@ -130,28 +130,28 @@ class MergeWithShared implements ProvidesInertiaProperty
 
     public function toInertiaProperty(PropertyContext $context): mixed
     {
-        // Access the property key to get shared data
+        // プロパティキーにアクセスして共有データを取得
         $shared = Inertia::getShared($context->key, []);
 
-        // Merge with the new items
+        // 新しいアイテムとマージ
         return array_merge($shared, $this->items);
     }
 }
 
-// Usage
+// 使用例
 Inertia::share('notifications', ['Welcome back!']);
 
 return Inertia::render('Dashboard', [
     'notifications' => new MergeWithShared(['New message received']),
-    // Result: ['Welcome back!', 'New message received']
+    // 結果: ['Welcome back!', 'New message received']
 ]);
 ```
 
-## `ProvidesInertiaProperties` Interface
+## `ProvidesInertiaProperties` インターフェース
 
-In some situations you may want to group related props together for reusability across different pages. You can accomplish this by implementing the `ProvidesInertiaProperties` interface.
+場合によっては、関連する props をまとめて、異なるページ間で再利用したいことがあります。その場合、`ProvidesInertiaProperties` インターフェースを実装することで対応できます。
 
-This interface requires a `toInertiaProperties` method that returns an array of key-value pairs. The method receives a `RenderContext` object containing the component name (`$context->component`) and request instance (`$context->request`).
+このインターフェースでは、キーと値のペアの配列を返す `toInertiaProperties` メソッドを実装する必要があります。このメソッドは、コンポーネント名（`$context->component`）とリクエストインスタンス（`$context->request`）を含む `RenderContext` オブジェクトを受け取ります。
 
 ```php
 use App\Models\User;
@@ -178,20 +178,20 @@ class UserPermissions implements ProvidesInertiaProperties
 }
 ```
 
-You can use these prop classes directly in the `render()` and `with()` methods.
+これらの prop クラスは、`render()` および `with()` メソッドで直接使用できます。
 
 ```php
 public function index(UserPermissions $permissions)
 {
     return Inertia::render('UserProfile', $permissions);
 
-    // or...
+    // または...
 
     return Inertia::render('UserProfile')->with($permissions);
 }
 ```
 
-You can also combine multiple prop classes with other props in an array:
+複数の prop クラスを、他の props と一緒に配列として組み合わせることもできます。
 
 ```php
 public function index(UserPermissions $permissions)
@@ -201,7 +201,7 @@ public function index(UserPermissions $permissions)
         $permissions,
     ]);
 
-    // or using method chaining...
+    // またはメソッドチェーンを使用して...
 
     return Inertia::render('UserProfile')
         ->with('user', auth()->user())
@@ -209,29 +209,29 @@ public function index(UserPermissions $permissions)
 }
 ```
 
-## Root Template Data
+## ルートテンプレートのデータ
 
-There are situations where you may want to access your prop data in your application's root Blade template. For example, you may want to add a meta description tag, Twitter card meta tags, or Facebook Open Graph meta tags. You can access this data via the `$page` variable.
+アプリケーションのルート Blade テンプレートで prop データにアクセスしたい場合があります。たとえば、meta description タグ、Twitter カードの meta タグ、Facebook Open Graph の meta タグを追加したい場合などです。このような場合、`$page` 変数を通じてデータにアクセスできます。
 
 ```blade
 <meta name="twitter:title" content="{{ $page['props']['event']->title }}">
 ```
 
-Sometimes you may even want to provide data to the root template that will not be sent to your JavaScript page component. This can be accomplished by invoking the `withViewData` method.
+場合によっては、JavaScript ページコンポーネントには送信されないデータをルートテンプレートに提供したいこともあります。これは `withViewData` メソッドを呼び出すことで実現できます。
 
 ```php
 return Inertia::render('Event', ['event' => $event])
     ->withViewData(['meta' => $event->meta]);
 ```
 
-After invoking the `withViewData` method, you can access the defined data as you would typically access a Blade template variable.
+`withViewData` メソッドを呼び出した後は、通常の Blade テンプレート変数と同様に、定義したデータへアクセスできます。
 
 ```blade
 <meta name="description" content="{{ $meta }}">
 ```
 
-## Maximum Response Size
+## 最大レスポンスサイズ
 
-To enable client-side history navigation, all Inertia server responses are stored in the browser's history state. However, keep in mind that some browsers impose a size limit on how much data can be saved within the history state.
+クライアントサイドでの履歴ナビゲーションを有効にするため、すべての Inertia サーバーレスポンスはブラウザの履歴 state に保存されます。ただし、一部のブラウザでは、履歴 state に保存できるデータ量に制限がある点に注意してください。
 
-For example, [Firefox](https://developer.mozilla.org/en-US/docs/Web/API/History/pushState) has a size limit of 16 MiB and throws a `NS_ERROR_ILLEGAL_VALUE` error if you exceed this limit. Typically, this is much more data than you'll ever practically need when building applications.
+たとえば、[Firefox](https://developer.mozilla.org/en-US/docs/Web/API/History/pushState) では上限が 16 MiB に設定されており、この制限を超えると `NS_ERROR_ILLEGAL_VALUE` エラーが発生します。通常、アプリケーションを構築するうえで実用的に必要となるデータ量を、この制限が超えることはほとんどありません。

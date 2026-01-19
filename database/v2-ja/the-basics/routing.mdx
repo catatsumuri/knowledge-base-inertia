@@ -1,24 +1,24 @@
 ---
-title: Routing
+title: ルーティング
 ---
 
-## Defining Routes
+## ルートの定義
 
-When using Inertia, all of your application's routes are defined server-side. This means that you don't need Vue Router or React Router. Instead, you can simply define Laravel routes and return [Inertia responses](/v2/the-basics/responses) from those routes.
+Inertia を使用する場合、アプリケーションのすべてのルートはサーバーサイドで定義されます。つまり、Vue Router や React Router は必要ありません。代わりに、Laravel のルートを定義し、それらのルートから [Inertia レスポンス](/v2/the-basics/responses) を返すだけで済みます。
 
-## Shorthand Routes
+## 省略ルート
 
-If you have a [page](/v2/the-basics/pages) that doesn't need a corresponding controller method, like an "FAQ" or "about" page, you can route directly to a component via the `Route::inertia()` method.
+「FAQ」や「about」ページのように、対応するコントローラーメソッドを必要としない [ページ](/v2/the-basics/pages) がある場合、`Route::inertia()` メソッドを使ってコンポーネントへ直接ルーティングできます。
 
 ```php
 Route::inertia('/about', 'About');
 ```
 
-## Generating URLs
+## URL の生成
 
-Some server-side frameworks allow you to generate URLs from named routes. However, you will not have access to those helpers client-side. Here are a couple ways to still use named routes with Inertia.
+一部のサーバーサイドフレームワークでは、名前付きルートから URL を生成できます。しかし、クライアントサイドではそれらのヘルパーを利用できません。それでも Inertia で名前付きルートを使う方法がいくつかあります。
 
-The first option is to generate URLs server-side and include them as props. Notice in this example how we're passing the `edit_url` and `create_url` to the `Users/Index` component.
+最初の方法は、サーバーサイドで URL を生成し、それらを props として含めることです。この例では、`edit_url` と `create_url` を `Users/Index` コンポーネントに渡している点に注目してください。
 
 ```php
 class UsersController extends Controller
@@ -38,21 +38,22 @@ class UsersController extends Controller
 }
 ```
 
-When using Laravel, you have several options to make your server-side routes available to your client-side code:
+Laravel を使用している場合、サーバーサイドのルートをクライアントサイドのコードから利用できるようにするための選択肢がいくつかあります。
 
 ### Wayfinder
 
-When using [Wayfinder](https://github.com/laravel/wayfinder), you can pass the generated TypeScript method directly to the [Link component](/v2/the-basics/links#wayfinder), [form helpers](/v2/the-basics/forms#wayfinder), or [router methods](/v2/the-basics/manual-visits#wayfinder) and Inertia understand how to handle it. In fact, if you are developing an application using one of Laravel's [starter kits](https://laravel.com/docs/starter-kits), Wayfinder is already configured for you.
+[Wayfinder](https://github.com/laravel/wayfinder) を使用すると、生成された TypeScript メソッドをそのまま [Link コンポーネント](/v2/the-basics/links#wayfinder)、[フォームヘルパー](/v2/the-basics/forms#wayfinder)、または
+[ルーターメソッド](/v2/the-basics/manual-visits#wayfinder) に渡すことができ、Inertia はそれを適切に処理します。実際、Laravel の [スターターキット](https://laravel.com/docs/starter-kits) のいずれかを使ってアプリケーションを開発している場合、Wayfinder はすでに設定されています。
 
 ### Ziggy
 
-The [Ziggy](https://github.com/tighten/ziggy) library can make your named, server-side routes available to you via a global `route()` function. If you're using the Vue plugin included with Ziggy, you may use the `route()` function directly in your templates.
+[Ziggy](https://github.com/tighten/ziggy) ライブラリを使うと、名前付きのサーバーサイドルートを、グローバルな `route()` 関数を通じて利用できるようになります。Ziggy に含まれる Vue プラグインを使用している場合、テンプレート内で直接 `route()` 関数を使うことができます。
 
 ```vue
-<Link :href="route('users.create')">Create User</Link>
+<Link :href="route('users.create')">ユーザーを作成</Link>
 ```
 
-When [server-side rendering](/v2/advanced/server-side-rendering) is enabled, you may pass an options object to the Ziggy plugin in your `ssr.js` file. This should include the route definitions and current location.
+[サーバーサイドレンダリング](/v2/advanced/server-side-rendering) が有効になっている場合、`ssr.js` ファイル内で Ziggy プラグインにオプションオブジェクトを渡すことができます。これには、ルート定義と現在のロケーションを含める必要があります。
 
 ```js
 .use(ZiggyVue, {
@@ -61,11 +62,11 @@ When [server-side rendering](/v2/advanced/server-side-rendering) is enabled, you
 });
 ```
 
-## Customizing the Page URL
+## ページ URL のカスタマイズ
 
-The [page object](/v2/core-concepts/the-protocol#the-page-object) includes a `url` that represents the current page's URL. By default, the Laravel adapter resolves this using the `fullUrl()` method on the `Request` instance, but strips the scheme and host so the result is a relative URL.
+[ページオブジェクト](/v2/core-concepts/the-protocol#the-page-object) には、現在のページの URL を表す `url` が含まれています。デフォルトでは、Laravel アダプターは `Request` インスタンスの `fullUrl()` メソッドを使用してこれを解決しますが、スキームとホストを取り除き、相対 URL として返します。
 
-If you need to customize how the URL is resolved, you may provide a resolver within the `urlResolver`method of the Inertia `HandleInertiaRequests` middleware.
+URL の解決方法をカスタマイズしたい場合は、Inertia の `HandleInertiaRequests` ミドルウェアの `urlResolver` メソッド内でリゾルバーを提供できます。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -73,16 +74,16 @@ class HandleInertiaRequests extends Middleware
     public function urlResolver()
     {
         return function (Request $request) {
-            // Return the URL for the request...
+            // リクエストの URL を返す...
         };
     }
 }
 ```
 
-Alternatively, you may define the resolver using the `Inertia::resolveUrlUsing()` method.
+あるいは、`Inertia::resolveUrlUsing()` メソッドを使ってリゾルバーを定義することもできます。
 
 ```php
 Inertia::resolveUrlUsing(function (Request $request) {
-    // Return the URL for the request...
+    // リクエストの URL を返す...
 });
 ```

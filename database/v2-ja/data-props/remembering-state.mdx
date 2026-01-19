@@ -1,16 +1,16 @@
 ---
-title: Remembering State
+title: 状態の記憶
 ---
 
-When navigating browser history, Inertia restores pages using prop data cached in history state. However, Inertia does not restore local page component state since this is beyond its reach. This can lead to outdated pages in your browser history.
+ブラウザ履歴を操作する際、Inertia は履歴状態にキャッシュされたプロップデータを使ってページを復元します。しかし、Inertia はローカルのページコンポーネント状態まで復元することはできません。そのため、ブラウザ履歴に古い状態のページが残る可能性があります。
 
-For example, if a user partially completes a form, then navigates away, and then returns back, the form will be reset and their work will be lost.
+例えば、ユーザーがフォームの一部を入力した後に別ページへ移動し、再び戻ってきた場合、フォームはリセットされ、入力した内容は失われます。
 
-To mitigate this issue, you can tell Inertia which local component state to save in the browser history.
+この問題を回避するには、Inertia にブラウザ履歴に保存すべきローカルコンポーネントの状態を教えることができます。
 
-## Saving Local State
+## ローカル状態の保存
 
-To save local component state to the history state, use the `useRemember` feature to tell Inertia which data it should remember.
+ローカルコンポーネントの状態を履歴状態に保存するには、`useRemember` を使って Inertia にどのデータを記憶させるかを指定します。
 
 <CodeGroup>
 
@@ -50,11 +50,11 @@ const form = useRemember({
 
 </CodeGroup>
 
-Now, whenever your local `form` state changes, Inertia will automatically save this data to the history state and will also restore it on history navigation.
+これで、ローカルの `form` 状態が変更されるたびに、Inertia は自動的にこのデータを履歴状態に保存し、履歴操作時に復元します。
 
-## Multiple Components
+## 複数コンポーネント
 
-If your page contains multiple components that use the remember functionality provided by Inertia, you need to provide a unique key for each component so that Inertia knows which data to restore to each component.
+ページに複数の Inertia の remember 機能を使用するコンポーネントがある場合、各コンポーネントに固有のキーを指定する必要があります。これにより、Inertia はどのデータをどのコンポーネントに復元するかを識別できます。
 
 <CodeGroup>
 
@@ -89,7 +89,7 @@ const form = useRemember({
 
 </CodeGroup>
 
-If you have multiple instances of the same component on the page using the remember functionality, be sure to also include a unique key for each component instance, such as a model identifier.
+同じコンポーネントが複数インスタンス存在する場合は、モデルの ID などを使って各インスタンスにも固有のキーを指定してください。
 
 <CodeGroup>
 
@@ -126,9 +126,9 @@ const form = useRemember({
 
 </CodeGroup>
 
-## Form Helper
+## フォームヘルパー
 
-If you're using the [Inertia form helper](/v2/the-basics/forms#form-helper), you can pass a unique form key as the first argument when instantiating your form. This will cause the form data and errors to automatically be remembered.
+[Inertia フォームヘルパー](/v2/the-basics/forms#form-helper) を使用している場合、フォームを作成するときに一意のフォームキーを第一引数として渡すことで、フォームデータやエラーを自動的に記憶させることができます。
 
 <CodeGroup>
 
@@ -155,48 +155,50 @@ const form = useForm(`EditUser:${user.id}`, data)
 
 </CodeGroup>
 
-You may [exclude specific fields](/v2/the-basics/forms#excluding-fields) from being remembered using the `dontRemember()` method. This is useful for sensitive fields like passwords that should not be stored in history state.
+`dontRemember()` メソッドを使うと、特定のフィールドを記憶させないようにできます。パスワードのような履歴状態に保存したくない機密フィールドで便利です。
 
-## Manually Saving State
+## 手動で状態を保存する
 
-The `useRemember` hook watches for data changes and automatically saves those changes to the history state. Then, Inertia will restore the data on page load.
+`useRemember` フックはデータの変更を監視し、自動的に履歴状態に保存します。そして Inertia はページロード時にデータを復元します。
 
-However, it's also possible to manage this manually using the underlying `remember()` and `restore()` methods exposed by Inertia.
+しかし、Inertia が提供する `remember()` と `restore()` メソッドを使って手動で管理することも可能です。
 
 <CodeGroup>
 
 ```js Vue icon="vuejs"
 import { router } from '@inertiajs/vue3'
 
-// Save local component state to history state
+// ローカルコンポーネント状態を履歴状態に保存
 router.remember(data, 'my-key')
 
-// Restore local component state from history state
+// 履歴状態からローカルコンポーネント状態を復元
 let data = router.restore('my-key')
 ```
 
 ```js React icon="react"
 import { router } from '@inertiajs/react'
 
-// Save local component state to history state
+// ローカルコンポーネント状態を履歴状態に保存
 router.remember(data, 'my-key')
 
-// Restore local component state from history state
+// 履歴状態からローカルコンポーネント状態を復元
 let data = router.restore('my-key')
 ```
 
 ```js Svelte icon="s"
 import { router } from '@inertiajs/svelte'
 
-// Save local component state to history state
+// ローカルコンポーネント状態を履歴状態に保存
 router.remember(data, 'my-key')
 
-// Restore local component state from history state
+// 履歴状態からローカルコンポーネント状態を復元
 let data = router.restore('my-key')
 ```
 
 </CodeGroup>
 
 <Warning>
-Some browsers limit the number of `history.replaceState()` calls allowed within a short time period. Inertia catches this error and logs it to the console, but the state update will be lost. Avoid calling `router.remember()` too frequently, and consider debouncing or batching state updates in high-frequency scenarios.
+一部のブラウザでは短時間に `history.replaceState()` を呼び出す回数に制限があります。
+Inertia はこのエラーをキャッチしてコンソールに記録しますが、状態の更新は失われます。
+`router.remember()` を頻繁に呼び出さないようにし、高頻度の更新がある場合はデバウンスやバッチ処理を検討してください。
 </Warning>

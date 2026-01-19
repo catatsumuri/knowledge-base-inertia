@@ -2,11 +2,11 @@
 title: Once Props
 ---
 
-Some data rarely changes, is expensive to compute, or is simply large. Rather than including this data in every response, you may use _once props_. These props are remembered by the client and reused on subsequent pages that include the same prop. This makes them ideal for [shared data](/v2/data-props/shared-data).
+一部のデータはほとんど変更されない、計算コストが高い、または単純にサイズが大きい場合があります。こうしたデータを毎回のレスポンスに含める代わりに、_once props_ を使用できます。これらの props はクライアントによって記憶され、同じ prop を含む後続のページで再利用されます。そのため、[共有データ](/v2/data-props/shared-data) に最適です。
 
-## Creating Once Props
+## Once Props の作成
 
-To create a once prop, use the `Inertia::once()` method when returning your response. This method receives a callback that returns the prop data.
+once prop を作成するには、レスポンスを返す際に `Inertia::once()` メソッドを使用します。このメソッドは、prop データを返すコールバックを受け取ります。
 
 ```php
 return Inertia::render('Billing', [
@@ -14,13 +14,13 @@ return Inertia::render('Billing', [
 ]);
 ```
 
-After the client has received this prop, subsequent requests will skip resolving the callback and exclude the prop from the response. The client only remembers once props while navigating between pages that include them.
+クライアントがこの prop を受信すると、以降のリクエストではコールバックの解決がスキップされ、レスポンスから prop が除外されます。クライアントは、once prop を含むページ間をナビゲートしている間のみ、once prop を記憶します。
 
-Navigating to a page without the once prop will forget the remembered value, and it will be resolved again on the next page that has it. In practice, this is rarely an issue since once props are typically used as shared data or within a specific section of your application.
+once prop を含まないページへ移動すると、記憶されていた値は破棄され、次にその prop を含むページで再度解決されます。実際には、once prop は通常共有データやアプリケーションの特定のセクション内で使用されるため、問題になることはほとんどありません。
 
-## Forcing a Refresh
+## 強制的に更新する
 
-You may force a once prop to be refreshed using the `fresh()` method.
+`fresh()` メソッドを使用すると、once prop を強制的に更新できます。
 
 ```php
 return Inertia::render('Billing', [
@@ -28,7 +28,7 @@ return Inertia::render('Billing', [
 ]);
 ```
 
-This method also accepts a boolean, allowing you to conditionally refresh the prop.
+このメソッドは boolean も受け取り、条件付きで prop を更新できます。
 
 ```php
 return Inertia::render('Billing', [
@@ -36,9 +36,9 @@ return Inertia::render('Billing', [
 ]);
 ```
 
-## Refreshing from the Client
+## クライアントからの更新
 
-You may refresh a once prop from the client-side using a [partial reload](/v2/data-props/partial-reloads). The server will always resolve a once prop when explicitly requested.
+クライアント側から [部分リロード](/v2/data-props/partial-reloads) を使用して once prop を更新できます。サーバーは、明示的に要求された場合は常に once prop を解決します。
 
 <CodeGroup>
 
@@ -62,9 +62,9 @@ router.reload({ only: ['plans'] })
 
 </CodeGroup>
 
-## Expiration
+## 有効期限
 
-You may set an expiration time using the `until()` method. This method accepts a `DateTimeInterface`, `DateInterval`, or an integer (seconds). The prop will be refreshed on a subsequent visit after the expiration time has passed.
+`until()` メソッドを使用して有効期限を設定できます。このメソッドは `DateTimeInterface`、`DateInterval`、または整数（秒）を受け取ります。有効期限を過ぎた後の次回訪問時に prop は更新されます。
 
 ```php
 return Inertia::render('Dashboard', [
@@ -72,45 +72,45 @@ return Inertia::render('Dashboard', [
 ]);
 ```
 
-## Custom Keys
+## カスタムキー
 
-You may assign a custom key to the prop using the `as()` method. This is useful when you want to share data across multiple pages while using different prop names.
+`as()` メソッドを使用して、prop にカスタムキーを割り当てることができます。これは、異なる prop 名を使いながら複数のページ間でデータを共有したい場合に便利です。
 
 ```php
-// Team member list...
+// チームメンバー一覧...
 return Inertia::render('Team/Index', [
     'memberRoles' => Inertia::once(fn () => Role::all())->as('roles'),
 ]);
 
-// Invite form...
+// 招待フォーム...
 return Inertia::render('Team/Invite', [
     'availableRoles' => Inertia::once(fn () => Role::all())->as('roles'),
 ]);
 ```
 
-Both pages share the same underlying data because they use the same custom key, so the prop is only resolved for whichever page you visit first.
+両方のページは同じカスタムキーを使用しているため、同じ基盤データを共有します。その結果、最初に訪問したページでのみ prop が解決されます。
 
-## Sharing Once Props
+## Once Props の共有
 
-You may share once props globally using the `Inertia::share()` method.
+`Inertia::share()` メソッドを使用して、once prop をグローバルに共有できます。
 
 ```php
 Inertia::share('countries', Inertia::once(fn () => Country::all()));
 ```
 
-Or, for convenience, you may use the `shareOnce()` method.
+または、利便性のために `shareOnce()` メソッドを使用することもできます。
 
 ```php
 Inertia::shareOnce('countries', fn () => Country::all());
 ```
 
-You may also chain `as()`, `fresh()`, and `until()` onto the `shareOnce` method.
+`shareOnce` メソッドには、`as()`、`fresh()`、`until()` をチェーンすることも可能です。
 
 ```php
 Inertia::shareOnce('countries', fn () => Country::all())->until(now()->addDay());
 ```
 
-Additionally, you may define a dedicated `shareOnce()` method in your middleware. The middleware will evaluate both `share()` and `shareOnce()`, merging the results.
+さらに、ミドルウェア内に専用の `shareOnce()` メソッドを定義することもできます。ミドルウェアは `share()` と `shareOnce()` の両方を評価し、結果をマージします。
 
 ```php
 class HandleInertiaRequests extends Middleware
@@ -124,15 +124,15 @@ class HandleInertiaRequests extends Middleware
 }
 ```
 
-## Prefetching
+## プリフェッチ
 
-Once props are compatible with [prefetching](/v2/data-props/prefetching). The client automatically includes any remembered once props in prefetched responses, so navigating to a prefetched page will already have the once props available.
+once prop は [プリフェッチ](/v2/data-props/prefetching) と互換性があります。クライアントは、記憶されている once prop を自動的にプリフェッチされたレスポンスに含めるため、プリフェッチされたページに遷移すると、すでに once prop が利用可能な状態になります。
 
-Prefetched pages containing an expired once prop will be invalidated from the cache.
+期限切れの once prop を含むプリフェッチされたページは、キャッシュから無効化されます。
 
-## Combining with Other Prop Types
+## 他の Prop タイプとの組み合わせ
 
-The `once()` modifier may be chained onto [deferred](/v2/data-props/deferred-props), [merge](/v2/data-props/merging-props), and [optional](/v2/data-props/partial-reloads#lazy-data-evaluation) props.
+`once()` 修飾子は、[deferred](/v2/data-props/deferred-props)、[merge](/v2/data-props/merging-props)、および [optional](/v2/data-props/partial-reloads#lazy-data-evaluation) props にチェーンできます。
 
 ```php
 return Inertia::render('Dashboard', [

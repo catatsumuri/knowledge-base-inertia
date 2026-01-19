@@ -1,16 +1,16 @@
 ---
-title: Partial Reloads
+title: パーシャルリロード
 ---
 
-When making visits to the same page you are already on, it's not always necessary to re-fetch all of the page's data from the server. In fact, selecting only a subset of the data can be a helpful performance optimization if it's acceptable that some page data becomes stale. Inertia makes this possible via its "partial reload" feature.
+すでに表示している同じページに対して再度訪問する場合、必ずしもページのすべてのデータをサーバーから再取得する必要はありません。実際には、ページの一部のデータが古くなることを許容できるのであれば、データの一部だけを取得することで有効なパフォーマンス最適化になります。Inertia では「部分的リロード（partial reload）」機能によって、これを実現できます。
 
-As an example, consider a "user index" page that includes a list of users, as well as an option to filter the users by their company. On the first request to the page, both the `users` and `companies`props are passed to the page component. However, on subsequent visits to the same page (maybe to filter the users), you can request only the `users` data from the server without requesting the `companies` data. Inertia will then automatically merge the partial data returned from the server with the data it already has in memory client-side.
+例として、「ユーザー一覧」ページを考えてみましょう。このページにはユーザーのリストと、会社ごとにユーザーを絞り込むオプションが含まれています。最初のリクエストでは、`users` と `companies` の両方の props がページコンポーネントに渡されます。しかし、その後同じページに再訪問する場合（たとえばユーザーを絞り込む場合）、`companies` のデータを再取得せずに、`users` データのみをサーバーにリクエストできます。Inertia は、サーバーから返された部分的なデータを、クライアント側のメモリにすでに保持しているデータと自動的にマージします。
 
-Partial reloads only work for visits made to the same page component.
+部分的リロードは、同じページコンポーネントに対する訪問でのみ機能します。
 
-## Only Certain Props
+## 特定の Props のみ取得する
 
-To perform a partial reload, use the `only` visit option to specify which data the server should return. This option should be an array of keys which correspond to the keys of the props.
+部分的リロードを行うには、`only` 訪問オプションを使用して、サーバーが返すべきデータを指定します。このオプションは、props のキーに対応するキーの配列です。
 
 <CodeGroup>
 
@@ -40,9 +40,9 @@ router.visit(url, {
 
 </CodeGroup>
 
-## Except Certain Props
+## 特定の Props を除外する
 
-In addition to the `only` visit option you can also use the `except` option to specify which data the server should exclude. This option should also be an array of keys which correspond to the keys of the props.
+`only` ビジットオプションに加えて、`except` オプションを使用し、サーバーが除外すべきデータを指定することもできます。このオプションも、props のキーに対応するキーの配列です。
 
 <CodeGroup>
 
@@ -72,9 +72,9 @@ router.visit(url, {
 
 </CodeGroup>
 
-## Router Shorthand
+## ルーターのショートハンド
 
-Since partial reloads can only be made to the same page component the user is already on, it almost always makes sense to just use the `router.reload()` method, which automatically uses the current URL.
+部分的リロードは、ユーザーがすでに表示している同じページコンポーネントに対してのみ行えるため、ほとんどの場合は現在の URL を自動的に使用する `router.reload()` メソッドを使うのが合理的です。
 
 <CodeGroup>
 
@@ -98,37 +98,37 @@ router.reload({ only: ['users'] })
 
 </CodeGroup>
 
-## Using Links
+## リンクを使用する
 
-It's also possible to perform partial reloads with Inertia links using the `only` property.
+Inertia のリンクでは、`only` プロパティを使用して部分的リロードを行うことも可能です。
 
 <CodeGroup>
 
 ```vue Vue icon="vuejs"
 import { Link } from '@inertiajs/vue3'
 
-<Link href="/users?active=true" :only="['users']">Show active</Link>
+<Link href="/users?active=true" :only="['users']">アクティブを表示</Link>
 ```
 
 ```jsx React icon="react"
 import { Link } from '@inertiajs/react'
 
-<Link href="/users?active=true" only={['users']}>Show active</Link>
+<Link href="/users?active=true" only={['users']}>アクティブを表示</Link>
 ```
 
 ```svelte Svelte icon="s"
 import { inertia, Link } from '@inertiajs/svelte'
 
-<a href="/users?active=true" use:inertia={{ only: ['users'] }}>Show active</a>
+<a href="/users?active=true" use:inertia={{ only: ['users'] }}>アクティブを表示</a>
 
-<Link href="/users?active=true" only={['users']}>Show active</Link>
+<Link href="/users?active=true" only={['users']}>アクティブを表示</Link>
 ```
 
 </CodeGroup>
 
-## Lazy Data Evaluation
+## 遅延データ評価
 
-For partial reloads to be most effective, be sure to also use lazy data evaluation when returning props from your server-side routes or controllers. This can be accomplished by wrapping all optional page data in a closure.
+部分的リロードを最大限に活用するために、サーバーサイドのルートやコントローラーから props を返す際には、遅延データ評価も必ず使用してください。これは、任意のページデータをすべてクロージャでラップすることで実現できます。
 
 ```php
 return Inertia::render('Users/Index', [
@@ -137,9 +137,9 @@ return Inertia::render('Users/Index', [
 ]);
 ```
 
-When Inertia performs a request, it will determine which data is required and only then will it evaluate the closure. This can significantly increase the performance of pages that contain a lot of optional data.
+Inertia がリクエストを実行すると、どのデータが必要かを判断し、その場合にのみクロージャを評価します。これにより、多くの任意データを含むページのパフォーマンスを大幅に向上させることができます。
 
-Additionally, Inertia provides an `Inertia::optional()` method to specify that a prop should never be included unless explicitly requested using the `only` option:
+さらに、Inertia には `Inertia::optional()` メソッドがあり、`only` オプションで明示的に要求されない限り、その prop を決して含めないよう指定できます。
 
 ```php
 return Inertia::render('Users/Index', [
@@ -147,7 +147,7 @@ return Inertia::render('Users/Index', [
 ]);
 ```
 
-On the inverse, you can use the `Inertia::always()` method to specify that a prop should always be included, even if it has not been explicitly required in a partial reload.
+逆に、`Inertia::always()` メソッドを使用すると、部分的リロードで明示的に要求されていない場合でも、常に含める prop を指定できます。
 
 ```php
 return Inertia::render('Users/Index', [
@@ -155,18 +155,18 @@ return Inertia::render('Users/Index', [
 ]);
 ```
 
-Here's a summary of each approach:
+以下は各アプローチのまとめです。
 
-| Approach         | Standard Visits | Partial Reloads | Evaluated |                                                                                                                                                                                          |
-|:--------------------|:---------------|:----------------|:----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <span style={{whiteSpace: 'nowrap'}}>`User::all()`</span> | Always | Optionally | Always |
-| <span style={{whiteSpace: 'nowrap'}}>`fn () => User::all()`</span> | Always | Optionally | Only when needed |                                                                                                                                                                               |
-| <span style={{whiteSpace: 'nowrap'}}>`Inertia::optional(fn () => User::all())`</span> | Never | Optionally | Only when needed |                                                                                                                                                                               |
-| <span style={{whiteSpace: 'nowrap'}}>`Inertia::always(fn () => User::all())`</span> | Always | Always | Always |                                                                                                                                                                               |
+| アプローチ | 通常の訪問 | 部分的リロード | 評価タイミング |
+|:--------------------|:---------------|:----------------|:----------|
+| `User::all()` | 常に | 任意 | 常に |
+| `fn () => User::all()` | 常に | 任意 | 必要なときのみ |
+| `Inertia::optional(fn () => User::all())` | なし | 任意 | 必要なときのみ |
+| `Inertia::always(fn () => User::all())` | 常に | 常に | 常に |
 
-## Combining with Once Props
+## Once Props と組み合わせる
 
-You may chain the `once()` modifier onto an optional prop to ensure the data is resolved only once and remembered by the client across subsequent navigations.
+`once()` 修飾子を optional な prop にチェーンすることで、データが一度だけ解決され、その後のナビゲーションでもクライアントによって記憶されるようにできます。
 
 ```php
 return Inertia::render('Users/Index', [
@@ -174,4 +174,4 @@ return Inertia::render('Users/Index', [
 ]);
 ```
 
-For more information on once props, see the [once props](/v2/data-props/once-props) documentation.
+once props の詳細については、[once props](/v2/data-props/once-props) のドキュメントを参照してください。
