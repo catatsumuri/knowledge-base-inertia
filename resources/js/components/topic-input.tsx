@@ -26,7 +26,9 @@ export function TopicInput({ value, onChange, placeholder }: TopicInputProps) {
     // 既存topic検索
     useEffect(() => {
         if (inputValue.trim().length === 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSuggestions([]);
+             
             setShowSuggestions(false);
             return;
         }

@@ -195,10 +195,10 @@ function extractTextContent(nodes: Node[]): string {
     return nodes
         .map((node) => {
             if (node.type === 'text') {
-                return (node as any).value;
+                return (node as unknown as { value: string }).value;
             }
-            if (node.type === 'paragraph' && (node as any).children) {
-                return extractTextContent((node as any).children);
+            if (node.type === 'paragraph' && (node as unknown as { children?: Node[] }).children) {
+                return extractTextContent((node as unknown as { children: Node[] }).children);
             }
             return '';
         })

@@ -53,6 +53,11 @@ export function ChartWrapper({
         );
     }
 
+    // dataが存在しない場合は表示しない（parseErrorで既にチェック済み）
+    if (!data) {
+        return null;
+    }
+
     const chartProps = { data, title, height, width };
 
     // チャートタイプに応じてコンポーネントを選択

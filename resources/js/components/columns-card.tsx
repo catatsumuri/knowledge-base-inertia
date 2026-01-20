@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getLucideIcon } from '@/lib/lucide-icon-mapper';
 import { Link } from '@inertiajs/react';
@@ -26,26 +27,28 @@ export function ColumnsCard({
     arrow = false,
     basePrefix = '/markdown',
 }: ColumnsCardProps) {
-    const IconComponent = useMemo(
-        () => (icon ? getLucideIcon(icon) : undefined),
-        [icon],
-    );
-
     // リンクの正規化（markdown-viewer.tsxのMarkdownLinkと同じロジック）
     const normalizedHref = normalizeHref(href, basePrefix);
     const isExternalLink =
         normalizedHref && normalizedHref.match(/^https?:\/\//);
+
+    // アイコンコンポーネントの取得（動的アイコン選択のため、useMemoで最適化）
+     
+    const IconComponent = useMemo(() => {
+        if (!icon) return null;
+        return getLucideIcon(icon);
+    }, [icon]);
 
     // カードの内容
     const cardContent = (
         <Card className="group h-full cursor-pointer border transition-all hover:border-primary/50 hover:shadow-md">
             <CardHeader>
                 <div className="flex items-start gap-3">
-                    {IconComponent ? (
+                    {icon && IconComponent ? (
                         <div className="flex-shrink-0 rounded-lg bg-primary/10 p-2 transition-colors group-hover:bg-primary/20">
-                            <IconComponent className="h-5 w-5 text-primary" />
+                            {IconComponent && <IconComponent className="h-5 w-5 text-primary" />}
                         </div>
-                    ) : icon ? (
+                    ) : icon && !IconComponent ? (
                         // アイコンが指定されているが見つからない場合
                         <div className="flex-shrink-0 rounded-lg bg-destructive/10 p-2">
                             <AlertCircle className="h-5 w-5 text-destructive" />

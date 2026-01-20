@@ -5,7 +5,6 @@
 import { extractYoutubeVideoParameters } from '@/lib/url-matcher';
 import { ExternalLink, Github } from 'lucide-react';
 import React from 'react';
-import { Tweet } from 'react-tweet';
 
 interface EmbedCardProps {
     url: string;
@@ -53,15 +52,44 @@ function extractTweetId(url: string): string | null {
  * Twitter/X埋め込み
  */
 function TweetEmbed({ url }: { url: string }) {
+    const [isClient, setIsClient] = React.useState(false);
     const tweetId = extractTweetId(url);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     if (!tweetId) {
         return <LinkCard url={url} />;
     }
 
+    // SSR時はプレースホルダーを表示
+    if (!isClient) {
+        return (
+            <div className="my-4 flex justify-center">
+                <div className="w-full max-w-xl overflow-hidden rounded-lg border border-border bg-card p-4">
+                    <div className="h-32 animate-pulse rounded bg-muted"></div>
+                </div>
+            </div>
+        );
+    }
+
+    // クライアント側でのみTweetコンポーネントを動的にインポート
+    const TweetComponent = React.lazy(() =>
+        import('react-tweet').then((mod) => ({ default: mod.Tweet })),
+    );
+
     return (
         <div className="my-4 flex justify-center">
-            <Tweet id={tweetId} />
+            <React.Suspense
+                fallback={
+                    <div className="w-full max-w-xl overflow-hidden rounded-lg border border-border bg-card p-4">
+                        <div className="h-32 animate-pulse rounded bg-muted"></div>
+                    </div>
+                }
+            >
+                <TweetComponent id={tweetId} />
+            </React.Suspense>
         </div>
     );
 }

@@ -83,7 +83,8 @@ function MarkdownLink({
     }
 
     return (
-        <Link href={internalHref} {...(props as any)}>
+        // @ts-expect-error - ReactMarkdown props vs Inertia Link props mismatch
+        <Link href={internalHref} {...props}>
             {children}
         </Link>
     );
@@ -163,20 +164,20 @@ export function MarkdownViewer({
             rehypePlugins={[rehypeRaw, rehypeSlug]}
             components={
                 {
-                    pre: ({ children }: any) => <>{children}</>,
-                    code: (props: any) => <CodeBlock {...(props as any)} />,
+                    pre: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+                    code: (props: Record<string, unknown>) => <CodeBlock {...props} />,
                     img: MarkdownImage,
                     aside: MessageBox,
-                    a: (props: any) => (
+                    a: (props: Record<string, unknown>) => (
                         <MarkdownLink {...props} basePrefix={basePrefix} />
                     ),
-                    columns: (props: any) => (
+                    columns: (props: Record<string, unknown>) => (
                         <MarkdownColumns {...props} basePrefix={basePrefix} />
                     ),
-                    card: (props: any) => (
+                    card: (props: Record<string, unknown>) => (
                         <MarkdownCard {...props} basePrefix={basePrefix} />
                     ),
-                    div: (props: any) => {
+                    div: (props: Record<string, unknown>) => {
                         // コードタブの場合
                         if (
                             props['data-code-tabs'] ||
@@ -195,11 +196,11 @@ export function MarkdownViewer({
                         if (props['data-param-field'] !== undefined) {
                             return (
                                 <ParamField
-                                    header={props['data-param-header']}
-                                    body={props['data-param-body']}
-                                    type={props['data-param-type']}
+                                    header={props['data-param-header'] as string | undefined}
+                                    body={props['data-param-body'] as string | undefined}
+                                    type={props['data-param-type'] as string | undefined}
                                 >
-                                    {props.children}
+                                    {props.children as React.ReactNode}
                                 </ParamField>
                             );
                         }
@@ -209,14 +210,14 @@ export function MarkdownViewer({
                         ) {
                             return (
                                 <MarkdownCard
-                                    title={props['data-card-title']}
-                                    href={props['data-card-href']}
-                                    icon={props['data-card-icon']}
-                                    cta={props['data-card-cta']}
-                                    arrow={props['data-card-arrow']}
+                                    title={props['data-card-title'] as string | undefined}
+                                    href={props['data-card-href'] as string | undefined}
+                                    icon={props['data-card-icon'] as string | undefined}
+                                    cta={props['data-card-cta'] as string | undefined}
+                                    arrow={props['data-card-arrow'] as string | boolean | undefined}
                                     basePrefix={basePrefix}
                                 >
-                                    {props.children}
+                                    {props.children as React.ReactNode}
                                 </MarkdownCard>
                             );
                         }
@@ -236,57 +237,58 @@ export function MarkdownViewer({
                         // それ以外は通常のdiv
                         return <div {...props} />;
                     },
-                    paramfield: (props: any) => (
+                    paramfield: (props: Record<string, unknown>) => (
                         <ParamField
-                            header={props.header}
-                            body={props.body}
-                            type={props.type}
+                            header={props.header as string}
+                            body={props.body as string}
+                            type={props.type as string}
                         >
-                            {props.children}
+                            {props.children as React.ReactNode}
                         </ParamField>
                     ),
-                    h1: (props: any) => (
+                    h1: (props: Record<string, unknown>) => (
                         <MarkdownHeading
                             level={1}
                             onEditHeading={onEditHeading}
                             {...props}
                         />
                     ),
-                    h2: (props: any) => (
+                    h2: (props: Record<string, unknown>) => (
                         <MarkdownHeading
                             level={2}
                             onEditHeading={onEditHeading}
                             {...props}
                         />
                     ),
-                    h3: (props: any) => (
+                    h3: (props: Record<string, unknown>) => (
                         <MarkdownHeading
                             level={3}
                             onEditHeading={onEditHeading}
                             {...props}
                         />
                     ),
-                    h4: (props: any) => (
+                    h4: (props: Record<string, unknown>) => (
                         <MarkdownHeading
                             level={4}
                             onEditHeading={onEditHeading}
                             {...props}
                         />
                     ),
-                    h5: (props: any) => (
+                    h5: (props: Record<string, unknown>) => (
                         <MarkdownHeading
                             level={5}
                             onEditHeading={onEditHeading}
                             {...props}
                         />
                     ),
-                    h6: (props: any) => (
+                    h6: (props: Record<string, unknown>) => (
                         <MarkdownHeading
                             level={6}
                             onEditHeading={onEditHeading}
                             {...props}
                         />
                     ),
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } as any
             }
         >

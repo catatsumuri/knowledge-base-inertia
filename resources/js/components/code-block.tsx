@@ -12,8 +12,6 @@ import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-tsx';
 import 'prismjs/components/prism-typescript';
 import { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlockProps {
     inline?: boolean;
@@ -271,17 +269,22 @@ export function CodeBlock({
                         </button>
                     </div>
                 </div>
-                <SyntaxHighlighter
-                    style={oneDark}
-                    language={highlightLanguage}
-                    PreTag="div"
-                    className="!mt-0 !rounded-t-none"
-                    wrapLines={wrap}
-                    wrapLongLines={wrap}
-                    {...props}
-                >
-                    {content}
-                </SyntaxHighlighter>
+                <div className={wrap ? '' : 'overflow-x-auto'}>
+                    <pre className="!my-0 !rounded-t-none bg-[#282c34] px-4 py-3 font-mono text-sm">
+                        <code
+                            className={`language-${highlightLanguage} ${wrap ? 'break-all whitespace-pre-wrap' : ''}`}
+                            dangerouslySetInnerHTML={{
+                                __html: Prism.languages[highlightLanguage]
+                                    ? Prism.highlight(
+                                          content,
+                                          Prism.languages[highlightLanguage],
+                                          highlightLanguage,
+                                      )
+                                    : content,
+                            }}
+                        />
+                    </pre>
+                </div>
             </div>
         );
     }

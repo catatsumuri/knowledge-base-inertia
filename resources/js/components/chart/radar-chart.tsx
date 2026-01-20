@@ -98,8 +98,8 @@ export function RadarChart({ data, title, height, width }: RadarChartProps) {
                 </div>
             )}
             <ResponsiveContainer
-                width={chartWidth as string | number}
-                height={chartHeight as string | number}
+                width={chartWidth as number | `${number}%`}
+                height={chartHeight as number | `${number}%`}
             >
                 <RechartsRadar
                     data={data}

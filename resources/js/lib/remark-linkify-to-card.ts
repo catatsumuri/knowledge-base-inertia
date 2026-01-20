@@ -31,11 +31,11 @@ function isStandaloneLinkInParagraph(paragraph: Paragraph): Link | null {
     const link = children[linkIndex] as Link;
 
     // リンクの前後がテキストのみで、かつ空白文字や改行のみの場合は単独とみなす
-    const isOnlyWhitespaceOrBreak = (node: any) => {
-        if (node.type === 'text') {
-            return (node as Text).value.trim() === '';
+    const isOnlyWhitespaceOrBreak = (node: unknown) => {
+        if ((node as { type?: string }).type === 'text') {
+            return ((node as Text).value?.trim() ?? '') === '';
         }
-        if (node.type === 'break') {
+        if ((node as { type?: string }).type === 'break') {
             return true;
         }
         return false;
@@ -96,7 +96,7 @@ export function remarkLinkifyToCard() {
 
             // 元の段落ノードを埋め込みノードで置換
             if (parent && typeof index === 'number') {
-                parent.children[index] = embedNode as any;
+                parent.children[index] = embedNode as unknown as typeof parent.children[number];
             }
         });
     };

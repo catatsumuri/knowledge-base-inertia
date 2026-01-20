@@ -138,7 +138,7 @@ export function ImageFilter({
                 }
                 break;
 
-            case 'contrast':
+            case 'contrast': {
                 const factor = 1.5;
                 for (let i = 0; i < data.length; i += 4) {
                     data[i] = Math.min(
@@ -155,6 +155,7 @@ export function ImageFilter({
                     );
                 }
                 break;
+            }
 
             case 'cool':
                 for (let i = 0; i < data.length; i += 4) {

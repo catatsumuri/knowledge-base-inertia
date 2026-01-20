@@ -241,7 +241,6 @@ export default function ShoutboxPanel({
 
         // 最初の画像にトリミング→フィルターを適用
         setCurrentProcessingImage(files[0]);
-        setCurrentFilteringIndex(existingImages.length);
         setIsReplyImage(isReplyImageTarget);
         setCropDialogOpen(true);
 
@@ -319,7 +318,6 @@ export default function ShoutboxPanel({
     const handleCropCancel = () => {
         setCropDialogOpen(false);
         setCurrentProcessingImage(null);
-        setCurrentFilteringIndex(null);
     };
 
     const handleFilterApply = (filteredImage: File) => {
@@ -350,14 +348,12 @@ export default function ShoutboxPanel({
         // ダイアログを閉じる
         setFilterDialogOpen(false);
         setCurrentProcessingImage(null);
-        setCurrentFilteringIndex(null);
         setIsReplyImage(false);
     };
 
     const handleFilterCancel = () => {
         setFilterDialogOpen(false);
         setCurrentProcessingImage(null);
-        setCurrentFilteringIndex(null);
     };
 
     const removeImage = (index: number) => {

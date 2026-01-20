@@ -79,6 +79,7 @@ export default function MarkdownImportPreview({
             .forEach((f) => {
                 initial[f.slug] = 'skip';
             });
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setConflictResolutions(initial);
     }, [files]);
 

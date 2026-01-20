@@ -6,7 +6,7 @@ interface MarkdownColumnsProps {
     cols?: number | string;
     basePrefix?: string;
     children?: React.ReactNode;
-    node?: any;
+    node?: unknown;
 }
 
 interface MarkdownCardProps {
@@ -129,25 +129,31 @@ function extractCards(children: React.ReactNode): Array<{
         }));
 }
 
-function extractCardsFromNode(node: any): Array<{
+function extractCardsFromNode(node: unknown): Array<{
     title?: string;
     href?: string;
     icon?: string;
     content: string;
 }> {
-    const children = Array.isArray(node?.children) ? node.children : [];
+    const nodeTyped = node as { children?: unknown[] };
+    const children = Array.isArray(nodeTyped?.children) ? nodeTyped.children : [];
 
     return children
         .filter(
-            (child: any) =>
-                child?.type === 'element' && child.tagName === 'card',
+            (child: unknown) => {
+                const c = child as { type?: string; tagName?: string };
+                return c?.type === 'element' && c.tagName === 'card';
+            },
         )
-        .map((child: any) => ({
-            title: child.properties?.title as string | undefined,
-            href: child.properties?.href as string | undefined,
-            icon: child.properties?.icon as string | undefined,
-            content: extractTextFromNode(child),
-        }));
+        .map((child: unknown) => {
+            const c = child as { properties?: { title?: string; href?: string; icon?: string } };
+            return {
+                title: c.properties?.title,
+                href: c.properties?.href,
+                icon: c.properties?.icon,
+                content: extractTextFromNode(child),
+            };
+        });
 }
 
 function extractText(node: React.ReactNode): string {
@@ -182,17 +188,19 @@ function resolveArrow(arrow: string | boolean | undefined): boolean {
     return false;
 }
 
-function extractTextFromNode(node: any): string {
-    if (!node) {
+function extractTextFromNode(node: unknown): string {
+    if (!node || typeof node !== 'object') {
         return '';
     }
 
-    if (node.type === 'text' && typeof node.value === 'string') {
-        return node.value;
+    const n = node as { type?: string; value?: string; children?: unknown[] };
+
+    if (n.type === 'text' && typeof n.value === 'string') {
+        return n.value;
     }
 
-    if (Array.isArray(node.children)) {
-        return node.children.map(extractTextFromNode).join('').trim();
+    if (Array.isArray(n.children)) {
+        return n.children.map(extractTextFromNode).join('').trim();
     }
 
     return '';
