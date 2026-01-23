@@ -185,7 +185,7 @@ export default function Layout({ children }) {
 </CodeGroup>
 
 <ClientSpecific>
-ご覧のとおり、このテンプレートには Inertia 固有のものは何も含まれていません。これは単なる通常の <VueSpecific>Vue</VueSpecific><ReactSpecific>React</ReactSpecific><SvelteSpecific>Svelte</SvelteSpecific> コンポーネントです。
+ご覧のとおり、このテンプレートには Inertia 固有のものは何も含まれていません。これは単なる通常の Vue, React, Svelte コンポーネントです。
 </ClientSpecific>
 
 ## 永続レイアウト
@@ -362,8 +362,7 @@ export default Home
 
 </CodeGroup>
 
-<VueSpecific>
-
+:::message
 Vue 3.3 以降を使用している場合は、`<script setup>` 内でレイアウトを定義するために、代わりに [defineOptions](https://vuejs.org/api/sfc-script-setup.html#defineoptions) を使用することもできます。古いバージョンの Vue では、[defineOptions プラグイン](https://vue-macros.sxzz.moe/macros/define-options.html) を使用できます。
 
 ```vue
@@ -372,7 +371,7 @@ import Layout from './Layout'
 defineOptions({ layout: Layout })
 </script>
 ```
-</VueSpecific>
+:::
 
 ## デフォルトレイアウト
 

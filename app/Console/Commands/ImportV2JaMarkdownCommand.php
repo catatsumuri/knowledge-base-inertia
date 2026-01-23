@@ -350,20 +350,42 @@ class ImportV2JaMarkdownCommand extends Command
 
             // Infoタグの変換
             if (is_string($body)) {
-                $body = preg_replace('/<Info>/', ':::message', $body);
-                $body = preg_replace('/<\/Info>/', ':::', $body);
+                $body = preg_replace_callback('/<Info>(.*?)<\/Info>/s', static function ($matches) {
+                    $content = $matches[1];
+                    // 各行から先頭の4スペースを除去
+                    $content = preg_replace('/^    /m', '', $content);
+                    return ":::message{$content}:::";
+                }, $body);
             }
 
             // Tipタグの変換
             if (is_string($body)) {
-                $body = preg_replace('/<Tip>/', ':::message', $body);
-                $body = preg_replace('/<\/Tip>/', ':::', $body);
+                $body = preg_replace_callback('/<Tip>(.*?)<\/Tip>/s', static function ($matches) {
+                    $content = $matches[1];
+                    // 各行から先頭の4スペースを除去
+                    $content = preg_replace('/^    /m', '', $content);
+                    return ":::message{$content}:::";
+                }, $body);
             }
 
             // Warningタグの変換
             if (is_string($body)) {
-                $body = preg_replace('/<Warning>/', ':::message', $body);
-                $body = preg_replace('/<\/Warning>/', ':::', $body);
+                $body = preg_replace_callback('/<Warning>(.*?)<\/Warning>/s', static function ($matches) {
+                    $content = $matches[1];
+                    // 各行から先頭の4スペースを除去
+                    $content = preg_replace('/^    /m', '', $content);
+                    return ":::message{$content}:::";
+                }, $body);
+            }
+
+            // Noteタグの変換
+            if (is_string($body)) {
+                $body = preg_replace_callback('/<Note>(.*?)<\/Note>/s', static function ($matches) {
+                    $content = $matches[1];
+                    // 各行から先頭の4スペースを除去
+                    $content = preg_replace('/^    /m', '', $content);
+                    return ":::message{$content}:::";
+                }, $body);
             }
 
             // Badgeタグの変換
