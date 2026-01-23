@@ -354,6 +354,12 @@ class ImportV2JaMarkdownCommand extends Command
                 $body = preg_replace('/<\/Info>/', ':::', $body);
             }
 
+            // Tipタグの変換
+            if (is_string($body)) {
+                $body = preg_replace('/<Tip>/', ':::message', $body);
+                $body = preg_replace('/<\/Tip>/', ':::', $body);
+            }
+
             // Warningタグの変換
             if (is_string($body)) {
                 $body = preg_replace('/<Warning>/', ':::message', $body);
