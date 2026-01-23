@@ -168,6 +168,7 @@ export default function Show({
     isPublic = false,
     isHomePage = false,
     pageTree = [],
+    firstLevelTitle = null,
 }: {
     document: MarkdownDocument;
     relatedShouts: Shout[];
@@ -175,6 +176,7 @@ export default function Show({
     isPublic?: boolean;
     isHomePage?: boolean;
     pageTree?: PublicPageNode[];
+    firstLevelTitle?: string | null;
 }) {
     const { __ } = useLang();
     const getInitials = useInitials();
@@ -932,10 +934,17 @@ export default function Show({
         </div>
     );
 
+    const pageTitle = firstLevelTitle
+        ? `${firstLevelTitle} - ${document.title}`
+        : document.title;
+
+    const appName = page.props.name?.toLowerCase() || 'thinkstream';
+    const fullTitle = isPublicView ? `${pageTitle} - ${appName}` : pageTitle;
+
     const headContent = (
-        <Head title={document.title}>
+        <Head title={fullTitle}>
             {/* OGP メタタグ */}
-            <meta property="og:title" content={document.title} />
+            <meta property="og:title" content={pageTitle} />
             <meta property="og:description" content={description} />
             <meta property="og:type" content="article" />
             <meta property="og:url" content={currentUrl} />
@@ -946,7 +955,7 @@ export default function Show({
                 name="twitter:card"
                 content={imageUrl ? 'summary_large_image' : 'summary'}
             />
-            <meta name="twitter:title" content={document.title} />
+            <meta name="twitter:title" content={pageTitle} />
             <meta name="twitter:description" content={description} />
             {imageUrl && <meta name="twitter:image" content={imageUrl} />}
 
@@ -958,6 +967,7 @@ export default function Show({
     if (isPublicView) {
         return (
             <PublicLayout
+                firstLevelTitle={firstLevelTitle}
                 rightPane={
                     pageTree.length > 0 ? (
                         <PublicPagesMenu

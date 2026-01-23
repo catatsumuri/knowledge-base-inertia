@@ -19,6 +19,19 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /**
+     * Determine if the request should be handled by Inertia.
+     */
+    public function shouldHandle(Request $request): bool
+    {
+        // APIパスはInertiaで処理しない
+        if ($request->is('api/*')) {
+            return false;
+        }
+
+        return parent::shouldHandle($request);
+    }
+
+    /**
      * Determines the current asset version.
      *
      * @see https://inertiajs.com/asset-versioning

@@ -102,7 +102,14 @@ MARKDOWN
             ['slug' => 'index'],
             [
                 'title' => 'Index',
-                'content' => "Index page placeholder.\n",
+                'content' => <<<'MARKDOWN'
+# ドキュメント一覧
+
+## Inertia.js
+
+- [Inertia.js ドキュメント (日本語)](inertia-ja-docs/getting-started/index) - Inertia.js v2の非公式日本語訳ドキュメント
+MARKDOWN
+                ,
                 'status' => 'published',
                 'created_by' => $testUser->id,
                 'updated_by' => $testUser->id,

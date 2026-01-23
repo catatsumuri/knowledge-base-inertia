@@ -521,12 +521,23 @@ class ImportV2JaMarkdownCommand extends Command
             $now = now();
             $navItems = [];
 
+            // ルートフォルダーを作成
+            $navItems[] = [
+                'node_type' => 'folder',
+                'node_path' => $navPrefix,
+                'parent_path' => null,
+                'position' => 0,
+                'label' => 'Inertia.js ドキュメント (日本語)',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
             foreach ($navigationSpec as $groupIndex => $group) {
                 $groupPath = $navPrefix.'/'.$group['slug'];
                 $navItems[] = [
                     'node_type' => 'folder',
                     'node_path' => $groupPath,
-                    'parent_path' => null,
+                    'parent_path' => $navPrefix,
                     'position' => $groupIndex,
                     'label' => $group['label'],
                     'created_at' => $now,

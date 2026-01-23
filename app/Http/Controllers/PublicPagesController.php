@@ -53,6 +53,11 @@ class PublicPagesController extends Controller
     {
         $document->load(['createdBy', 'updatedBy']);
 
+        $firstLevelTitle = null;
+        if (config('markdown.use_first_level_as_title')) {
+            $firstLevelTitle = $this->getFirstLevelTitle($document->slug);
+        }
+
         return Inertia::render('markdown/show', [
             'document' => [
                 ...$document->toArray(),
@@ -62,6 +67,7 @@ class PublicPagesController extends Controller
             'canCreate' => false,
             'isPublic' => true,
             'pageTree' => $this->buildPublicTree(),
+            'firstLevelTitle' => $firstLevelTitle,
         ]);
     }
 
@@ -83,5 +89,25 @@ class PublicPagesController extends Controller
 
         return app(MarkdownNavigationTreeBuilder::class)
             ->build($documents, $navigationItems);
+    }
+
+    private function getFirstLevelTitle(string $slug): ?string
+    {
+        // スラッグから第一階層のパスを抽出
+        $parts = explode('/', $slug);
+        if (count($parts) === 0) {
+            return null;
+        }
+
+        $firstLevelPath = $parts[0];
+
+        // ナビゲーションアイテムから第一階層のラベルを取得
+        $navigationItem = MarkdownNavigationItem::query()
+            ->where('node_type', 'folder')
+            ->where('node_path', $firstLevelPath)
+            ->whereNull('parent_path')
+            ->first();
+
+        return $navigationItem?->label;
     }
 }
