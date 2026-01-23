@@ -117,15 +117,15 @@ sequenceDiagram
 </ParamField>
 
 <ParamField header="X-Inertia-Partial-Component" type="string">
-  [部分リロード](/v2/data-props/partial-reloads) 用のコンポーネント名。
+  [パーシャルリロード](/v2/data-props/partial-reloads) 用のコンポーネント名。
 </ParamField>
 
 <ParamField header="X-Inertia-Partial-Data" type="string">
-  部分リロードに含める props のカンマ区切りリスト。
+  パーシャルリロードに含める props のカンマ区切りリスト。
 </ParamField>
 
 <ParamField header="X-Inertia-Partial-Except" type="string">
-  部分リロードから除外する props のカンマ区切りリスト。
+  パーシャルリロードから除外する props のカンマ区切りリスト。
 </ParamField>
 
 <ParamField header="X-Inertia-Reset" type="string">
@@ -145,7 +145,7 @@ sequenceDiagram
 </ParamField>
 
 <ParamField header="X-Inertia-Except-Once-Props" type="string">
-  クライアント側ですでに読み込まれている、期限切れでない [once prop](/v2/data-props/once-props) のキーのカンマ区切りリスト。サーバーは、部分リロードで明示的に要求されるか、サーバー側で強制的に再取得されない限り、これらの props を解決しません。
+  クライアント側ですでに読み込まれている、期限切れでない [once prop](/v2/data-props/once-props) のキーのカンマ区切りリスト。サーバーは、パーシャルリロードで明示的に要求されるか、サーバー側で強制的に再取得されない限り、これらの props を解決しません。
 </ParamField>
 
 以下のヘッダーは、[Precognition](/v2/the-basics/forms#precognition) バリデーションリクエストで使用されます。
@@ -498,17 +498,17 @@ X-Inertia-Location: https://example.com/events/80
 
 詳細については、[アセットバージョニング](/v2/advanced/asset-versioning) ページを参照してください。
 
-## 部分リロード
+## パーシャルリロード
 
-Inertia リクエストを行う際、部分リロードオプションを使用すると、同じページコンポーネントへの再訪問時に、サーバーから props（データ）の一部のみを取得できます。一部のページデータが古くなっても問題ない場合、これは有効なパフォーマンス最適化になります。詳細は [部分リロード](/v2/data-props/partial-reloads) ドキュメントを参照してください。
+Inertia リクエストを行う際、パーシャルリロードオプションを使用すると、同じページコンポーネントへの再訪問時に、サーバーから props（データ）の一部のみを取得できます。一部のページデータが古くなっても問題ない場合、これは有効なパフォーマンス最適化になります。詳細は [パーシャルリロード](/v2/data-props/partial-reloads) ドキュメントを参照してください。
 
-部分リロードリクエストが行われると、Inertia は `X-Inertia-Partial-Component` ヘッダーを含め、必要に応じて `X-Inertia-Partial-Data` および / または `X-Inertia-Partial-Except` ヘッダーをリクエストに含めます。
+パーシャルリロードリクエストが行われると、Inertia は `X-Inertia-Partial-Component` ヘッダーを含め、必要に応じて `X-Inertia-Partial-Data` および / または `X-Inertia-Partial-Except` ヘッダーをリクエストに含めます。
 
 `X-Inertia-Partial-Data` ヘッダーは、返却してほしい props（データ）キーのカンマ区切りリストです。
 
 `X-Inertia-Partial-Except` ヘッダーは、返却しない props（データ）キーのカンマ区切りリストです。このヘッダーのみが含まれる場合、指定されたもの以外のすべての props（データ）が送信されます。`X-Inertia-Partial-Data` と `X-Inertia-Partial-Except` の両方が含まれる場合は、`X-Inertia-Partial-Except` が優先されます。
 
-`X-Inertia-Partial-Component` ヘッダーには、部分リロード対象のコンポーネント名が含まれます。部分リロードは同じページコンポーネントへのリクエストでのみ機能するため、これは必須です。何らかの理由で最終的な遷移先が異なる場合（例: ユーザーがログアウトしてログインページに遷移した場合）、部分リロードは行われません。
+`X-Inertia-Partial-Component` ヘッダーには、パーシャルリロード対象のコンポーネント名が含まれます。パーシャルリロードは同じページコンポーネントへのリクエストでのみ機能するため、これは必須です。何らかの理由で最終的な遷移先が異なる場合（例: ユーザーがログアウトしてログインページに遷移した場合）、パーシャルリロードは行われません。
 
 ```http
 REQUEST

@@ -85,9 +85,8 @@ export default function Welcome({ user }) {
 
 </CodeGroup>
 
-<ClientSpecific>
-上記のページがある場合、コントローラまたはルートから [Inertia レスポンス](/v2/the-basics/responses) を返すことで、そのページをレンダリングできます。この例では、このページが Laravel アプリケーション内の <VueSpecific>`resources/js/Pages/User/Show.vue`</VueSpecific><ReactSpecific>`resources/js/Pages/User/Show.jsx`</ReactSpecific><SvelteSpecific>`resources/js/Pages/User/Show.svelte`</SvelteSpecific> に保存されていると仮定します。
-</ClientSpecific>
+上記のページがある場合、コントローラまたはルートから [Inertia レスポンス](/v2/the-basics/responses) を返すことで、そのページをレンダリングできます。この例では、このページが Laravel アプリケーション内の Vueでは`resources/js/Pages/User/Show.vue` Reactでは `resources/js/Pages/User/Show.jsx` Svelteでは `resources/js/Pages/User/Show.svelte` に保存されていると仮定します。
+
 
 ```php
 use Inertia\Inertia;

@@ -421,7 +421,8 @@ class ImportV2JaMarkdownCommand extends Command
                 str_starts_with($slug, $navPrefix.'/getting-started/') ||
                 str_starts_with($slug, $navPrefix.'/installation/') ||
                 str_starts_with($slug, $navPrefix.'/security/') ||
-                str_starts_with($slug, $navPrefix.'/core-concepts/')
+                str_starts_with($slug, $navPrefix.'/core-concepts/') ||
+                str_starts_with($slug, $navPrefix.'/the-basics/')
             ) {
                 $status = 'published';
             }
