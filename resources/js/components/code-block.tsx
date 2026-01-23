@@ -38,6 +38,13 @@ export function CodeBlock({
     const [wrap, setWrap] = useState(true);
 
     const content = String(children).replace(/\n$/, '');
+    const escapeHtml = (value: string) =>
+        value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
 
     // インラインコードの判定: 言語指定がなく、改行を含まない場合
     const isInline = inline !== false && !className && !content.includes('\n');
@@ -206,10 +213,10 @@ export function CodeBlock({
                                         );
                                     } catch {
                                         // ハイライト失敗時はプレーンテキスト
-                                        highlightedHTML = codeContent;
+                                        highlightedHTML = escapeHtml(codeContent);
                                     }
                                 } else {
-                                    highlightedHTML = codeContent;
+                                    highlightedHTML = escapeHtml(codeContent);
                                 }
 
                                 return (
@@ -280,7 +287,7 @@ export function CodeBlock({
                                           Prism.languages[highlightLanguage],
                                           highlightLanguage,
                                       )
-                                    : content,
+                                    : escapeHtml(content),
                             }}
                         />
                     </pre>
