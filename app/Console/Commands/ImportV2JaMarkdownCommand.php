@@ -23,14 +23,14 @@ class ImportV2JaMarkdownCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Import database/v2 markdown content without v2 prefix (JA).';
+    protected $description = 'Import database/inertiajs-v2-ja markdown content without v2 prefix (JA).';
 
     /**
      * Execute the console command.
      */
     public function handle(): int
     {
-        $basePath = base_path('database/v2-ja');
+        $basePath = base_path('database/inertiajs-v2-ja');
 
         if (! is_dir($basePath)) {
             $this->error("Directory not found: {$basePath}");
@@ -326,7 +326,7 @@ class ImportV2JaMarkdownCommand extends Command
             // コードブロック記法の変換
             if (is_string($body)) {
                 $body = preg_replace_callback(
-                    '/^(\s*)```(\w+)\s+([A-Za-z0-9._\/-]+)(\s+\d+)?(?:\s+icon="[^"]*")?\s*$/m',
+                    '/^(\s*)```(?!mermaid\b)(\w+)\s+([A-Za-z0-9._\/-]+)(\s+\d+)?(?:\s+icon="[^"]*")?\s*$/m',
                     function ($matches) {
                         $indent = $matches[1];
                         $language = $matches[2];
