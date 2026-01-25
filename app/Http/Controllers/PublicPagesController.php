@@ -54,9 +54,22 @@ class PublicPagesController extends Controller
         $document->load(['createdBy', 'updatedBy']);
 
         $firstLevelTitle = null;
+        $firstLevelEyecatchLightUrl = null;
+        $firstLevelEyecatchDarkUrl = null;
+        $parentFolderEyecatchLightUrl = null;
+        $parentFolderEyecatchDarkUrl = null;
+
+        $firstLevelNavigationItem = $this->getFirstLevelNavigationItem($document->slug);
+        $parentNavigationItem = $this->getParentNavigationItem($document->slug);
+
         if (config('markdown.use_first_level_as_title')) {
-            $firstLevelTitle = $this->getFirstLevelTitle($document->slug);
+            $firstLevelTitle = $firstLevelNavigationItem?->label;
         }
+
+        $firstLevelEyecatchLightUrl = $firstLevelNavigationItem?->eyecatchLightUrl();
+        $firstLevelEyecatchDarkUrl = $firstLevelNavigationItem?->eyecatchDarkUrl();
+        $parentFolderEyecatchLightUrl = $parentNavigationItem?->eyecatchLightUrl();
+        $parentFolderEyecatchDarkUrl = $parentNavigationItem?->eyecatchDarkUrl();
 
         return Inertia::render('markdown/show', [
             'document' => [
@@ -68,6 +81,10 @@ class PublicPagesController extends Controller
             'isPublic' => true,
             'pageTree' => $this->buildPublicTree(),
             'firstLevelTitle' => $firstLevelTitle,
+            'firstLevelEyecatchLightUrl' => $firstLevelEyecatchLightUrl,
+            'firstLevelEyecatchDarkUrl' => $firstLevelEyecatchDarkUrl,
+            'parentFolderEyecatchLightUrl' => $parentFolderEyecatchLightUrl,
+            'parentFolderEyecatchDarkUrl' => $parentFolderEyecatchDarkUrl,
         ]);
     }
 
@@ -91,7 +108,7 @@ class PublicPagesController extends Controller
             ->build($documents, $navigationItems);
     }
 
-    private function getFirstLevelTitle(string $slug): ?string
+    private function getFirstLevelNavigationItem(string $slug): ?MarkdownNavigationItem
     {
         // スラッグから第一階層のパスを抽出
         $parts = explode('/', $slug);
@@ -102,12 +119,27 @@ class PublicPagesController extends Controller
         $firstLevelPath = $parts[0];
 
         // ナビゲーションアイテムから第一階層のラベルを取得
-        $navigationItem = MarkdownNavigationItem::query()
+        return MarkdownNavigationItem::query()
             ->where('node_type', 'folder')
             ->where('node_path', $firstLevelPath)
             ->whereNull('parent_path')
             ->first();
+    }
 
-        return $navigationItem?->label;
+    private function getParentNavigationItem(string $slug): ?MarkdownNavigationItem
+    {
+        $parts = explode('/', $slug);
+
+        if (count($parts) <= 1) {
+            return null;
+        }
+
+        array_pop($parts);
+        $parentPath = implode('/', $parts);
+
+        return MarkdownNavigationItem::query()
+            ->where('node_type', 'folder')
+            ->where('node_path', $parentPath)
+            ->first();
     }
 }

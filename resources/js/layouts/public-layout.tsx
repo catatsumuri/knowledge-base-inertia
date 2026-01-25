@@ -19,12 +19,16 @@ type PublicLayoutProps = PropsWithChildren<{
     breadcrumbs?: BreadcrumbItem[];
     rightPane?: ReactNode;
     firstLevelTitle?: string | null;
+    firstLevelEyecatchLightUrl?: string | null;
+    firstLevelEyecatchDarkUrl?: string | null;
 }>;
 
 export default function PublicLayout({
     children,
     rightPane,
     firstLevelTitle,
+    firstLevelEyecatchLightUrl,
+    firstLevelEyecatchDarkUrl,
 }: PublicLayoutProps) {
     const { __ } = useLang();
 
@@ -33,7 +37,11 @@ export default function PublicLayout({
             <div className="border-b border-sidebar-border/80">
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                     <Link href="/pages" className="flex items-center space-x-2">
-                        <AppLogo title={firstLevelTitle} />
+                        <AppLogo
+                            title={firstLevelTitle}
+                            titleLogoLightUrl={firstLevelEyecatchLightUrl}
+                            titleLogoDarkUrl={firstLevelEyecatchDarkUrl}
+                        />
                     </Link>
                 </div>
             </div>

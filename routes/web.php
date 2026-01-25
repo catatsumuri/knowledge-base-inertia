@@ -113,6 +113,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('markdown/{slug}/export', [\App\Http\Controllers\MarkdownController::class, 'export'])->where('slug', '.*')->name('markdown.export');
     Route::get('markdown/{slug}/edit', [\App\Http\Controllers\MarkdownController::class, 'edit'])->where('slug', '.*')->name('markdown.edit');
     Route::patch('markdown/folder/{slug}/label', [\App\Http\Controllers\MarkdownController::class, 'updateFolderLabel'])->where('slug', '.*')->name('markdown.folder.update-label');
+    Route::post('markdown/folder/{slug}/eyecatch', [\App\Http\Controllers\MarkdownController::class, 'updateFolderEyecatch'])->where('slug', '.*')->name('markdown.folder.update-eyecatch');
     Route::patch('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'update'])->where('slug', '.*')->name('markdown.update');
     Route::match(['get', 'post'], 'markdown/{slug}/move', [\App\Http\Controllers\MarkdownController::class, 'move'])->where('slug', '.*')->name('markdown.move');
     Route::delete('markdown/{slug}', [\App\Http\Controllers\MarkdownController::class, 'destroy'])->where('slug', '.*')->name('markdown.destroy');

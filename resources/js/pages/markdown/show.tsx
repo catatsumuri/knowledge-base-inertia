@@ -52,6 +52,7 @@ import {
     MessageSquare,
     Pencil,
     Plus,
+    Twitter,
     Trash2,
     Upload,
 } from 'lucide-react';
@@ -169,6 +170,10 @@ export default function Show({
     isHomePage = false,
     pageTree = [],
     firstLevelTitle = null,
+    firstLevelEyecatchLightUrl = null,
+    firstLevelEyecatchDarkUrl = null,
+    parentFolderEyecatchLightUrl = null,
+    parentFolderEyecatchDarkUrl = null,
 }: {
     document: MarkdownDocument;
     relatedShouts: Shout[];
@@ -177,6 +182,10 @@ export default function Show({
     isHomePage?: boolean;
     pageTree?: PublicPageNode[];
     firstLevelTitle?: string | null;
+    firstLevelEyecatchLightUrl?: string | null;
+    firstLevelEyecatchDarkUrl?: string | null;
+    parentFolderEyecatchLightUrl?: string | null;
+    parentFolderEyecatchDarkUrl?: string | null;
 }) {
     const { __ } = useLang();
     const getInitials = useInitials();
@@ -214,11 +223,24 @@ export default function Show({
         typeof window !== 'undefined'
             ? window.location.href
             : `${page.props.app?.url || ''}${page.url}`;
-    const imageUrl = document.eyecatch_url
-        ? document.eyecatch_url.startsWith('http')
-            ? document.eyecatch_url
-            : `${page.props.app?.url || ''}${document.eyecatch_url}`
+    const appBaseUrl = page.props.app?.url || '';
+    const appLogoUrl = `${appBaseUrl}/logo.svg`;
+    const parentFolderEyecatchUrl =
+        parentFolderEyecatchLightUrl || parentFolderEyecatchDarkUrl || null;
+    const firstLevelEyecatchUrl =
+        firstLevelEyecatchLightUrl || firstLevelEyecatchDarkUrl || null;
+    const candidateImageUrl =
+        document.eyecatch_url ||
+        parentFolderEyecatchUrl ||
+        firstLevelEyecatchUrl ||
+        appLogoUrl;
+    const imageUrl = candidateImageUrl
+        ? candidateImageUrl.startsWith('http')
+            ? candidateImageUrl
+            : `${appBaseUrl}${candidateImageUrl}`
         : null;
+    const shareText = document.title || '';
+    const xShareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
 
     useEffect(() => {
         if (contentRef.current && document.content) {
@@ -471,6 +493,19 @@ export default function Show({
                         >
                             <List className="h-4 w-4" />
                             {showToc ? __('Hide TOC') : __('Show TOC')}
+                        </Button>
+                    )}
+                    {isPublicView && (
+                        <Button asChild variant="outline">
+                            <a
+                                href={xShareUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2"
+                            >
+                                <Twitter className="h-4 w-4" />
+                                Xで共有
+                            </a>
                         </Button>
                     )}
                     {canManage && (
@@ -968,6 +1003,8 @@ export default function Show({
         return (
             <PublicLayout
                 firstLevelTitle={firstLevelTitle}
+                firstLevelEyecatchLightUrl={firstLevelEyecatchLightUrl}
+                firstLevelEyecatchDarkUrl={firstLevelEyecatchDarkUrl}
                 rightPane={
                     pageTree.length > 0 ? (
                         <PublicPagesMenu

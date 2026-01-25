@@ -266,13 +266,12 @@ class MarkdownController extends Controller
         $document = $this->resolveDocumentBySlug($slug);
 
         if (! $document) {
-            // Check if this slug has direct children (folder mode)
-            $hasDirectChildren = MarkdownDocument::query()
+            // If any descendant exists, treat as folder view.
+            $hasDescendants = MarkdownDocument::query()
                 ->where('slug', 'like', $slug.'/%')
-                ->where('slug', 'not like', $slug.'/%/%')
                 ->exists();
 
-            if ($hasDirectChildren) {
+            if ($hasDescendants) {
                 return $this->showFolder($slug);
             }
 
@@ -1476,24 +1475,37 @@ Output:
         Media $media,
         ?string $conversion = null
     ): BinaryFileResponse {
-        if ($media->model_type !== MarkdownDocument::class) {
+        if (! in_array($media->collection_name, ['eyecatch', 'eyecatch_light', 'eyecatch_dark'], true)) {
             abort(404);
         }
 
-        $document = $media->model;
+        $document = null;
+        $navigationItem = null;
 
-        if (! $document instanceof MarkdownDocument) {
-            abort(404);
-        }
+        if ($media->model_type === MarkdownDocument::class) {
+            $document = $media->model;
 
-        if ($media->collection_name !== 'eyecatch') {
+            if (! $document instanceof MarkdownDocument) {
+                abort(404);
+            }
+        } elseif ($media->model_type === MarkdownNavigationItem::class) {
+            $navigationItem = $media->model;
+
+            if (! $navigationItem instanceof MarkdownNavigationItem) {
+                abort(404);
+            }
+        } else {
             abort(404);
         }
 
         $user = $request->user();
 
         if (! $user) {
-            if (! config('app.public_views') || $document->status !== 'published') {
+            if (! config('app.public_views')) {
+                abort(403);
+            }
+
+            if ($document && $document->status !== 'published') {
                 abort(403);
             }
         }
@@ -1696,12 +1708,72 @@ Output:
         return Inertia::render('markdown/folder', [
             'slug' => $slug,
             'label' => $navigationItem?->label,
+            'eyecatchLightUrl' => $navigationItem?->eyecatchLightUrl(),
+            'eyecatchDarkUrl' => $navigationItem?->eyecatchDarkUrl(),
             'children' => $children,
             'hasIndex' => $indexDocument !== null,
             'canCreate' => true,
         ]);
     }
 
+    /**
+     * Update folder eyecatch.
+     */
+    public function updateFolderEyecatch(Request $request, string $slug): JsonResponse
+    {
+        $data = $request->validate([
+            'eyecatch' => ['nullable', 'file', 'mimes:jpg,jpeg,png,svg', 'max:5120'],
+            'remove' => ['nullable', 'boolean'],
+            'variant' => ['required', 'string', 'in:light,dark'],
+        ]);
+
+        $slug = trim($slug, '/');
+        if ($slug === '') {
+            abort(404);
+        }
+
+        // Calculate parent path
+        $parts = explode('/', $slug);
+        array_pop($parts);
+        $parentPath = count($parts) > 0 ? implode('/', $parts) : null;
+
+        $navigationItem = MarkdownNavigationItem::query()->updateOrCreate(
+            [
+                'node_type' => 'folder',
+                'node_path' => $slug,
+            ],
+            [
+                'parent_path' => $parentPath,
+                'position' => 0,
+            ]
+        );
+
+        $collection = $data['variant'] === 'dark' ? 'eyecatch_dark' : 'eyecatch_light';
+
+        if (! empty($data['remove'])) {
+            $navigationItem->clearMediaCollection($collection);
+
+            return response()->json([
+                'success' => true,
+                'eyecatch_url' => null,
+            ]);
+        }
+
+        if (! $request->hasFile('eyecatch')) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Eyecatch file is required.'),
+            ], 422);
+        }
+
+        $navigationItem->clearMediaCollection($collection);
+        $navigationItem->addMediaFromRequest('eyecatch')->toMediaCollection($collection);
+
+        return response()->json([
+            'success' => true,
+            'eyecatch_url' => $navigationItem->eyecatchUrl($collection),
+        ]);
+    }
     /**
      * Update folder label.
      */

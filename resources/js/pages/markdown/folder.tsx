@@ -21,6 +21,8 @@ interface ChildDocument {
 interface FolderPageProps {
     slug: string;
     label?: string | null;
+    eyecatchLightUrl?: string | null;
+    eyecatchDarkUrl?: string | null;
     children: ChildDocument[];
     hasIndex: boolean;
     canCreate: boolean;
@@ -29,6 +31,8 @@ interface FolderPageProps {
 export default function FolderPage({
     slug,
     label: initialLabel,
+    eyecatchLightUrl,
+    eyecatchDarkUrl,
     children,
     hasIndex,
     canCreate,
@@ -69,6 +73,65 @@ export default function FolderPage({
             alert('フォルダーラベルの更新に失敗しました');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleEyecatchUpload = async (
+        event: React.ChangeEvent<HTMLInputElement>,
+        variant: 'light' | 'dark',
+    ) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('eyecatch', file);
+        formData.append('variant', variant);
+
+        try {
+            const response = await fetch(`/markdown/folder/${slug}/eyecatch`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                router.reload();
+            } else {
+                alert('フォルダーアイキャッチの更新に失敗しました');
+            }
+        } catch {
+            alert('フォルダーアイキャッチの更新に失敗しました');
+        } finally {
+            event.target.value = '';
+        }
+    };
+
+    const handleEyecatchRemove = async (variant: 'light' | 'dark') => {
+        try {
+            const response = await fetch(`/markdown/folder/${slug}/eyecatch`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ remove: true, variant }),
+            });
+
+            if (response.ok) {
+                router.reload();
+            } else {
+                alert('フォルダーアイキャッチの削除に失敗しました');
+            }
+        } catch {
+            alert('フォルダーアイキャッチの削除に失敗しました');
         }
     };
 
@@ -189,6 +252,111 @@ export default function FolderPage({
                                 </>
                             )}
                         </Button>
+                    </CardContent>
+                </Card>
+
+                {/* Eyecatch Card */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">
+                            フォルダーアイキャッチ
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col gap-3">
+                                <div className="text-sm font-medium">
+                                    Light
+                                </div>
+                                {eyecatchLightUrl ? (
+                                    <div className="overflow-hidden rounded-xl border border-sidebar-border/70 bg-white">
+                                        <img
+                                            src={eyecatchLightUrl}
+                                            alt={folderTitle}
+                                            className="h-40 w-full object-contain"
+                                        />
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        未設定
+                                    </p>
+                                )}
+                                <div className="flex flex-wrap gap-2">
+                                    <Button asChild variant="outline">
+                                        <label>
+                                            Light画像をアップロード
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/svg+xml"
+                                                className="hidden"
+                                                onChange={(event) =>
+                                                    handleEyecatchUpload(
+                                                        event,
+                                                        'light',
+                                                    )
+                                                }
+                                            />
+                                        </label>
+                                    </Button>
+                                    {eyecatchLightUrl && (
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleEyecatchRemove('light')
+                                            }
+                                        >
+                                            削除
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <div className="text-sm font-medium">
+                                    Dark
+                                </div>
+                                {eyecatchDarkUrl ? (
+                                    <div className="overflow-hidden rounded-xl border border-sidebar-border/70 bg-neutral-900">
+                                        <img
+                                            src={eyecatchDarkUrl}
+                                            alt={folderTitle}
+                                            className="h-40 w-full object-contain"
+                                        />
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        未設定
+                                    </p>
+                                )}
+                                <div className="flex flex-wrap gap-2">
+                                    <Button asChild variant="outline">
+                                        <label>
+                                            Dark画像をアップロード
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/svg+xml"
+                                                className="hidden"
+                                                onChange={(event) =>
+                                                    handleEyecatchUpload(
+                                                        event,
+                                                        'dark',
+                                                    )
+                                                }
+                                            />
+                                        </label>
+                                    </Button>
+                                    {eyecatchDarkUrl && (
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleEyecatchRemove('dark')
+                                            }
+                                        >
+                                            削除
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
