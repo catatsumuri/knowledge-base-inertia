@@ -4,6 +4,7 @@ use App\Http\Controllers\AppSettingsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NavigationOrderController;
 use App\Http\Controllers\PublicPagesController;
+use App\Http\Controllers\TweetController;
 use App\Models\MarkdownDocument;
 use App\Models\Shout;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +78,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('app-settings.markdown-import-cancel');
 
     Route::get('sitemap', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
+    Route::get('tweets', [TweetController::class, 'index'])->name('tweets.index');
+    Route::post('tweets', [TweetController::class, 'store'])->name('tweets.store');
+    Route::get('tweets/fetch-jobs', [TweetController::class, 'fetchJobs'])->name('tweets.fetch-jobs');
+    Route::post('tweets/fetch-jobs/{jobId}/retry', [TweetController::class, 'retryFetchJob'])->name('tweets.fetch-jobs.retry');
+    Route::post('tweets/{tweet}/shoutbox', [TweetController::class, 'moveToShoutbox'])->name('tweets.shoutbox.store');
+    Route::delete('tweets/{tweet}', [TweetController::class, 'destroy'])->name('tweets.destroy');
 
     Route::get('topics', [\App\Http\Controllers\TopicController::class, 'index'])->name('topics.index');
     Route::get('topics/{slug}', [\App\Http\Controllers\TopicController::class, 'show'])->name('topics.show');

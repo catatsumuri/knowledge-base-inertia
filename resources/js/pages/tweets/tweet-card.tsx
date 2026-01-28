@@ -1,0 +1,483 @@
+import { destroy, moveToShoutbox } from '@/actions/App/Http/Controllers/TweetController';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { useInitials } from '@/hooks/use-initials';
+import { useLang } from '@/hooks/useLang';
+import { cn } from '@/lib/utils';
+import { Form } from '@inertiajs/react';
+import { Heart, MessageCircle, Quote, Repeat2, Send, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+
+interface TweetAuthor {
+    id: string;
+    name: string;
+    username: string;
+    profile_image_url?: string;
+    verified?: boolean;
+}
+
+interface TweetMedia {
+    media_key: string;
+    type: 'photo' | 'video' | 'animated_gif';
+    url?: string;
+    preview_image_url?: string;
+    width?: number;
+    height?: number;
+}
+
+interface Tweet {
+    id: number;
+    tweet_id: string;
+    text: string;
+    author: TweetAuthor | null;
+    media: TweetMedia[];
+    public_metrics: {
+        like_count: number;
+        retweet_count: number;
+        reply_count: number;
+        quote_count: number;
+    } | null;
+    created_at: string | null;
+    fetched_at: string | null;
+}
+
+interface TweetCardProps {
+    tweet: Tweet;
+}
+
+interface MarkdownPage {
+    slug: string;
+    title: string;
+}
+
+const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+        return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+        return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+};
+
+export default function TweetCard({ tweet }: TweetCardProps) {
+    const { __ } = useLang();
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isShoutDialogOpen, setIsShoutDialogOpen] = useState(false);
+    const [deleteOriginal, setDeleteOriginal] = useState(true);
+    const [pageMentions, setPageMentions] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [suggestions, setSuggestions] = useState<MarkdownPage[]>([]);
+    const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+    const [mentionStart, setMentionStart] = useState<number | null>(null);
+    const initials = useInitials(tweet.author?.name || '');
+    const mentionInputRef = useRef<HTMLTextAreaElement>(null);
+
+    const handleDeleteClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsDeleteDialogOpen(true);
+    };
+
+    const handleShoutClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDeleteOriginal(true);
+        setPageMentions('');
+        setShowSuggestions(false);
+        setSuggestions([]);
+        setSelectedSuggestionIndex(0);
+        setMentionStart(null);
+        setIsShoutDialogOpen(true);
+    };
+
+    const handlePageMentionChange = async (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
+        const value = e.target.value;
+        const cursorPosition = e.target.selectionStart;
+        setPageMentions(value);
+
+        const textBeforeCursor = value.substring(0, cursorPosition);
+        const mentionMatch = textBeforeCursor.match(/@([a-zA-Z0-9_\-/]*)$/);
+
+        if (mentionMatch) {
+            const query = mentionMatch[1];
+            const start = cursorPosition - mentionMatch[0].length;
+            setMentionStart(start);
+
+            try {
+                const response = await fetch(
+                    `/api/markdown/search?q=${encodeURIComponent(query)}`,
+                );
+                const responseData = await response.json();
+                setSuggestions(responseData);
+                setShowSuggestions(responseData.length > 0);
+                setSelectedSuggestionIndex(0);
+            } catch (error) {
+                console.error('Failed to fetch suggestions:', error);
+            }
+        } else {
+            setShowSuggestions(false);
+            setMentionStart(null);
+        }
+    };
+
+    const handlePageMentionKeyDown = (
+        e: React.KeyboardEvent<HTMLTextAreaElement>,
+    ) => {
+        if (!showSuggestions) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedSuggestionIndex(
+                (prev) => (prev + 1) % suggestions.length,
+            );
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedSuggestionIndex(
+                (prev) => (prev - 1 + suggestions.length) % suggestions.length,
+            );
+        } else if (e.key === 'Enter' && suggestions.length > 0) {
+            e.preventDefault();
+            insertMention(suggestions[selectedSuggestionIndex].slug);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setShowSuggestions(false);
+        }
+    };
+
+    const insertMention = (slug: string) => {
+        if (mentionStart === null) return;
+
+        const textarea = mentionInputRef.current;
+        if (!textarea) return;
+
+        const beforeMention = pageMentions.substring(0, mentionStart);
+        const afterCursor = pageMentions.substring(textarea.selectionStart);
+        const newContent = beforeMention + '@' + slug + ' ' + afterCursor;
+
+        setPageMentions(newContent);
+        setShowSuggestions(false);
+        setMentionStart(null);
+
+        setTimeout(() => {
+            const newCursorPos = beforeMention.length + slug.length + 2;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.focus();
+        }, 0);
+    };
+
+    const openTweetInNewTab = () => {
+        window.open(`https://x.com/i/status/${tweet.tweet_id}`, '_blank');
+    };
+
+    return (
+        <>
+            <Card className="group flex h-full flex-col transition-all hover:border-primary hover:shadow-md">
+                <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                            <Avatar className="h-10 w-10 shrink-0">
+                                <AvatarImage
+                                    src={tweet.author?.profile_image_url}
+                                />
+                                <AvatarFallback>{initials}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                                <p className="truncate font-semibold">
+                                    {tweet.author?.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    @{tweet.author?.username}
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleDeleteClick}
+                            className="shrink-0"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardHeader>
+
+                <CardContent
+                    className="flex-1 cursor-pointer space-y-3"
+                    onClick={openTweetInNewTab}
+                >
+                    <p className="line-clamp-4 text-sm">{tweet.text}</p>
+
+                    {tweet.media.length > 0 && (
+                        <div
+                            className={cn(
+                                'grid gap-1 overflow-hidden rounded-md',
+                                tweet.media.length === 1 && 'grid-cols-1',
+                                tweet.media.length === 2 && 'grid-cols-2',
+                                tweet.media.length === 3 &&
+                                    'grid-cols-2 grid-rows-2',
+                                tweet.media.length >= 4 &&
+                                    'grid-cols-2 grid-rows-2',
+                            )}
+                        >
+                            {tweet.media.slice(0, 4).map((media, index) => (
+                                <img
+                                    key={media.media_key}
+                                    src={media.url}
+                                    alt=""
+                                    className={cn(
+                                        'h-full w-full object-cover',
+                                        tweet.media.length === 1 &&
+                                            'aspect-video',
+                                        tweet.media.length === 2 &&
+                                            'aspect-square',
+                                        tweet.media.length === 3 &&
+                                            index === 0 &&
+                                            'row-span-2 aspect-square',
+                                        tweet.media.length === 3 &&
+                                            index > 0 &&
+                                            'aspect-square',
+                                        tweet.media.length >= 4 &&
+                                            'aspect-square',
+                                    )}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {tweet.public_metrics && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            <Badge variant="secondary" className="gap-1">
+                                <Heart className="h-3 w-3" />
+                                {formatNumber(
+                                    tweet.public_metrics.like_count,
+                                )}
+                            </Badge>
+                            <Badge variant="secondary" className="gap-1">
+                                <Repeat2 className="h-3 w-3" />
+                                {formatNumber(
+                                    tweet.public_metrics.retweet_count,
+                                )}
+                            </Badge>
+                            {tweet.public_metrics.reply_count > 0 && (
+                                <Badge variant="secondary" className="gap-1">
+                                    <MessageCircle className="h-3 w-3" />
+                                    {formatNumber(
+                                        tweet.public_metrics.reply_count,
+                                    )}
+                                </Badge>
+                            )}
+                            {tweet.public_metrics.quote_count > 0 && (
+                                <Badge variant="secondary" className="gap-1">
+                                    <Quote className="h-3 w-3" />
+                                    {formatNumber(
+                                        tweet.public_metrics.quote_count,
+                                    )}
+                                </Badge>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="pt-2">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={handleShoutClick}
+                        >
+                            <Send className="mr-2 h-4 w-4" />
+                            {__('Send to Shoutbox')}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* 削除確認ダイアログ */}
+            <Dialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{__('Delete Tweet')}</DialogTitle>
+                        <DialogDescription>
+                            <span className="block font-semibold text-foreground">
+                                {__('Are you sure you want to delete this tweet?')}
+                            </span>
+                            <span className="mt-2 block text-muted-foreground">
+                                {__('This action cannot be undone.')}
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <Form
+                        action={destroy(tweet.id)}
+                        onSuccess={() => setIsDeleteDialogOpen(false)}
+                    >
+                        {({ processing }) => (
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={processing}
+                                    >
+                                        {__('Cancel')}
+                                    </Button>
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    disabled={processing}
+                                >
+                                    {processing
+                                        ? __('Deleting...')
+                                        : __('Delete')}
+                                </Button>
+                            </DialogFooter>
+                        )}
+                    </Form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isShoutDialogOpen}
+                onOpenChange={setIsShoutDialogOpen}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{__('Send to Shoutbox')}</DialogTitle>
+                        <DialogDescription>
+                            <span className="block font-semibold text-foreground">
+                                {__('Do you want to post this tweet to the shoutbox?')}
+                            </span>
+                            <span className="mt-2 block text-muted-foreground">
+                                {__('The text and media will be copied into a new shout.')}
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <Form
+                        action={moveToShoutbox(tweet.id)}
+                        onSuccess={() => setIsShoutDialogOpen(false)}
+                    >
+                        {({ processing }) => (
+                            <>
+                                <input
+                                    type="hidden"
+                                    name="delete_original"
+                                    value={deleteOriginal ? '1' : '0'}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="page_mentions"
+                                    value={pageMentions}
+                                />
+                                <div className="space-y-2 py-2">
+                                    <Label htmlFor={`page-mentions-${tweet.id}`}>
+                                        {__('Mention pages')}
+                                    </Label>
+                                    <div className="relative">
+                                        <Textarea
+                                            id={`page-mentions-${tweet.id}`}
+                                            ref={mentionInputRef}
+                                            value={pageMentions}
+                                            onChange={handlePageMentionChange}
+                                            onKeyDown={handlePageMentionKeyDown}
+                                            placeholder={__(
+                                                'Type @ to select pages',
+                                            )}
+                                            className="min-h-[80px] resize-none"
+                                        />
+                                        {showSuggestions &&
+                                            suggestions.length > 0 && (
+                                                <Card className="absolute top-[calc(100%-8px)] left-0 z-50 mt-2 max-h-56 w-full gap-0 overflow-y-auto p-0">
+                                                    {suggestions.map(
+                                                        (suggestion, index) => (
+                                                            <button
+                                                                key={
+                                                                    suggestion.slug
+                                                                }
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    insertMention(
+                                                                        suggestion.slug,
+                                                                    )
+                                                                }
+                                                                className={`w-full border-b px-4 py-2 text-left leading-none hover:bg-muted ${
+                                                                    index ===
+                                                                    selectedSuggestionIndex
+                                                                        ? 'bg-muted'
+                                                                        : ''
+                                                                }`}
+                                                            >
+                                                                <div className="leading-none font-medium">
+                                                                    @
+                                                                    {
+                                                                        suggestion.slug
+                                                                    }
+                                                                </div>
+                                                                <div className="text-sm leading-none text-muted-foreground">
+                                                                    {
+                                                                        suggestion.title
+                                                                    }
+                                                                </div>
+                                                            </button>
+                                                        ),
+                                                    )}
+                                                </Card>
+                                            )}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 py-2">
+                                    <Checkbox
+                                        id={`delete-original-${tweet.id}`}
+                                        checked={deleteOriginal}
+                                        onCheckedChange={(checked) =>
+                                            setDeleteOriginal(checked === true)
+                                        }
+                                    />
+                                    <Label
+                                        htmlFor={`delete-original-${tweet.id}`}
+                                    >
+                                        {__('Delete original tweet after posting')}
+                                    </Label>
+                                </div>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={processing}
+                                    >
+                                        {__('Cancel')}
+                                    </Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={processing}>
+                                    {processing
+                                        ? __('Posting...')
+                                        : __('Post to Shoutbox')}
+                                </Button>
+                            </DialogFooter>
+                            </>
+                        )}
+                    </Form>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+}

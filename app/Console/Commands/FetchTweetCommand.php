@@ -2,17 +2,22 @@
 
 namespace App\Console\Commands;
 
+use App\Concerns\HandlesTweetMedia;
+use App\Models\Tweet;
 use App\Services\XApiService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 
 class FetchTweetCommand extends Command
 {
+    use HandlesTweetMedia;
+
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'tweet:fetch {id_or_url : ツイートIDまたはツイートURL}';
+    protected $signature = 'tweet:fetch {id_or_url : ツイートIDまたはツイートURL} {--save : 取得結果をDBに保存する}';
 
     /**
      * The console command description.
@@ -30,7 +35,16 @@ class FetchTweetCommand extends Command
 
         $this->info("ツイートを取得中: {$input}");
 
-        $tweet = $xApiService->fetchTweet($input);
+        $shouldSave = (bool) $this->option('save');
+        $rawTweet = null;
+        $tweet = null;
+
+        if ($shouldSave) {
+            $rawTweet = $xApiService->fetchTweetRaw($input);
+            $tweet = $rawTweet['data'] ?? null;
+        } else {
+            $tweet = $xApiService->fetchTweet($input);
+        }
 
         if ($tweet === null) {
             $rateLimitReset = $xApiService->getLastRateLimitReset();
@@ -60,6 +74,34 @@ class FetchTweetCommand extends Command
             }
 
             return 1;
+        }
+
+        if ($shouldSave) {
+            $tweetId = $tweet['id'] ?? $xApiService->extractTweetId($input);
+            if ($tweetId !== null && $rawTweet !== null) {
+                $mediaEntries = $this->extractMediaEntries($rawTweet);
+                $tweetModel = Tweet::updateOrCreate(
+                    ['tweet_id' => $tweetId],
+                    [
+                        'payload' => $rawTweet,
+                        'fetched_at' => now(),
+                        'text' => $tweet['text'] ?? null,
+                        'author_id' => $tweet['author_id'] ?? null,
+                        'lang' => $tweet['lang'] ?? null,
+                        'tweet_created_at' => isset($tweet['created_at'])
+                            ? Carbon::parse($tweet['created_at'])
+                            : null,
+                        'media_metadata' => $mediaEntries,
+                    ]
+                );
+                $mediaEntriesWithIds = $this->storeTweetMedia($tweetModel, $mediaEntries);
+                if ($mediaEntriesWithIds !== $mediaEntries) {
+                    $tweetModel->forceFill(['media_metadata' => $mediaEntriesWithIds])->save();
+                }
+                $this->info("DBに保存しました: {$tweetId}");
+            } else {
+                $this->warn('DB保存用のツイートIDが取得できませんでした。');
+            }
         }
 
         $this->newLine();

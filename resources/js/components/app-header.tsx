@@ -1,6 +1,7 @@
 import { index as appSettingsIndex } from '@/actions/App/Http/Controllers/AppSettingsController';
 import { index as markdownIndex } from '@/actions/App/Http/Controllers/MarkdownController';
 import { index as sitemapIndex } from '@/actions/App/Http/Controllers/SitemapController';
+import { index as tweetsIndex } from '@/actions/App/Http/Controllers/TweetController';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,6 +38,7 @@ import {
     Network,
     Search,
     Settings,
+    Twitter,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
@@ -63,6 +65,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             title: __('Markdown'),
             href: markdownIndex(),
             icon: FileText,
+        },
+        {
+            title: __('Saved Tweets'),
+            href: tweetsIndex(),
+            icon: Twitter,
         },
         {
             title: __('Sitemap'),

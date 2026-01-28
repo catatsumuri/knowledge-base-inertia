@@ -58,6 +58,12 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        'tweet-media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/tweet-media'),
+            'throw' => false,
+            'report' => false,
+        ],
 
         's3' => [
             'driver' => 's3',

@@ -1,5 +1,6 @@
 import { index as markdownIndex } from '@/actions/App/Http/Controllers/MarkdownController';
 import { index as sitemapIndex } from '@/actions/App/Http/Controllers/SitemapController';
+import { index as tweetsIndex } from '@/actions/App/Http/Controllers/TweetController';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -15,7 +16,7 @@ import { useLang } from '@/hooks/useLang';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { FileText, LayoutGrid, Network } from 'lucide-react';
+import { FileText, LayoutGrid, Network, Twitter } from 'lucide-react';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
@@ -30,6 +31,11 @@ export function AppSidebar() {
             title: __('Markdown'),
             href: markdownIndex(),
             icon: FileText,
+        },
+        {
+            title: __('Saved Tweets'),
+            href: tweetsIndex(),
+            icon: Twitter,
         },
         {
             title: __('Sitemap'),
