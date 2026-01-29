@@ -80,6 +80,8 @@ class FetchTweetCommand extends Command
             $tweetId = $tweet['id'] ?? $xApiService->extractTweetId($input);
             if ($tweetId !== null && $rawTweet !== null) {
                 $mediaEntries = $this->extractMediaEntries($rawTweet);
+                $responseStatus = $rawTweet['_response']['status'] ?? null;
+                $responseHeaders = $rawTweet['_response']['headers'] ?? null;
                 $tweetModel = Tweet::updateOrCreate(
                     ['tweet_id' => $tweetId],
                     [
@@ -92,6 +94,9 @@ class FetchTweetCommand extends Command
                             ? Carbon::parse($tweet['created_at'])
                             : null,
                         'media_metadata' => $mediaEntries,
+                        'response_status' => $responseStatus,
+                        'response_headers' => $responseHeaders,
+                        'reply_count' => data_get($tweet, 'public_metrics.reply_count'),
                     ]
                 );
                 $mediaEntriesWithIds = $this->storeTweetMedia($tweetModel, $mediaEntries);

@@ -43,9 +43,12 @@ class FetchTweetCommandTest extends TestCase
             ->with('invalid')
             ->andReturn(null);
 
+        $mockService->shouldReceive('getLastRateLimitReset')
+            ->once()
+            ->andReturn(null);
+
         $this->artisan('tweet:fetch', ['id_or_url' => 'invalid'])
             ->expectsOutput('ツイートを取得中: invalid')
-            ->expectsOutput('ツイートの取得に失敗しました。ツイートIDまたはURLが正しいか確認してください。')
             ->assertExitCode(1);
     }
 

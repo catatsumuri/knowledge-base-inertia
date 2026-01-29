@@ -11,7 +11,9 @@ class MarkdownNavigationItem extends Model implements HasMedia
     use InteractsWithMedia;
 
     private const EYECATCH_LIGHT = 'eyecatch_light';
+
     private const EYECATCH_DARK = 'eyecatch_dark';
+
     private const EYECATCH_LEGACY = 'eyecatch';
 
     protected $fillable = [

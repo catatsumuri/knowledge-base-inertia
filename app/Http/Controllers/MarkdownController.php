@@ -1774,6 +1774,7 @@ Output:
             'eyecatch_url' => $navigationItem->eyecatchUrl($collection),
         ]);
     }
+
     /**
      * Update folder label.
      */

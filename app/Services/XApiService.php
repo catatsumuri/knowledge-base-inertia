@@ -45,6 +45,18 @@ class XApiService
             ]);
 
             $data = json_decode((string) $response->getBody(), true);
+            $data['_response'] = [
+                'status' => $response->getStatusCode(),
+                'headers' => $response->getHeaders(),
+            ];
+            $data['_response'] = [
+                'status' => $response->getStatusCode(),
+                'headers' => $response->getHeaders(),
+            ];
+            $data['_response'] = [
+                'status' => $response->getStatusCode(),
+                'headers' => $response->getHeaders(),
+            ];
 
             return $data;
         } catch (RequestException $e) {
@@ -123,6 +135,10 @@ class XApiService
             ]);
 
             $data = json_decode((string) $response->getBody(), true);
+            $data['_response'] = [
+                'status' => $response->getStatusCode(),
+                'headers' => $response->getHeaders(),
+            ];
 
             if (! isset($data['data'])) {
                 Log::warning('Tweet data not found in response', [
@@ -280,6 +296,115 @@ class XApiService
             return null;
         }
     }
+
+    /**
+     * 会話IDに紐づくツイートID一覧を取得する（引用ツイートは除外）
+     *
+     * @return array<int, string>
+     */
+    public function fetchConversationTweetIds(string $conversationId): array
+    {
+        $tweetFields = config('twitter.default_tweet_fields');
+        $expansions = config('twitter.default_expansions');
+        $mediaFields = config('twitter.default_media_fields');
+        $userFields = config('twitter.default_user_fields');
+
+        $query = [
+            'query' => "conversation_id:{$conversationId} -is:quote -is:retweet",
+            'tweet.fields' => $tweetFields,
+            'max_results' => 100,
+        ];
+
+        if (! empty($expansions)) {
+            $query['expansions'] = $expansions;
+        }
+
+        if (! empty($mediaFields)) {
+            $query['media.fields'] = $mediaFields;
+        }
+
+        if (! empty($userFields)) {
+            $query['user.fields'] = $userFields;
+        }
+
+        $tweetIds = [];
+        $nextToken = null;
+
+        do {
+            if ($nextToken !== null) {
+                $query['next_token'] = $nextToken;
+            } else {
+                unset($query['next_token']);
+            }
+
+            try {
+                $response = $this->client->get('/2/tweets/search/recent', [
+                    'query' => $query,
+                    'headers' => $this->getAuthHeaders('GET', '/2/tweets/search/recent', $query),
+                ]);
+
+                $data = json_decode((string) $response->getBody(), true);
+                $items = $data['data'] ?? [];
+
+                foreach ($items as $item) {
+                    if (isset($item['id'])) {
+                        $tweetIds[] = (string) $item['id'];
+                    }
+                }
+
+                $meta = $data['meta'] ?? [];
+                $newToken = $meta['next_token'] ?? null;
+
+                dd([
+                    'query' => $query,
+                    'status' => $response->getStatusCode(),
+                    'meta' => $meta,
+                    'errors' => $data['errors'] ?? null,
+                    'data_count' => count($items),
+                    'reply_ids' => array_map(
+                        fn (array $item) => $item['id'] ?? null,
+                        array_filter($items, 'is_array')
+                    ),
+                ]);
+
+                if ($newToken === $nextToken) {
+                    break;
+                }
+
+                $nextToken = $newToken;
+            } catch (RequestException $e) {
+                $statusCode = $e->getResponse()?->getStatusCode();
+                $responseBody = $e->getResponse()?->getBody()->getContents();
+
+                if ($statusCode === 429 && $e->getResponse()) {
+                    $rateLimitReset = $e->getResponse()->getHeader('x-rate-limit-reset');
+                    if (! empty($rateLimitReset)) {
+                        $this->lastRateLimitReset = (int) $rateLimitReset[0];
+                    }
+                }
+
+                Log::warning('X API search request failed', [
+                    'conversation_id' => $conversationId,
+                    'status_code' => $statusCode,
+                    'error' => $e->getMessage(),
+                    'response_body' => $responseBody,
+                    'rate_limit_reset' => $this->lastRateLimitReset,
+                ]);
+
+                break;
+            } catch (\Exception $e) {
+                Log::error('X API search unexpected error', [
+                    'conversation_id' => $conversationId,
+                    'error' => $e->getMessage(),
+                ]);
+
+                break;
+            }
+        } while ($nextToken !== null);
+
+        return array_values(array_unique($tweetIds));
+    }
+
 
     /**
      * ツイートキャッシュキーを生成する

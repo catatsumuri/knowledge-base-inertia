@@ -354,6 +354,7 @@ class ImportV2JaMarkdownCommand extends Command
                     $content = $matches[1];
                     // 各行から先頭の4スペースを除去
                     $content = preg_replace('/^    /m', '', $content);
+
                     return ":::message{$content}:::";
                 }, $body);
             }
@@ -364,6 +365,7 @@ class ImportV2JaMarkdownCommand extends Command
                     $content = $matches[1];
                     // 各行から先頭の4スペースを除去
                     $content = preg_replace('/^    /m', '', $content);
+
                     return ":::message{$content}:::";
                 }, $body);
             }
@@ -374,6 +376,7 @@ class ImportV2JaMarkdownCommand extends Command
                     $content = $matches[1];
                     // 各行から先頭の4スペースを除去
                     $content = preg_replace('/^    /m', '', $content);
+
                     return ":::message{$content}:::";
                 }, $body);
             }
@@ -384,6 +387,7 @@ class ImportV2JaMarkdownCommand extends Command
                     $content = $matches[1];
                     // 各行から先頭の4スペースを除去
                     $content = preg_replace('/^    /m', '', $content);
+
                     return ":::message{$content}:::";
                 }, $body);
             }

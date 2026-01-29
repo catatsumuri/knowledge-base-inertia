@@ -62,7 +62,7 @@ return [
     | context_annotations, entities, withheld, public_metrics, etc.
     */
 
-    'default_tweet_fields' => env('X_DEFAULT_TWEET_FIELDS', 'created_at,author_id,public_metrics,lang,possibly_sensitive,attachments,referenced_tweets,entities'),
+    'default_tweet_fields' => env('X_DEFAULT_TWEET_FIELDS', 'created_at,author_id,conversation_id,public_metrics,lang,possibly_sensitive,attachments,referenced_tweets,entities'),
 
     /*
     |--------------------------------------------------------------------------

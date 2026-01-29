@@ -1,4 +1,9 @@
-import { destroy, moveToShoutbox } from '@/actions/App/Http/Controllers/TweetController';
+import {
+    destroy,
+    forceDestroy,
+    moveToShoutbox,
+    restore,
+} from '@/actions/App/Http/Controllers/TweetController';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +24,15 @@ import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import { cn } from '@/lib/utils';
 import { Form } from '@inertiajs/react';
-import { Heart, MessageCircle, Quote, Repeat2, Send, Trash2 } from 'lucide-react';
+import {
+    Heart,
+    MessageCircle,
+    Quote,
+    Repeat2,
+    RotateCcw,
+    Send,
+    Trash2,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface TweetAuthor {
@@ -39,12 +52,23 @@ interface TweetMedia {
     height?: number;
 }
 
+interface RelatedTweetPreview {
+    id: number;
+    tweet_id: string;
+    text: string;
+    author: TweetAuthor | null;
+    media: TweetMedia[];
+    created_at: string | null;
+}
+
 interface Tweet {
     id: number;
     tweet_id: string;
     text: string;
     author: TweetAuthor | null;
     media: TweetMedia[];
+    reply_to_tweet_id?: string | null;
+    parent?: RelatedTweetPreview | null;
     public_metrics: {
         like_count: number;
         retweet_count: number;
@@ -57,6 +81,7 @@ interface Tweet {
 
 interface TweetCardProps {
     tweet: Tweet;
+    mode?: 'active' | 'archived';
 }
 
 interface MarkdownPage {
@@ -74,7 +99,7 @@ const formatNumber = (num: number): string => {
     return num.toString();
 };
 
-export default function TweetCard({ tweet }: TweetCardProps) {
+export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
     const { __ } = useLang();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isShoutDialogOpen, setIsShoutDialogOpen] = useState(false);
@@ -84,8 +109,11 @@ export default function TweetCard({ tweet }: TweetCardProps) {
     const [suggestions, setSuggestions] = useState<MarkdownPage[]>([]);
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
     const [mentionStart, setMentionStart] = useState<number | null>(null);
-    const initials = useInitials(tweet.author?.name || '');
+    const getInitials = useInitials();
+    const initials = getInitials(tweet.author?.name || '');
     const mentionInputRef = useRef<HTMLTextAreaElement>(null);
+    const isArchived = mode === 'archived';
+    const replyToTweetId = tweet.reply_to_tweet_id ?? null;
 
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -102,6 +130,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
         setMentionStart(null);
         setIsShoutDialogOpen(true);
     };
+
 
     const handlePageMentionChange = async (
         e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -200,19 +229,42 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                                 <p className="truncate font-semibold">
                                     {tweet.author?.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
-                                    @{tweet.author?.username}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <p className="text-xs text-muted-foreground">
+                                        @{tweet.author?.username}
+                                    </p>
+                                    {isArchived && (
+                                        <Badge variant="secondary">
+                                            {__('Archived')}
+                                        </Badge>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={handleDeleteClick}
-                            className="shrink-0"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                            {isArchived && (
+                                <Form action={restore(tweet.id)}>
+                                    {({ processing }) => (
+                                        <Button
+                                            type="submit"
+                                            variant="ghost"
+                                            size="icon"
+                                            disabled={processing}
+                                        >
+                                            <RotateCcw className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </Form>
+                            )}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleDeleteClick}
+                                className="shrink-0"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
 
@@ -292,17 +344,19 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                         </div>
                     )}
 
-                    <div className="pt-2">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={handleShoutClick}
-                        >
-                            <Send className="mr-2 h-4 w-4" />
-                            {__('Send to Shoutbox')}
-                        </Button>
-                    </div>
+                    {!isArchived && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={handleShoutClick}
+                            >
+                                <Send className="mr-2 h-4 w-4" />
+                                {__('Send to Shoutbox')}
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -313,19 +367,31 @@ export default function TweetCard({ tweet }: TweetCardProps) {
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{__('Delete Tweet')}</DialogTitle>
+                        <DialogTitle>
+                            {isArchived
+                                ? __('Delete Permanently')
+                                : __('Archive Tweet')}
+                        </DialogTitle>
                         <DialogDescription>
                             <span className="block font-semibold text-foreground">
-                                {__('Are you sure you want to delete this tweet?')}
+                                {isArchived
+                                    ? __('Are you sure you want to permanently delete this tweet?')
+                                    : __('Are you sure you want to archive this tweet?')}
                             </span>
                             <span className="mt-2 block text-muted-foreground">
-                                {__('This action cannot be undone.')}
+                                {isArchived
+                                    ? __('This action cannot be undone.')
+                                    : __('You can restore it later from the archive.')}
                             </span>
                         </DialogDescription>
                     </DialogHeader>
 
                     <Form
-                        action={destroy(tweet.id)}
+                        action={
+                            isArchived
+                                ? forceDestroy(tweet.id)
+                                : destroy(tweet.id)
+                        }
                         onSuccess={() => setIsDeleteDialogOpen(false)}
                     >
                         {({ processing }) => (
@@ -346,7 +412,9 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                                 >
                                     {processing
                                         ? __('Deleting...')
-                                        : __('Delete')}
+                                        : isArchived
+                                          ? __('Delete Permanently')
+                                          : __('Archive')}
                                 </Button>
                             </DialogFooter>
                         )}
@@ -454,7 +522,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                                     <Label
                                         htmlFor={`delete-original-${tweet.id}`}
                                     >
-                                        {__('Delete original tweet after posting')}
+                                        {__('Archive original tweet after posting')}
                                     </Label>
                                 </div>
                             <DialogFooter>

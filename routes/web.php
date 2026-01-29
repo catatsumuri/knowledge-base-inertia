@@ -80,11 +80,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sitemap', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
     Route::get('tweets', [TweetController::class, 'index'])->name('tweets.index');
+    Route::get('tweets/archive', [TweetController::class, 'archive'])->name('tweets.archive');
+    Route::get('tweets/list', [TweetController::class, 'listAll'])->name('tweets.list');
+    Route::post('tweets/export', [TweetController::class, 'export'])->name('tweets.export');
+    Route::post('tweets/import', [TweetController::class, 'import'])->name('tweets.import');
+    Route::post('tweets/bulk-force-delete', [TweetController::class, 'bulkForceDelete'])
+        ->name('tweets.bulk-force-delete');
     Route::post('tweets', [TweetController::class, 'store'])->name('tweets.store');
     Route::get('tweets/fetch-jobs', [TweetController::class, 'fetchJobs'])->name('tweets.fetch-jobs');
     Route::post('tweets/fetch-jobs/{jobId}/retry', [TweetController::class, 'retryFetchJob'])->name('tweets.fetch-jobs.retry');
     Route::post('tweets/{tweet}/shoutbox', [TweetController::class, 'moveToShoutbox'])->name('tweets.shoutbox.store');
     Route::delete('tweets/{tweet}', [TweetController::class, 'destroy'])->name('tweets.destroy');
+    Route::post('tweets/{tweet}/restore', [TweetController::class, 'restore'])
+        ->withTrashed()
+        ->name('tweets.restore');
+    Route::delete('tweets/{tweet}/force', [TweetController::class, 'forceDestroy'])
+        ->withTrashed()
+        ->name('tweets.force-destroy');
 
     Route::get('topics', [\App\Http\Controllers\TopicController::class, 'index'])->name('topics.index');
     Route::get('topics/{slug}', [\App\Http\Controllers\TopicController::class, 'show'])->name('topics.show');

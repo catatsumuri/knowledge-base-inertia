@@ -1,14 +1,10 @@
+import { index } from '@/actions/App/Http/Controllers/TweetController';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { archive } from '@/actions/App/Http/Controllers/TweetController';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PaginatedData } from '@/types';
-import { Head, InfiniteScroll, Link, usePage } from '@inertiajs/react';
-import { Archive, List, Plus, Twitter } from 'lucide-react';
-import { useState } from 'react';
-import AddTweetDialog from './add-tweet-dialog';
-import FetchJobsSection from './fetch-jobs-section';
+import { Head, InfiniteScroll, Link } from '@inertiajs/react';
+import { ArrowLeft, ArchiveX } from 'lucide-react';
 import TweetCard from './tweet-card';
 
 interface TweetAuthor {
@@ -53,84 +49,44 @@ interface Tweet {
     } | null;
     created_at: string | null;
     fetched_at: string | null;
+    deleted_at?: string | null;
 }
 
-interface TweetsIndexProps {
+interface TweetsArchiveProps {
     tweets: PaginatedData<Tweet>;
-    archivedCount: number;
 }
 
-export default function TweetsIndex({ tweets, archivedCount }: TweetsIndexProps) {
+export default function TweetsArchive({ tweets }: TweetsArchiveProps) {
     const { __ } = useLang();
-    const [showAddDialog, setShowAddDialog] = useState(false);
-    const page = usePage();
-    const errors = page.props.errors as Record<string, string> | undefined;
-    const flash = page.props.flash as
-        | { error?: string; success?: string; info?: string }
-        | undefined;
-    const errorMessage = errors?.tweet ?? flash?.error ?? null;
-    const infoMessage = !errorMessage ? flash?.info ?? flash?.success ?? null : null;
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('Saved Tweets'),
             href: '/tweets',
         },
+        {
+            title: __('Archive'),
+            href: '/tweets/archive',
+        },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={__('Saved Tweets')} />
+            <Head title={__('Archived Tweets')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                {/* ヘッダー */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <h1 className="text-2xl font-bold">
-                        {__('Saved Tweets')}
+                        {__('Archived Tweets')}
                     </h1>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href="/tweets/list">
-                                <List className="mr-2 h-4 w-4" />
-                                {__('All Tweets')}
-                            </Link>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <Link href={archive()}>
-                                <Archive className="mr-2 h-4 w-4" />
-                                {archivedCount > 0
-                                    ? `${__('Archive')} (${archivedCount})`
-                                    : __('Archive')}
-                            </Link>
-                        </Button>
-                        <Button onClick={() => setShowAddDialog(true)}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            {__('Add Tweet')}
-                        </Button>
-                    </div>
+                    <Button variant="outline" asChild>
+                        <Link href={index()}>
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            {__('Back to Saved Tweets')}
+                        </Link>
+                    </Button>
                 </div>
 
-                {/* 新規追加ダイアログ */}
-                <AddTweetDialog
-                    open={showAddDialog}
-                    onOpenChange={setShowAddDialog}
-                />
-
-                {(errorMessage || infoMessage) && (
-                    <Alert variant={errorMessage ? 'destructive' : 'default'}>
-                        <AlertTitle>
-                            {errorMessage ? __('Error') : __('Info')}
-                        </AlertTitle>
-                        <AlertDescription>
-                            {errorMessage ?? infoMessage}
-                        </AlertDescription>
-                    </Alert>
-                )}
-
-                {/* 進行状況セクション */}
-                <FetchJobsSection />
-
-                {/* ツイート一覧 */}
                 <div className="rounded-xl border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <InfiniteScroll
                         data="tweets"
@@ -155,24 +111,24 @@ export default function TweetsIndex({ tweets, archivedCount }: TweetsIndexProps)
                     >
                         {tweets.data.length === 0 ? (
                             <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                                <Twitter className="h-12 w-12 text-muted-foreground" />
+                                <ArchiveX className="h-12 w-12 text-muted-foreground" />
                                 <div>
                                     <p className="font-medium text-foreground">
-                                        {__('No saved tweets yet')}
+                                        {__('No archived tweets')}
                                     </p>
                                     <p className="mt-1 text-sm text-muted-foreground">
-                                        {__('Add your first tweet to get started')}
+                                        {__('Archived tweets will appear here')}
                                     </p>
                                 </div>
-                                <Button onClick={() => setShowAddDialog(true)}>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {__('Add Tweet')}
-                                </Button>
                             </div>
                         ) : (
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {tweets.data.map((tweet) => (
-                                    <TweetCard key={tweet.id} tweet={tweet} />
+                                    <TweetCard
+                                        key={tweet.id}
+                                        tweet={tweet}
+                                        mode="archived"
+                                    />
                                 ))}
                             </div>
                         )}
