@@ -11,6 +11,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class FetchTweetJob implements ShouldQueue
 {
@@ -32,9 +33,31 @@ class FetchTweetJob implements ShouldQueue
 
     public function handle(XApiService $xApiService): void
     {
+        $queueJob = $this->job;
+        $connectionName = null;
+        $queueName = null;
+
+        if ($queueJob !== null) {
+            $queueName = $queueJob->getQueue();
+            if (method_exists($queueJob, 'getConnectionName')) {
+                $connectionName = $queueJob->getConnectionName();
+            }
+        }
+
+        Log::channel('tweet_queue')->debug('FetchTweetJob started', [
+            'tweet_id' => $this->tweetId,
+            'tweet_fetch_job_id' => $this->tweetFetchJobId,
+            'queue_connection' => $connectionName ?? config('queue.default'),
+            'queue_name' => $queueName ?? config('queue.connections.'.config('queue.default').'.queue'),
+        ]);
+
         $tweetFetchJob = TweetFetchJobModel::find($this->tweetFetchJobId);
 
         if ($tweetFetchJob === null) {
+            Log::channel('tweet_queue')->debug('FetchTweetJob record missing', [
+                'tweet_id' => $this->tweetId,
+                'tweet_fetch_job_id' => $this->tweetFetchJobId,
+            ]);
             return;
         }
 
@@ -46,7 +69,7 @@ class FetchTweetJob implements ShouldQueue
         // レート制限チェック
         $rateLimitReset = $xApiService->getLastRateLimitReset();
 
-        \Illuminate\Support\Facades\Log::info('FetchTweetJob: レート制限チェック', [
+        Log::channel('tweet_queue')->debug('FetchTweetJob: rate limit check', [
             'tweet_id' => $this->tweetId,
             'raw_tweet_is_null' => $rawTweet === null,
             'rate_limit_reset' => $rateLimitReset,
@@ -66,7 +89,7 @@ class FetchTweetJob implements ShouldQueue
                 $delaySeconds = 15 * 60 + 5;
             }
 
-            \Illuminate\Support\Facades\Log::info('FetchTweetJob: レート制限により遅延', [
+            Log::channel('tweet_queue')->debug('FetchTweetJob: delayed due to rate limit', [
                 'tweet_id' => $this->tweetId,
                 'reset_at' => $resetAt->toISOString(),
                 'delay_seconds' => $delaySeconds,
@@ -168,7 +191,7 @@ class FetchTweetJob implements ShouldQueue
             // 既に存在する場合は、parent_tweet_idを更新
             $tweetModel->update(['parent_tweet_id' => $parentTweet->id]);
 
-            \Illuminate\Support\Facades\Log::info('FetchTweetJob: 親ツイートが既に存在', [
+            Log::channel('tweet_queue')->debug('FetchTweetJob: parent tweet already exists', [
                 'tweet_id' => $this->tweetId,
                 'parent_tweet_id' => $parentTweetId,
             ]);
@@ -183,7 +206,7 @@ class FetchTweetJob implements ShouldQueue
 
         if ($existingJob !== null) {
             // 既にジョブが存在する場合は何もしない
-            \Illuminate\Support\Facades\Log::info('FetchTweetJob: 親ツイート取得ジョブが既に存在', [
+            Log::channel('tweet_queue')->debug('FetchTweetJob: parent fetch job already exists', [
                 'tweet_id' => $this->tweetId,
                 'parent_tweet_id' => $parentTweetId,
             ]);
@@ -200,7 +223,7 @@ class FetchTweetJob implements ShouldQueue
         // 遅延なしでジョブをディスパッチ
         self::dispatch($jobRecord->id, $parentTweetId);
 
-        \Illuminate\Support\Facades\Log::info('FetchTweetJob: 親ツイート取得ジョブを作成', [
+        Log::channel('tweet_queue')->debug('FetchTweetJob: parent fetch job created', [
             'tweet_id' => $this->tweetId,
             'parent_tweet_id' => $parentTweetId,
             'job_id' => $jobRecord->id,

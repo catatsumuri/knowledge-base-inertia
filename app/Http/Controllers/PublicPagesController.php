@@ -7,6 +7,7 @@ use App\Models\MarkdownNavigationItem;
 use App\Services\MarkdownNavigationTreeBuilder;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Honeypot\Honeypot;
 
 class PublicPagesController extends Controller
 {
@@ -53,6 +54,11 @@ class PublicPagesController extends Controller
     {
         $document->load(['createdBy', 'updatedBy']);
 
+        $left = random_int(1, 9);
+        $right = random_int(1, 9);
+        $captchaQuestion = "{$left} + {$right}";
+        session(['public_feedback_captcha_answer' => $left + $right]);
+
         $firstLevelTitle = null;
         $firstLevelEyecatchLightUrl = null;
         $firstLevelEyecatchDarkUrl = null;
@@ -79,6 +85,10 @@ class PublicPagesController extends Controller
             'relatedShouts' => [],
             'canCreate' => false,
             'isPublic' => true,
+            'honeypot' => new Honeypot(config('honeypot')),
+            'captcha' => [
+                'question' => $captchaQuestion,
+            ],
             'pageTree' => $this->buildPublicTree(),
             'firstLevelTitle' => $firstLevelTitle,
             'firstLevelEyecatchLightUrl' => $firstLevelEyecatchLightUrl,

@@ -58,6 +58,12 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        'feedback_notifications' => [
+            'driver' => 'stack',
+            'channels' => ['slack_feedback', 'feedback'],
+            'ignore_exceptions' => false,
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
@@ -73,12 +79,35 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'tweet_queue' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/tweet-queue.log'),
+            'level' => env('LOG_TWEET_QUEUE_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
+        'feedback' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/feedback.log'),
+            'level' => env('LOG_FEEDBACK_LEVEL', 'info'),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
             'username' => env('LOG_SLACK_USERNAME', 'Laravel Log'),
             'emoji' => env('LOG_SLACK_EMOJI', ':boom:'),
             'level' => env('LOG_SLACK_LEVEL', 'critical'),
+            'replace_placeholders' => true,
+        ],
+
+        'slack_feedback' => [
+            'driver' => 'slack',
+            'url' => env('LOG_SLACK_WEBHOOK_URL'),
+            'username' => env('LOG_SLACK_USERNAME', 'Feedback'),
+            'emoji' => env('LOG_SLACK_EMOJI', ':memo:'),
+            'level' => env('LOG_SLACK_FEEDBACK_LEVEL', 'info'),
             'replace_placeholders' => true,
         ],
 

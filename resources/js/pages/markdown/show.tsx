@@ -4,6 +4,7 @@ import {
     show,
 } from '@/actions/App/Http/Controllers/MarkdownController';
 import { MarkdownViewer } from '@/components/markdown-viewer';
+import PublicFeedbackForm from '@/components/public-feedback-form';
 import { PublicPagesMenu } from '@/components/public-pages-menu';
 import { Toc } from '@/components/toc';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -162,11 +163,24 @@ interface PublicPageNode {
     children?: PublicPageNode[];
 }
 
+interface HoneypotData {
+    enabled: boolean;
+    nameFieldName: string;
+    validFromFieldName: string;
+    encryptedValidFrom: string;
+}
+
+interface CaptchaData {
+    question: string;
+}
+
 export default function Show({
     document,
     relatedShouts,
     canCreate,
     isPublic = false,
+    honeypot = undefined,
+    captcha = undefined,
     isHomePage = false,
     pageTree = [],
     firstLevelTitle = null,
@@ -179,6 +193,8 @@ export default function Show({
     relatedShouts: Shout[];
     canCreate: boolean;
     isPublic?: boolean;
+    honeypot?: HoneypotData;
+    captcha?: CaptchaData;
     isHomePage?: boolean;
     pageTree?: PublicPageNode[];
     firstLevelTitle?: string | null;
@@ -928,6 +944,16 @@ export default function Show({
                         </Button>
                     </div>
                 </div>
+            )}
+
+            {/* フィードバックフォーム */}
+            {isPublicView && (
+                <PublicFeedbackForm
+                    pageSlug={document.slug}
+                    pageUrl={currentUrl}
+                    honeypot={honeypot}
+                    captcha={captcha}
+                />
             )}
 
             {/* 画像ライトボックス */}

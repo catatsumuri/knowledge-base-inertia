@@ -11,6 +11,7 @@ use App\Models\TweetFetchJob as TweetFetchJobModel;
 use App\Services\XApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -206,6 +207,15 @@ class TweetController extends Controller
         } else {
             FetchTweetJob::dispatch($jobRecord->id, $tweetId);
         }
+
+        Log::channel('tweet_queue')->debug('Tweet fetch job queued', [
+            'tweet_id' => $tweetId,
+            'job_id' => $jobRecord->id,
+            'delay_seconds' => $delaySeconds,
+            'queue_connection' => config('queue.default'),
+            'queue_name' => config('queue.connections.'.config('queue.default').'.queue'),
+            'request_path' => $request->path(),
+        ]);
 
         return redirect()->back()->with([
             'message' => __('Tweet fetch has been queued.'),

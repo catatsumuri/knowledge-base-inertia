@@ -3,9 +3,11 @@
 use App\Http\Controllers\AppSettingsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NavigationOrderController;
+use App\Http\Controllers\PublicFeedbackController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\TweetController;
 use App\Models\MarkdownDocument;
+use Spatie\Honeypot\ProtectAgainstSpam;
 use App\Models\Shout;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -19,6 +21,9 @@ Route::get('pages', [PublicPagesController::class, 'index'])
 Route::get('pages/{slug}', [PublicPagesController::class, 'show'])
     ->where('slug', '.*')
     ->name('pages.show');
+Route::post('pages/feedback', [PublicFeedbackController::class, 'store'])
+    ->middleware(ProtectAgainstSpam::class)
+    ->name('pages.feedback.store');
 
 // OGP API
 Route::get('api/ogp', [\App\Http\Controllers\Api\OgpController::class, 'fetch'])
