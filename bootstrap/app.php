@@ -25,5 +25,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Production以外の環境でSlackに例外通知を送信
+        $exceptions->report(function (Throwable $e) {
+            if (! app()->environment('production')) {
+                \Illuminate\Support\Facades\Log::channel('slack')->error($e->getMessage(), [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        });
     })->create();

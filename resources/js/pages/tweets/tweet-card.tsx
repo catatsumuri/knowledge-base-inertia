@@ -25,6 +25,7 @@ import { useLang } from '@/hooks/useLang';
 import { cn } from '@/lib/utils';
 import { Form } from '@inertiajs/react';
 import {
+    Archive,
     Heart,
     MessageCircle,
     Quote,
@@ -262,7 +263,11 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
                                 onClick={handleDeleteClick}
                                 className="shrink-0"
                             >
-                                <Trash2 className="h-4 w-4" />
+                                {isArchived ? (
+                                    <Trash2 className="h-4 w-4" />
+                                ) : (
+                                    <Archive className="h-4 w-4" />
+                                )}
                             </Button>
                         </div>
                     </div>
