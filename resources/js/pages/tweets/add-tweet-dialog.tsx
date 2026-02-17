@@ -67,9 +67,7 @@ export default function AddTweetDialog({
                                     </Button>
                                 </DialogClose>
                                 <Button type="submit" disabled={processing}>
-                                    {processing
-                                        ? __('Saving...')
-                                        : __('Save')}
+                                    {processing ? __('Saving...') : __('Save')}
                                 </Button>
                             </DialogFooter>
                         </>

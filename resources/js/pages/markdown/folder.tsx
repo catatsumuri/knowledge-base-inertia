@@ -265,9 +265,7 @@ export default function FolderPage({
                     <CardContent>
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col gap-3">
-                                <div className="text-sm font-medium">
-                                    Light
-                                </div>
+                                <div className="text-sm font-medium">Light</div>
                                 {eyecatchLightUrl ? (
                                     <div className="overflow-hidden rounded-xl border border-sidebar-border/70 bg-white">
                                         <img
@@ -311,9 +309,7 @@ export default function FolderPage({
                                 </div>
                             </div>
                             <div className="flex flex-col gap-3">
-                                <div className="text-sm font-medium">
-                                    Dark
-                                </div>
+                                <div className="text-sm font-medium">Dark</div>
                                 {eyecatchDarkUrl ? (
                                     <div className="overflow-hidden rounded-xl border border-sidebar-border/70 bg-neutral-900">
                                         <img

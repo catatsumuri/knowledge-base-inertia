@@ -213,7 +213,8 @@ export function CodeBlock({
                                         );
                                     } catch {
                                         // ハイライト失敗時はプレーンテキスト
-                                        highlightedHTML = escapeHtml(codeContent);
+                                        highlightedHTML =
+                                            escapeHtml(codeContent);
                                     }
                                 } else {
                                     highlightedHTML = escapeHtml(codeContent);

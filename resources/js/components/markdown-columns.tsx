@@ -136,17 +136,19 @@ function extractCardsFromNode(node: unknown): Array<{
     content: string;
 }> {
     const nodeTyped = node as { children?: unknown[] };
-    const children = Array.isArray(nodeTyped?.children) ? nodeTyped.children : [];
+    const children = Array.isArray(nodeTyped?.children)
+        ? nodeTyped.children
+        : [];
 
     return children
-        .filter(
-            (child: unknown) => {
-                const c = child as { type?: string; tagName?: string };
-                return c?.type === 'element' && c.tagName === 'card';
-            },
-        )
+        .filter((child: unknown) => {
+            const c = child as { type?: string; tagName?: string };
+            return c?.type === 'element' && c.tagName === 'card';
+        })
         .map((child: unknown) => {
-            const c = child as { properties?: { title?: string; href?: string; icon?: string } };
+            const c = child as {
+                properties?: { title?: string; href?: string; icon?: string };
+            };
             return {
                 title: c.properties?.title,
                 href: c.properties?.href,

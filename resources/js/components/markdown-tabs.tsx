@@ -1,13 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getLucideIcon } from '@/lib/lucide-icon-mapper';
 import type { ReactNode } from 'react';
-import {
-    Children,
-    isValidElement,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import { Children, isValidElement, useEffect, useMemo, useState } from 'react';
 
 const TABS_STORAGE_KEY = 'markdown-tabs-selection';
 const TABS_CHANGE_EVENT = 'markdown-tabs:selection-change';
@@ -58,13 +52,19 @@ function setStoredSelection(selection: PreferredSelection) {
     }
 
     try {
-        window.localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(selection));
+        window.localStorage.setItem(
+            TABS_STORAGE_KEY,
+            JSON.stringify(selection),
+        );
     } catch {
         // localStorage が無効な環境では無視する
     }
 }
 
-function resolveBoolean(value: string | boolean | undefined, fallback: boolean) {
+function resolveBoolean(
+    value: string | boolean | undefined,
+    fallback: boolean,
+) {
     if (typeof value === 'boolean') {
         return value;
     }
@@ -213,14 +213,12 @@ export function MarkdownTabs({
                             className={[
                                 'h-9 flex-none rounded-full border border-transparent px-4 text-sm font-semibold',
                                 'text-foreground/70 transition-colors',
-                                'hover:text-foreground hover:bg-background/70',
+                                'hover:bg-background/70 hover:text-foreground',
                                 'data-[state=active]:bg-background data-[state=active]:text-foreground',
                                 'data-[state=active]:border-emerald-500/30 data-[state=active]:shadow-sm',
                             ].join(' ')}
                         >
-                            {tab.icon ? (
-                                <TabIcon name={tab.icon} />
-                            ) : null}
+                            {tab.icon ? <TabIcon name={tab.icon} /> : null}
                             <span>{tab.title}</span>
                         </TabsTrigger>
                     ))}

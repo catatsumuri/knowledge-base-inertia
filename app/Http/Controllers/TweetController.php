@@ -12,6 +12,7 @@ use App\Services\XApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,15 +26,24 @@ class TweetController extends Controller
     /**
      * Display a listing of saved tweets.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $activeTag = trim((string) $request->query('tag', ''));
+        $hasTagsColumn = $this->hasTweetTagsColumn();
+
         $tweets = Inertia::scroll(fn () => Tweet::query()
+            ->when(
+                $hasTagsColumn && $activeTag !== '',
+                fn ($query) => $query->whereJsonContains('tags', $activeTag)
+            )
             ->with(['parent' => fn ($query) => $query->withTrashed()])
             ->latest('fetched_at')
             ->paginate(12)
+            ->withQueryString()
             ->through(fn (Tweet $tweet) => [
                 'id' => $tweet->id,
                 'tweet_id' => $tweet->tweet_id,
+                'tags' => $tweet->tags ?? [],
                 'text' => $tweet->text ?? $tweet->payload['data']['text'] ?? '',
                 'author' => $tweet->payload['includes']['users'][0] ?? null,
                 'media' => $this->formatMediaForDisplay($tweet),
@@ -56,6 +66,8 @@ class TweetController extends Controller
         return Inertia::render('tweets/index', [
             'tweets' => $tweets,
             'archivedCount' => Tweet::onlyTrashed()->count(),
+            'activeTag' => $hasTagsColumn && $activeTag !== '' ? $activeTag : null,
+            'tagGroups' => $hasTagsColumn ? $this->collectTagGroups() : [],
         ]);
     }
 
@@ -71,6 +83,7 @@ class TweetController extends Controller
             ->through(fn (Tweet $tweet) => [
                 'id' => $tweet->id,
                 'tweet_id' => $tweet->tweet_id,
+                'tags' => $tweet->tags ?? [],
                 'text' => $tweet->text ?? $tweet->payload['data']['text'] ?? '',
                 'author' => $tweet->payload['includes']['users'][0] ?? null,
                 'media' => $this->formatMediaForDisplay($tweet),
@@ -108,6 +121,7 @@ class TweetController extends Controller
             ->through(fn (Tweet $tweet) => [
                 'id' => $tweet->id,
                 'tweet_id' => $tweet->tweet_id,
+                'tags' => $tweet->tags ?? [],
                 'text' => $tweet->text ?? $tweet->payload['data']['text'] ?? '',
                 'author' => $tweet->payload['includes']['users'][0] ?? null,
                 'media' => $this->formatMediaForDisplay($tweet),
@@ -226,58 +240,141 @@ class TweetController extends Controller
     {
         $shouldDeleteOriginal = $request->boolean('delete_original', true);
         $pageMentions = trim((string) $request->input('page_mentions', ''));
-        $content = $tweet->text ?? $tweet->payload['data']['text'] ?? '';
-        $mediaEntries = $this->extractShoutMediaEntries($tweet);
-        $mediaEntries = array_slice($mediaEntries, 0, 4);
+        $created = $this->createShoutFromTweet(
+            userId: $request->user()->id,
+            tweet: $tweet,
+            pageMentions: $pageMentions,
+            shouldDeleteOriginal: $shouldDeleteOriginal,
+        );
 
-        $contentWithMentions = $content;
-        if ($pageMentions !== '') {
-            $contentWithMentions = trim($contentWithMentions) === ''
-                ? $pageMentions
-                : rtrim($contentWithMentions)."\n\n".$pageMentions;
-        }
-
-        if (trim($contentWithMentions) === '' && $mediaEntries === []) {
+        if (! $created) {
             return redirect()->back()->withErrors([
                 'tweet' => __('This tweet has no text or media to post.'),
             ]);
         }
 
-        $shout = Shout::create([
-            'user_id' => $request->user()->id,
-            'parent_id' => null,
-            'content' => $contentWithMentions,
-            'images' => null,
-            'image_metadata' => null,
+        return redirect()->route('shoutbox.index');
+    }
+
+    /**
+     * Send selected tweets to shoutbox in bulk.
+     */
+    public function bulkMoveToShoutbox(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['integer'],
+            'mode' => ['required', 'in:separate,merged'],
+            'delete_original' => ['nullable', 'boolean'],
+            'page_mentions' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        foreach ($mediaEntries as $entry) {
-            $mediaId = $entry['media_id'] ?? null;
-            $sourceUrl = $entry['source_url'] ?? null;
+        $ids = array_values(array_unique(array_map('intval', $validated['ids'])));
+        $mode = (string) $validated['mode'];
+        $shouldDeleteOriginal = (bool) ($validated['delete_original'] ?? true);
+        $pageMentions = trim((string) ($validated['page_mentions'] ?? ''));
 
-            if ($mediaId !== null) {
-                $media = Media::query()->find($mediaId);
-                if ($media !== null && $media->model_type === Tweet::class && $media->model_id === $tweet->id) {
-                    if (str_starts_with((string) $media->mime_type, 'image/')) {
-                        $shout->addMedia($media->getPath())->toMediaCollection('images');
+        if ($ids === []) {
+            return redirect()->back()->withErrors([
+                'tweet' => __('Please select tweets to send.'),
+            ]);
+        }
 
-                        continue;
-                    }
-                }
+        $tweetsById = Tweet::query()
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+
+        $tweets = collect($ids)
+            ->map(fn (int $id) => $tweetsById->get($id))
+            ->filter(fn ($tweet) => $tweet instanceof Tweet)
+            ->values();
+
+        if ($tweets->isEmpty()) {
+            return redirect()->back()->withErrors([
+                'tweet' => __('Selected tweets were not found.'),
+            ]);
+        }
+
+        if ($mode === 'merged') {
+            $mergedContent = $tweets
+                ->map(function (Tweet $tweet): string {
+                    $username = $tweet->payload['includes']['users'][0]['username'] ?? null;
+                    $prefix = is_string($username) && $username !== '' ? '@'.$username.': ' : '';
+                    $content = $tweet->text ?? $tweet->payload['data']['text'] ?? '';
+
+                    return trim($prefix.$content);
+                })
+                ->filter(fn (string $line) => $line !== '')
+                ->implode("\n\n");
+
+            if ($pageMentions !== '') {
+                $mergedContent = trim($mergedContent) === ''
+                    ? $pageMentions
+                    : rtrim($mergedContent)."\n\n".$pageMentions;
             }
 
-            if (is_string($sourceUrl) && $sourceUrl !== '') {
-                $shout->addMediaFromUrl($sourceUrl)->toMediaCollection('images');
+            $firstTweet = $tweets->first();
+            $mediaEntries = $firstTweet instanceof Tweet
+                ? array_slice($this->extractShoutMediaEntries($firstTweet), 0, 4)
+                : [];
+
+            if (trim($mergedContent) === '' && $mediaEntries === []) {
+                return redirect()->back()->withErrors([
+                    'tweet' => __('Selected tweets have no text or media to post.'),
+                ]);
+            }
+
+            $shout = Shout::create([
+                'user_id' => $request->user()->id,
+                'parent_id' => null,
+                'content' => $mergedContent,
+                'images' => null,
+                'image_metadata' => null,
+            ]);
+
+            if ($firstTweet instanceof Tweet) {
+                $this->attachMediaEntriesToShout($shout, $firstTweet, $mediaEntries);
+            }
+
+            $this->saveMentionedLinks($shout, $shout->content);
+
+            if ($shouldDeleteOriginal) {
+                Tweet::query()->whereIn('id', $tweets->pluck('id'))->delete();
+            }
+
+            return redirect()->back()->with([
+                'message' => __('Selected tweets sent to Shoutbox.'),
+            ]);
+        }
+
+        $createdCount = 0;
+        foreach ($tweets as $tweet) {
+            if (! $tweet instanceof Tweet) {
+                continue;
+            }
+
+            $created = $this->createShoutFromTweet(
+                userId: $request->user()->id,
+                tweet: $tweet,
+                pageMentions: $pageMentions,
+                shouldDeleteOriginal: $shouldDeleteOriginal,
+            );
+
+            if ($created) {
+                $createdCount++;
             }
         }
 
-        $this->saveMentionedLinks($shout, $shout->content);
-
-        if ($shouldDeleteOriginal) {
-            $tweet->delete();
+        if ($createdCount === 0) {
+            return redirect()->back()->withErrors([
+                'tweet' => __('Selected tweets have no text or media to post.'),
+            ]);
         }
 
-        return redirect()->route('shoutbox.index');
+        return redirect()->back()->with([
+            'message' => __('Selected tweets sent to Shoutbox.'),
+        ]);
     }
 
     /**
@@ -290,6 +387,31 @@ class TweetController extends Controller
         return redirect()->back()->with([
             'message' => __('Tweet archived.'),
         ]);
+    }
+
+    /**
+     * Update tags for a tweet.
+     */
+    public function updateTags(Request $request, Tweet $tweet): RedirectResponse
+    {
+        if (! $this->hasTweetTagsColumn()) {
+            return redirect()->back()->withErrors([
+                'tweet' => __('Tags are not available yet. Please run migrations first.'),
+            ]);
+        }
+
+        $validated = $request->validate([
+            'tags' => ['nullable', 'array', 'max:20'],
+            'tags.*' => ['string', 'max:32'],
+        ]);
+
+        $tags = $this->normalizeTags($validated['tags'] ?? []);
+
+        $tweet->update([
+            'tags' => $tags === [] ? null : $tags,
+        ]);
+
+        return redirect()->back();
     }
 
     /**
@@ -403,6 +525,7 @@ class TweetController extends Controller
                     'tweet_created_at' => $tweet->tweet_created_at?->toISOString(),
                     'media_metadata' => $tweet->media_metadata ?? [],
                     'reply_count' => $tweet->reply_count,
+                    'tags' => $tweet->tags ?? [],
                     'deleted_at' => $tweet->deleted_at?->toISOString(),
                 ])
                 ->values()
@@ -505,6 +628,7 @@ class TweetController extends Controller
                     : null,
                 'media_metadata' => is_array($item['media_metadata'] ?? null) ? $item['media_metadata'] : null,
                 'reply_count' => isset($item['reply_count']) ? (int) $item['reply_count'] : null,
+                'tags' => $this->normalizeTags(is_array($item['tags'] ?? null) ? $item['tags'] : []),
             ]);
 
             if (! empty($item['deleted_at'])) {
@@ -579,6 +703,130 @@ class TweetController extends Controller
         return redirect()->back()->with([
             'message' => __('Job has been queued for retry.'),
         ]);
+    }
+
+    /**
+     * @param  array<int, mixed>  $tags
+     * @return array<int, string>
+     */
+    private function normalizeTags(array $tags): array
+    {
+        return collect($tags)
+            ->filter(fn ($tag) => is_string($tag))
+            ->map(fn (string $tag) => trim(str_replace('#', '', $tag)))
+            ->map(fn (string $tag) => preg_replace('/\s+/', ' ', $tag) ?? '')
+            ->map(fn (string $tag) => mb_strtolower($tag))
+            ->filter(fn (string $tag) => $tag !== '')
+            ->unique()
+            ->take(20)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{tag: string, count: int}>
+     */
+    private function collectTagGroups(): array
+    {
+        $counts = Tweet::query()
+            ->whereNotNull('tags')
+            ->get()
+            ->pluck('tags')
+            ->filter(fn ($tags) => is_array($tags))
+            ->flatten()
+            ->filter(fn ($tag) => is_string($tag) && trim($tag) !== '')
+            ->map(fn (string $tag) => trim($tag))
+            ->countBy();
+
+        $groups = $counts
+            ->map(fn (int $count, string $tag) => ['tag' => $tag, 'count' => $count])
+            ->values()
+            ->all();
+
+        usort($groups, function (array $left, array $right): int {
+            if ($left['count'] !== $right['count']) {
+                return $right['count'] <=> $left['count'];
+            }
+
+            return strcmp($left['tag'], $right['tag']);
+        });
+
+        return $groups;
+    }
+
+    private function hasTweetTagsColumn(): bool
+    {
+        static $hasColumn = null;
+
+        if ($hasColumn === null) {
+            $hasColumn = Schema::hasColumn('tweets', 'tags');
+        }
+
+        return $hasColumn;
+    }
+
+    private function createShoutFromTweet(
+        int $userId,
+        Tweet $tweet,
+        string $pageMentions,
+        bool $shouldDeleteOriginal
+    ): bool {
+        $content = $tweet->text ?? $tweet->payload['data']['text'] ?? '';
+        $mediaEntries = array_slice($this->extractShoutMediaEntries($tweet), 0, 4);
+
+        $contentWithMentions = $content;
+        if ($pageMentions !== '') {
+            $contentWithMentions = trim($contentWithMentions) === ''
+                ? $pageMentions
+                : rtrim($contentWithMentions)."\n\n".$pageMentions;
+        }
+
+        if (trim($contentWithMentions) === '' && $mediaEntries === []) {
+            return false;
+        }
+
+        $shout = Shout::create([
+            'user_id' => $userId,
+            'parent_id' => null,
+            'content' => $contentWithMentions,
+            'images' => null,
+            'image_metadata' => null,
+        ]);
+
+        $this->attachMediaEntriesToShout($shout, $tweet, $mediaEntries);
+        $this->saveMentionedLinks($shout, $shout->content);
+
+        if ($shouldDeleteOriginal) {
+            $tweet->delete();
+        }
+
+        return true;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $mediaEntries
+     */
+    private function attachMediaEntriesToShout(Shout $shout, Tweet $tweet, array $mediaEntries): void
+    {
+        foreach ($mediaEntries as $entry) {
+            $mediaId = $entry['media_id'] ?? null;
+            $sourceUrl = $entry['source_url'] ?? null;
+
+            if ($mediaId !== null) {
+                $media = Media::query()->find($mediaId);
+                if ($media !== null && $media->model_type === Tweet::class && $media->model_id === $tweet->id) {
+                    if (str_starts_with((string) $media->mime_type, 'image/')) {
+                        $shout->addMedia($media->getPath())->toMediaCollection('images');
+
+                        continue;
+                    }
+                }
+            }
+
+            if (is_string($sourceUrl) && $sourceUrl !== '') {
+                $shout->addMediaFromUrl($sourceUrl)->toMediaCollection('images');
+            }
+        }
     }
 
     /**

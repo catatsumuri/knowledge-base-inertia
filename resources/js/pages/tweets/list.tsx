@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,18 +9,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useLang } from '@/hooks/useLang';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type PaginatedData } from '@/types';
-import { Head, InfiniteScroll, Link, Form } from '@inertiajs/react';
-import {
-    Download,
-    ExternalLink,
-    Image as ImageIcon,
-    List,
-    Upload,
-    Twitter,
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogClose,
@@ -34,6 +22,18 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLang } from '@/hooks/useLang';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem, type PaginatedData } from '@/types';
+import { Form, Head, InfiniteScroll, Link } from '@inertiajs/react';
+import {
+    Download,
+    ExternalLink,
+    Image as ImageIcon,
+    List,
+    Twitter,
+    Upload,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface TweetAuthor {
@@ -65,6 +65,7 @@ interface RelatedTweetPreview {
 interface Tweet {
     id: number;
     tweet_id: string;
+    tags: string[];
     text: string;
     author: TweetAuthor | null;
     media: TweetMedia[];
@@ -148,7 +149,11 @@ export default function TweetsList({ tweets }: TweetsListProps) {
                             className="contents"
                             target="_blank"
                         >
-                            <input type="hidden" name="_token" value={csrfToken} />
+                            <input
+                                type="hidden"
+                                name="_token"
+                                value={csrfToken}
+                            />
                             <input
                                 type="hidden"
                                 name="ids"
@@ -186,9 +191,7 @@ export default function TweetsList({ tweets }: TweetsListProps) {
                                         {__('Delete selected tweets?')}
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        {__(
-                                            'This action cannot be undone.',
-                                        )}
+                                        {__('This action cannot be undone.')}
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -205,7 +208,10 @@ export default function TweetsList({ tweets }: TweetsListProps) {
                                             value={selectedIdsString}
                                         />
                                         <AlertDialogAction asChild>
-                                            <Button type="submit" variant="destructive">
+                                            <Button
+                                                type="submit"
+                                                variant="destructive"
+                                            >
                                                 {__('Delete permanently')}
                                             </Button>
                                         </AlertDialogAction>
@@ -330,10 +336,13 @@ export default function TweetsList({ tweets }: TweetsListProps) {
                                                     }}
                                                 />
                                                 <span className="text-sm font-semibold">
-                                                    {tweet.author?.name ?? 'Unknown'}
+                                                    {tweet.author?.name ??
+                                                        'Unknown'}
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">
-                                                    @{tweet.author?.username ?? 'unknown'}
+                                                    @
+                                                    {tweet.author?.username ??
+                                                        'unknown'}
                                                 </span>
                                                 {tweet.deleted_at && (
                                                     <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
@@ -346,10 +355,16 @@ export default function TweetsList({ tweets }: TweetsListProps) {
                                             </p>
                                             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                                                 <span>
-                                                    {__('Created')}: {formatDateTime(tweet.created_at)}
+                                                    {__('Created')}:{' '}
+                                                    {formatDateTime(
+                                                        tweet.created_at,
+                                                    )}
                                                 </span>
                                                 <span>
-                                                    {__('Fetched')}: {formatDateTime(tweet.fetched_at)}
+                                                    {__('Fetched')}:{' '}
+                                                    {formatDateTime(
+                                                        tweet.fetched_at,
+                                                    )}
                                                 </span>
                                                 <span className="inline-flex items-center gap-1">
                                                     <ImageIcon className="h-3 w-3" />
@@ -376,10 +391,7 @@ export default function TweetsList({ tweets }: TweetsListProps) {
                 </div>
             </div>
 
-            <Dialog
-                open={showImportDialog}
-                onOpenChange={setShowImportDialog}
-            >
+            <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{__('Import Tweets')}</DialogTitle>

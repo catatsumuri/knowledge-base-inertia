@@ -7,10 +7,10 @@ use App\Http\Controllers\PublicFeedbackController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\TweetController;
 use App\Models\MarkdownDocument;
-use Spatie\Honeypot\ProtectAgainstSpam;
 use App\Models\Shout;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Spatie\Honeypot\ProtectAgainstSpam;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('markdown/media/{media}/{conversion?}', [\App\Http\Controllers\MarkdownController::class, 'media'])
@@ -95,6 +95,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tweets/fetch-jobs', [TweetController::class, 'fetchJobs'])->name('tweets.fetch-jobs');
     Route::post('tweets/fetch-jobs/{jobId}/retry', [TweetController::class, 'retryFetchJob'])->name('tweets.fetch-jobs.retry');
     Route::post('tweets/{tweet}/shoutbox', [TweetController::class, 'moveToShoutbox'])->name('tweets.shoutbox.store');
+    Route::post('tweets/shoutbox/bulk', [TweetController::class, 'bulkMoveToShoutbox'])->name('tweets.shoutbox.bulk');
+    Route::post('tweets/{tweet}/tags', [TweetController::class, 'updateTags'])->name('tweets.tags.update');
     Route::delete('tweets/{tweet}', [TweetController::class, 'destroy'])->name('tweets.destroy');
     Route::post('tweets/{tweet}/restore', [TweetController::class, 'restore'])
         ->withTrashed()

@@ -28,7 +28,7 @@ export function TopicInput({ value, onChange, placeholder }: TopicInputProps) {
         if (inputValue.trim().length === 0) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setSuggestions([]);
-             
+
             setShowSuggestions(false);
             return;
         }

@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Dialog,
     DialogClose,
@@ -19,20 +18,25 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useInitials } from '@/hooks/use-initials';
 import { useLang } from '@/hooks/useLang';
 import { cn } from '@/lib/utils';
-import { Form } from '@inertiajs/react';
+import { Form, router } from '@inertiajs/react';
 import {
     Archive,
+    Hash,
     Heart,
+    Loader2,
     MessageCircle,
     Quote,
     Repeat2,
     RotateCcw,
     Send,
     Trash2,
+    X,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
@@ -65,6 +69,7 @@ interface RelatedTweetPreview {
 interface Tweet {
     id: number;
     tweet_id: string;
+    tags: string[];
     text: string;
     author: TweetAuthor | null;
     media: TweetMedia[];
@@ -83,6 +88,9 @@ interface Tweet {
 interface TweetCardProps {
     tweet: Tweet;
     mode?: 'active' | 'archived';
+    selectionMode?: boolean;
+    selected?: boolean;
+    onToggleSelect?: (tweetId: number) => void;
 }
 
 interface MarkdownPage {
@@ -100,7 +108,13 @@ const formatNumber = (num: number): string => {
     return num.toString();
 };
 
-export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
+export default function TweetCard({
+    tweet,
+    mode = 'active',
+    selectionMode = false,
+    selected = false,
+    onToggleSelect,
+}: TweetCardProps) {
     const { __ } = useLang();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isShoutDialogOpen, setIsShoutDialogOpen] = useState(false);
@@ -110,11 +124,12 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
     const [suggestions, setSuggestions] = useState<MarkdownPage[]>([]);
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
     const [mentionStart, setMentionStart] = useState<number | null>(null);
+    const [tagInput, setTagInput] = useState('');
+    const [isSavingTags, setIsSavingTags] = useState(false);
     const getInitials = useInitials();
     const initials = getInitials(tweet.author?.name || '');
     const mentionInputRef = useRef<HTMLTextAreaElement>(null);
     const isArchived = mode === 'archived';
-    const replyToTweetId = tweet.reply_to_tweet_id ?? null;
 
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -131,7 +146,6 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
         setMentionStart(null);
         setIsShoutDialogOpen(true);
     };
-
 
     const handlePageMentionChange = async (
         e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -214,12 +228,66 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
         window.open(`https://x.com/i/status/${tweet.tweet_id}`, '_blank');
     };
 
+    const handleCardBodyClick = () => {
+        if (selectionMode) {
+            onToggleSelect?.(tweet.id);
+
+            return;
+        }
+
+        openTweetInNewTab();
+    };
+
+    const updateTags = (nextTags: string[]) => {
+        setIsSavingTags(true);
+        router.post(
+            `/tweets/${tweet.id}/tags`,
+            { tags: nextTags },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => setIsSavingTags(false),
+            },
+        );
+    };
+
+    const handleAddTag = () => {
+        const normalized = tagInput.trim().replace(/^#/, '').toLowerCase();
+        if (!normalized) return;
+        if (tweet.tags.includes(normalized)) {
+            setTagInput('');
+            return;
+        }
+        updateTags([...tweet.tags, normalized]);
+        setTagInput('');
+    };
+
+    const handleRemoveTag = (tag: string) => {
+        updateTags(tweet.tags.filter((item) => item !== tag));
+    };
+
     return (
         <>
-            <Card className="group flex h-full flex-col transition-all hover:border-primary hover:shadow-md">
+            <Card
+                className={cn(
+                    'group flex h-full flex-col transition-all hover:border-primary hover:shadow-md',
+                    selectionMode && 'cursor-pointer',
+                    selected && 'border-primary ring-2 ring-primary/30',
+                )}
+            >
                 <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                         <div className="flex min-w-0 items-center gap-2">
+                            {selectionMode && (
+                                <Checkbox
+                                    checked={selected}
+                                    onCheckedChange={() =>
+                                        onToggleSelect?.(tweet.id)
+                                    }
+                                    onClick={(event) => event.stopPropagation()}
+                                    className="mt-0.5"
+                                />
+                            )}
                             <Avatar className="h-10 w-10 shrink-0">
                                 <AvatarImage
                                     src={tweet.author?.profile_image_url}
@@ -275,7 +343,7 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
 
                 <CardContent
                     className="flex-1 cursor-pointer space-y-3"
-                    onClick={openTweetInNewTab}
+                    onClick={handleCardBodyClick}
                 >
                     <p className="line-clamp-4 text-sm">{tweet.text}</p>
 
@@ -320,9 +388,7 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
                         <div className="flex flex-wrap gap-2 pt-2">
                             <Badge variant="secondary" className="gap-1">
                                 <Heart className="h-3 w-3" />
-                                {formatNumber(
-                                    tweet.public_metrics.like_count,
-                                )}
+                                {formatNumber(tweet.public_metrics.like_count)}
                             </Badge>
                             <Badge variant="secondary" className="gap-1">
                                 <Repeat2 className="h-3 w-3" />
@@ -362,6 +428,68 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
                             </Button>
                         </div>
                     )}
+
+                    <div
+                        className="space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Hash className="h-3.5 w-3.5" />
+                            <span className="font-medium">{__('Tags')}</span>
+                            {isSavingTags && (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                            {tweet.tags.length === 0 ? (
+                                <span className="text-xs text-muted-foreground">
+                                    {__('No tags')}
+                                </span>
+                            ) : (
+                                tweet.tags.map((tag) => (
+                                    <Badge
+                                        key={tag}
+                                        variant="outline"
+                                        className="gap-1 rounded-full border-sky-400/30 bg-sky-500/10 px-2 py-0.5"
+                                    >
+                                        <span className="text-xs">#{tag}</span>
+                                        <button
+                                            type="button"
+                                            className="text-muted-foreground transition-colors hover:text-foreground"
+                                            onClick={() => handleRemoveTag(tag)}
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
+                                ))
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                value={tagInput}
+                                onChange={(event) =>
+                                    setTagInput(event.target.value)
+                                }
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Enter') {
+                                        event.preventDefault();
+                                        handleAddTag();
+                                    }
+                                }}
+                                placeholder={__('Type a tag and press Enter')}
+                                className="h-8 border-border/70 bg-background"
+                            />
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="secondary"
+                                onClick={handleAddTag}
+                                disabled={isSavingTags}
+                            >
+                                {__('Add')}
+                            </Button>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -380,13 +508,19 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
                         <DialogDescription>
                             <span className="block font-semibold text-foreground">
                                 {isArchived
-                                    ? __('Are you sure you want to permanently delete this tweet?')
-                                    : __('Are you sure you want to archive this tweet?')}
+                                    ? __(
+                                          'Are you sure you want to permanently delete this tweet?',
+                                      )
+                                    : __(
+                                          'Are you sure you want to archive this tweet?',
+                                      )}
                             </span>
                             <span className="mt-2 block text-muted-foreground">
                                 {isArchived
                                     ? __('This action cannot be undone.')
-                                    : __('You can restore it later from the archive.')}
+                                    : __(
+                                          'You can restore it later from the archive.',
+                                      )}
                             </span>
                         </DialogDescription>
                     </DialogHeader>
@@ -436,10 +570,14 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
                         <DialogTitle>{__('Send to Shoutbox')}</DialogTitle>
                         <DialogDescription>
                             <span className="block font-semibold text-foreground">
-                                {__('Do you want to post this tweet to the shoutbox?')}
+                                {__(
+                                    'Do you want to post this tweet to the shoutbox?',
+                                )}
                             </span>
                             <span className="mt-2 block text-muted-foreground">
-                                {__('The text and media will be copied into a new shout.')}
+                                {__(
+                                    'The text and media will be copied into a new shout.',
+                                )}
                             </span>
                         </DialogDescription>
                     </DialogHeader>
@@ -461,7 +599,9 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
                                     value={pageMentions}
                                 />
                                 <div className="space-y-2 py-2">
-                                    <Label htmlFor={`page-mentions-${tweet.id}`}>
+                                    <Label
+                                        htmlFor={`page-mentions-${tweet.id}`}
+                                    >
                                         {__('Mention pages')}
                                     </Label>
                                     <div className="relative">
@@ -527,25 +667,27 @@ export default function TweetCard({ tweet, mode = 'active' }: TweetCardProps) {
                                     <Label
                                         htmlFor={`delete-original-${tweet.id}`}
                                     >
-                                        {__('Archive original tweet after posting')}
+                                        {__(
+                                            'Archive original tweet after posting',
+                                        )}
                                     </Label>
                                 </div>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        disabled={processing}
-                                    >
-                                        {__('Cancel')}
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={processing}
+                                        >
+                                            {__('Cancel')}
+                                        </Button>
+                                    </DialogClose>
+                                    <Button type="submit" disabled={processing}>
+                                        {processing
+                                            ? __('Posting...')
+                                            : __('Post to Shoutbox')}
                                     </Button>
-                                </DialogClose>
-                                <Button type="submit" disabled={processing}>
-                                    {processing
-                                        ? __('Posting...')
-                                        : __('Post to Shoutbox')}
-                                </Button>
-                            </DialogFooter>
+                                </DialogFooter>
                             </>
                         )}
                     </Form>

@@ -5,8 +5,8 @@ import { ColumnsWrapper } from '@/components/columns-wrapper';
 import { EmbedCard } from '@/components/embed-card';
 import { MarkdownCard, MarkdownColumns } from '@/components/markdown-columns';
 import { MarkdownHeading } from '@/components/markdown-heading';
-import { MarkdownImage } from '@/components/markdown-image';
 import { MarkdownIcon } from '@/components/markdown-icon';
+import { MarkdownImage } from '@/components/markdown-image';
 import { MarkdownResponseField } from '@/components/markdown-response-field';
 import { MarkdownTab, MarkdownTabs } from '@/components/markdown-tabs';
 import { ParamField } from '@/components/param-field';
@@ -169,8 +169,12 @@ export function MarkdownViewer({
             rehypePlugins={[rehypeRaw, rehypeSlug]}
             components={
                 {
-                    pre: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-                    code: (props: Record<string, unknown>) => <CodeBlock {...props} />,
+                    pre: ({ children }: { children?: React.ReactNode }) => (
+                        <>{children}</>
+                    ),
+                    code: (props: Record<string, unknown>) => (
+                        <CodeBlock {...props} />
+                    ),
                     img: MarkdownImage,
                     aside: MessageBox,
                     a: (props: Record<string, unknown>) => (
@@ -198,8 +202,12 @@ export function MarkdownViewer({
                         <MarkdownResponseField
                             name={props.name as string | undefined}
                             type={props.type as string | undefined}
-                            required={props.required as string | boolean | undefined}
-                            default={props.default as string | boolean | undefined}
+                            required={
+                                props.required as string | boolean | undefined
+                            }
+                            default={
+                                props.default as string | boolean | undefined
+                            }
                         >
                             {props.children as React.ReactNode}
                         </MarkdownResponseField>
@@ -223,9 +231,21 @@ export function MarkdownViewer({
                         if (props['data-param-field'] !== undefined) {
                             return (
                                 <ParamField
-                                    header={props['data-param-header'] as string | undefined}
-                                    body={props['data-param-body'] as string | undefined}
-                                    type={props['data-param-type'] as string | undefined}
+                                    header={
+                                        props['data-param-header'] as
+                                            | string
+                                            | undefined
+                                    }
+                                    body={
+                                        props['data-param-body'] as
+                                            | string
+                                            | undefined
+                                    }
+                                    type={
+                                        props['data-param-type'] as
+                                            | string
+                                            | undefined
+                                    }
                                 >
                                     {props.children as React.ReactNode}
                                 </ParamField>
@@ -237,11 +257,32 @@ export function MarkdownViewer({
                         ) {
                             return (
                                 <MarkdownCard
-                                    title={props['data-card-title'] as string | undefined}
-                                    href={props['data-card-href'] as string | undefined}
-                                    icon={props['data-card-icon'] as string | undefined}
-                                    cta={props['data-card-cta'] as string | undefined}
-                                    arrow={props['data-card-arrow'] as string | boolean | undefined}
+                                    title={
+                                        props['data-card-title'] as
+                                            | string
+                                            | undefined
+                                    }
+                                    href={
+                                        props['data-card-href'] as
+                                            | string
+                                            | undefined
+                                    }
+                                    icon={
+                                        props['data-card-icon'] as
+                                            | string
+                                            | undefined
+                                    }
+                                    cta={
+                                        props['data-card-cta'] as
+                                            | string
+                                            | undefined
+                                    }
+                                    arrow={
+                                        props['data-card-arrow'] as
+                                            | string
+                                            | boolean
+                                            | undefined
+                                    }
                                     basePrefix={basePrefix}
                                 >
                                     {props.children as React.ReactNode}

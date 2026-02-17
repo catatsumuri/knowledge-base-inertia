@@ -58,6 +58,7 @@ class FetchTweetJob implements ShouldQueue
                 'tweet_id' => $this->tweetId,
                 'tweet_fetch_job_id' => $this->tweetFetchJobId,
             ]);
+
             return;
         }
 

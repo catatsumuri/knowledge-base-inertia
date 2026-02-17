@@ -101,7 +101,6 @@ export function CodeTabs({ tabs }: CodeTabsProps) {
         const nextValue = matchedTab?.value ?? tabsWithValue[0].value;
 
         if (nextValue !== selectedValue) {
-             
             setSelectedValue(nextValue);
         }
     }, [preferredSelection, tabsWithValue, selectedValue]);

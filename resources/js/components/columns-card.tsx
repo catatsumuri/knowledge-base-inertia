@@ -33,7 +33,7 @@ export function ColumnsCard({
         normalizedHref && normalizedHref.match(/^https?:\/\//);
 
     // アイコンコンポーネントの取得（動的アイコン選択のため、useMemoで最適化）
-     
+
     const IconComponent = useMemo(() => {
         if (!icon) return null;
         return getLucideIcon(icon);
@@ -46,7 +46,9 @@ export function ColumnsCard({
                 <div className="flex items-start gap-3">
                     {icon && IconComponent ? (
                         <div className="flex-shrink-0 rounded-lg bg-primary/10 p-2 transition-colors group-hover:bg-primary/20">
-                            {IconComponent && <IconComponent className="h-5 w-5 text-primary" />}
+                            {IconComponent && (
+                                <IconComponent className="h-5 w-5 text-primary" />
+                            )}
                         </div>
                     ) : icon && !IconComponent ? (
                         // アイコンが指定されているが見つからない場合

@@ -96,7 +96,8 @@ export function remarkLinkifyToCard() {
 
             // 元の段落ノードを埋め込みノードで置換
             if (parent && typeof index === 'number') {
-                parent.children[index] = embedNode as unknown as typeof parent.children[number];
+                parent.children[index] =
+                    embedNode as unknown as (typeof parent.children)[number];
             }
         });
     };

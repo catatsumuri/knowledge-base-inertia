@@ -4,7 +4,7 @@ import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PaginatedData } from '@/types';
 import { Head, InfiniteScroll, Link } from '@inertiajs/react';
-import { ArrowLeft, ArchiveX } from 'lucide-react';
+import { ArchiveX, ArrowLeft } from 'lucide-react';
 import TweetCard from './tweet-card';
 
 interface TweetAuthor {
@@ -36,6 +36,7 @@ interface RelatedTweetPreview {
 interface Tweet {
     id: number;
     tweet_id: string;
+    tags: string[];
     text: string;
     author: TweetAuthor | null;
     media: TweetMedia[];

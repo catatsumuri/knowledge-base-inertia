@@ -52,7 +52,7 @@ export default function PublicFeedbackForm({
                     </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                    <CardContent className="space-y-4 px-6 pb-6 pt-4">
+                    <CardContent className="space-y-4 px-6 pt-4 pb-6">
                         <p className="text-sm text-muted-foreground">
                             このページに関するご意見・ご感想をお聞かせください。いただいたフィードバックは、今後の改善に役立てさせていただきます。
                         </p>
@@ -126,7 +126,7 @@ export default function PublicFeedbackForm({
                                             name="feedback_content"
                                             placeholder="ご意見・ご感想をお聞かせください..."
                                             rows={4}
-                                            className="resize-none field-sizing-content"
+                                            className="field-sizing-content resize-none"
                                             disabled={processing}
                                         />
                                         <InputError

@@ -27,6 +27,7 @@ class Tweet extends Model implements HasMedia
         'response_status',
         'response_headers',
         'reply_count',
+        'tags',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class Tweet extends Model implements HasMedia
         'response_status' => 'integer',
         'response_headers' => 'array',
         'reply_count' => 'integer',
+        'tags' => 'array',
     ];
 
     public function registerMediaCollections(): void

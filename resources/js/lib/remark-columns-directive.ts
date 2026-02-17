@@ -197,8 +197,13 @@ function extractTextContent(nodes: Node[]): string {
             if (node.type === 'text') {
                 return (node as unknown as { value: string }).value;
             }
-            if (node.type === 'paragraph' && (node as unknown as { children?: Node[] }).children) {
-                return extractTextContent((node as unknown as { children: Node[] }).children);
+            if (
+                node.type === 'paragraph' &&
+                (node as unknown as { children?: Node[] }).children
+            ) {
+                return extractTextContent(
+                    (node as unknown as { children: Node[] }).children,
+                );
             }
             return '';
         })

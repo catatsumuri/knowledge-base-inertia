@@ -1,3 +1,4 @@
+import { frontendLang } from '@/frontend';
 import { usePage } from '@inertiajs/react';
 
 type Replaces = Record<string, string | number>;
@@ -6,6 +7,17 @@ type LangObject = Record<string, LangValue>;
 
 export function useLang() {
     const { lang = {} as LangObject } = usePage<{ lang?: LangObject }>().props;
+    const frontendDictionary = frontendLang as Record<
+        string,
+        Record<string, string>
+    >;
+    const currentLocale = (
+        typeof document === 'undefined'
+            ? 'en'
+            : document.documentElement.lang || 'en'
+    )
+        .toLowerCase()
+        .split('-')[0];
 
     function trans(key: string, replaces: Replaces | string = {}): string {
         const raw = getValueFromKey(key);
@@ -41,7 +53,12 @@ export function useLang() {
         }
 
         if (!key.includes('.')) {
-            return undefined;
+            const frontendDirectValue =
+                frontendDictionary[currentLocale]?.[key];
+
+            return typeof frontendDirectValue === 'string'
+                ? frontendDirectValue
+                : undefined;
         }
 
         const segments = key.split('.');
@@ -53,7 +70,15 @@ export function useLang() {
             current = current[segment] as LangValue | undefined;
         }
 
-        return typeof current === 'string' ? current : undefined;
+        if (typeof current === 'string') {
+            return current;
+        }
+
+        const frontendDirectValue = frontendDictionary[currentLocale]?.[key];
+
+        return typeof frontendDirectValue === 'string'
+            ? frontendDirectValue
+            : undefined;
     }
 
     return { trans, __ };

@@ -119,6 +119,7 @@ class ImportMintlifyCommand extends Command
                         $inFence = true;
                         $fenceMarker = $match[1];
                         $output[] = $line;
+
                         continue;
                     }
 
@@ -126,11 +127,13 @@ class ImportMintlifyCommand extends Command
                         $inFence = false;
                         $fenceMarker = '';
                         $output[] = $line;
+
                         continue;
                     }
 
                     if ($inFence) {
                         $output[] = $line;
+
                         continue;
                     }
 

@@ -405,7 +405,6 @@ class XApiService
         return array_values(array_unique($tweetIds));
     }
 
-
     /**
      * ツイートキャッシュキーを生成する
      */
