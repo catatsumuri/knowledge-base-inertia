@@ -108,6 +108,7 @@ MARKDOWN
 ## Inertia.js
 
 - [Inertia.js ドキュメント (日本語)](inertia-ja-docs/getting-started/index) - Inertia.js v2の非公式日本語訳ドキュメント
+- [Claude Code のベストプラクティス](claudecode/claude-best-practices-ja)
 MARKDOWN
                 ,
                 'status' => 'published',

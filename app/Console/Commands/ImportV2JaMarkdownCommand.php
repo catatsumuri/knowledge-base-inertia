@@ -16,7 +16,7 @@ class ImportV2JaMarkdownCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'markdown:import-v2-ja';
+    protected $signature = 'markdown:inertia-v2-ja';
 
     /**
      * The console command description.
@@ -510,7 +510,7 @@ class ImportV2JaMarkdownCommand extends Command
             return 1;
         }
 
-        DB::transaction(function () use ($documents, $user, $navigationSpec, $navPrefix): void {
+        DB::transaction(function () use ($documents, $user, $navigationSpec, $navPrefix, $basePath): void {
             foreach ($documents as $document) {
                 MarkdownDocument::query()->create([
                     'slug' => $document['slug'],
@@ -564,6 +564,25 @@ class ImportV2JaMarkdownCommand extends Command
             }
 
             MarkdownNavigationItem::query()->insert($navItems);
+
+            $rootNavigationItem = MarkdownNavigationItem::query()
+                ->where('node_type', 'folder')
+                ->where('node_path', $navPrefix)
+                ->first();
+
+            if ($rootNavigationItem) {
+                $lightPath = $basePath.'/light.svg';
+                if (is_file($lightPath)) {
+                    $rootNavigationItem->clearMediaCollection('eyecatch_light');
+                    $rootNavigationItem->addMedia($lightPath)->toMediaCollection('eyecatch_light');
+                }
+
+                $darkPath = $basePath.'/dark.svg';
+                if (is_file($darkPath)) {
+                    $rootNavigationItem->clearMediaCollection('eyecatch_dark');
+                    $rootNavigationItem->addMedia($darkPath)->toMediaCollection('eyecatch_dark');
+                }
+            }
         });
 
         $this->info('Imported '.count($documents).' documents.');

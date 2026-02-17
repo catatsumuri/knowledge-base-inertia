@@ -6,6 +6,9 @@ import { EmbedCard } from '@/components/embed-card';
 import { MarkdownCard, MarkdownColumns } from '@/components/markdown-columns';
 import { MarkdownHeading } from '@/components/markdown-heading';
 import { MarkdownImage } from '@/components/markdown-image';
+import { MarkdownIcon } from '@/components/markdown-icon';
+import { MarkdownResponseField } from '@/components/markdown-response-field';
+import { MarkdownTab, MarkdownTabs } from '@/components/markdown-tabs';
 import { ParamField } from '@/components/param-field';
 import { preprocessParamField } from '@/lib/preprocess-param-field';
 import { remarkCardDirective } from '@/lib/remark-card-directive';
@@ -16,6 +19,7 @@ import { preprocessColumnsSyntax } from '@/lib/remark-columns-syntax';
 import { preprocessImageSize, remarkImageSize } from '@/lib/remark-image-size';
 import { remarkLinkifyToCard } from '@/lib/remark-linkify-to-card';
 import { remarkParamFieldDirective } from '@/lib/remark-param-field-directive';
+import { remarkTabsDirective } from '@/lib/remark-tabs-directive';
 import { remarkZennDirective } from '@/lib/remark-zenn-directive';
 import { preprocessZennSyntax } from '@/lib/remark-zenn-syntax';
 import { Link } from '@inertiajs/react';
@@ -157,6 +161,7 @@ export function MarkdownViewer({
                 remarkParamFieldDirective,
                 remarkCardDirective,
                 remarkCodeTabs,
+                remarkTabsDirective,
                 remarkImageSize,
                 remarkCodeMeta,
                 remarkLinkifyToCard,
@@ -176,6 +181,28 @@ export function MarkdownViewer({
                     ),
                     card: (props: Record<string, unknown>) => (
                         <MarkdownCard {...props} basePrefix={basePrefix} />
+                    ),
+                    tabs: (props: Record<string, unknown>) => (
+                        <MarkdownTabs {...props} />
+                    ),
+                    tab: (props: Record<string, unknown>) => (
+                        <MarkdownTab {...props} />
+                    ),
+                    icon: (props: Record<string, unknown>) => (
+                        <MarkdownIcon
+                            icon={props.icon as string | undefined}
+                            className={props.className as string | undefined}
+                        />
+                    ),
+                    responsefield: (props: Record<string, unknown>) => (
+                        <MarkdownResponseField
+                            name={props.name as string | undefined}
+                            type={props.type as string | undefined}
+                            required={props.required as string | boolean | undefined}
+                            default={props.default as string | boolean | undefined}
+                        >
+                            {props.children as React.ReactNode}
+                        </MarkdownResponseField>
                     ),
                     div: (props: Record<string, unknown>) => {
                         // コードタブの場合

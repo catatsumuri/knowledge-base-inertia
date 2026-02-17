@@ -55,9 +55,7 @@ export default () => (
 
 </CodeGroup>
 
-<ClientSpecific>
-従来の HTML フォームと同様に、入力フィールドに <VueSpecific>`v-model`</VueSpecific><ReactSpecific>`onChange` ハンドラー </ReactSpecific><SvelteSpecific>`bind:`</SvelteSpecific>を追加する必要はありません。各入力に `name` 属性 <ReactSpecific>および（該当する場合は）`defaultValue` </ReactSpecific>を指定するだけで、`Form` コンポーネントがデータ送信を処理してくれます。
-</ClientSpecific>
+従来の HTML フォームと同様に、入力フィールドに Vueなら`v-model`、Reactなら`onChange` ハンドラー、Svelteなら`bind:`を追加する必要はありません。各入力に `name` 属性 、Reactなら（該当する場合は）`defaultValue` を指定するだけで、`Form` コンポーネントがデータ送信を処理してくれます。
 
 このコンポーネントは、ネストされたデータ構造、ファイルアップロード、ドット区切りのキー記法にも対応しています。
 

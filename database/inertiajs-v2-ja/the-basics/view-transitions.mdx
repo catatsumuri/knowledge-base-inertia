@@ -1,5 +1,5 @@
 ---
-title: ビュー遷移
+title: ビュートランシジョン
 ---
 
 <Badge>v2.2.13+</Badge>
@@ -10,7 +10,7 @@ View Transitions API は[比較的新しいブラウザ機能](https://caniuse.c
 
 ## 遷移を有効にする
 
-`viewTransition` オプションを `true` に設定することで、訪問時にビュー遷移を有効にできます。デフォルトでは、ページ間にクロスフェードの遷移が適用されます。
+`viewTransition` オプションを `true` に設定することで、訪問時にビュートランシジョンを有効にできます。デフォルトでは、ページ間にクロスフェードの遷移が適用されます。
 
 <CodeGroup>
 
@@ -145,7 +145,7 @@ import { Link } from '@inertiajs/svelte'
 
 ## グローバル設定
 
-[Inertia アプリを初期化する際](/v2/installation/client-side-setup#configuring-defaults)に `visitOptions` コールバックを設定することで、すべての訪問に対してグローバルにビュー遷移を有効にできます。
+[Inertia アプリを初期化する際](/v2/installation/client-side-setup#configuring-defaults)に `visitOptions` コールバックを設定することで、すべての訪問に対してグローバルにビュートランシジョンを有効にできます。
 
 <CodeGroup>
 
@@ -301,4 +301,4 @@ export default function Dashboard() {
 
 </CodeGroup>
 
-任意の CSS アニメーションを使用して、ビュー遷移を自由にカスタマイズできます。詳しくは、[View Transitions API のドキュメント](https://developer.chrome.com/docs/web-platform/view-transitions/same-document#customize_the_transition) を参照してください。
+任意の CSS アニメーションを使用して、ビュートランシジョンを自由にカスタマイズできます。詳しくは、[View Transitions API のドキュメント](https://developer.chrome.com/docs/web-platform/view-transitions/same-document#customize_the_transition) を参照してください。
