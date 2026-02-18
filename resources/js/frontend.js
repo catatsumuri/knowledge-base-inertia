@@ -31,6 +31,11 @@ export const frontendLang = {
         'Archive original tweets after posting':
             'Archive original tweets after posting',
         Post: 'Post',
+        'Queue Logs': 'Queue Logs',
+        Live: 'Live',
+        Disconnected: 'Disconnected',
+        Connecting: 'Connecting',
+        'No log lines yet': 'No log lines yet',
     },
     ja: {
         'Tag Explorer': 'タグエクスプローラー',
@@ -65,5 +70,10 @@ export const frontendLang = {
         'Archive original tweets after posting':
             '投稿後に元ツイートをアーカイブ',
         Post: '投稿',
+        'Queue Logs': 'キューログ',
+        Live: '接続中',
+        Disconnected: '切断',
+        Connecting: '接続準備中',
+        'No log lines yet': 'ログはまだありません',
     },
 };

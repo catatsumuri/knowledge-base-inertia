@@ -88,6 +88,7 @@ interface Tweet {
 interface TweetCardProps {
     tweet: Tweet;
     mode?: 'active' | 'archived';
+    availableTags?: string[];
     selectionMode?: boolean;
     selected?: boolean;
     onToggleSelect?: (tweetId: number) => void;
@@ -111,6 +112,7 @@ const formatNumber = (num: number): string => {
 export default function TweetCard({
     tweet,
     mode = 'active',
+    availableTags = [],
     selectionMode = false,
     selected = false,
     onToggleSelect,
@@ -130,6 +132,17 @@ export default function TweetCard({
     const initials = getInitials(tweet.author?.name || '');
     const mentionInputRef = useRef<HTMLTextAreaElement>(null);
     const isArchived = mode === 'archived';
+    const tagSuggestionListId = `tweet-tag-suggestions-${tweet.id}`;
+    const normalizedInput = tagInput.trim().replace(/^#/, '').toLowerCase();
+    const filteredAvailableTags = availableTags
+        .map((tag) => tag.trim().toLowerCase())
+        .filter((tag) => tag !== '')
+        .filter((tag, index, self) => self.indexOf(tag) === index)
+        .filter((tag) => !tweet.tags.includes(tag))
+        .filter((tag) =>
+            normalizedInput === '' ? true : tag.includes(normalizedInput),
+        )
+        .slice(0, 20);
 
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -240,12 +253,23 @@ export default function TweetCard({
 
     const updateTags = (nextTags: string[]) => {
         setIsSavingTags(true);
+        const currentScrollTop =
+            window.scrollY ?? document.documentElement.scrollTop ?? 0;
+
         router.post(
             `/tweets/${tweet.id}/tags`,
             { tags: nextTags },
             {
                 preserveScroll: true,
                 preserveState: true,
+                onSuccess: () => {
+                    requestAnimationFrame(() => {
+                        window.scrollTo({
+                            top: currentScrollTop,
+                            behavior: 'auto',
+                        });
+                    });
+                },
                 onFinish: () => setIsSavingTags(false),
             },
         );
@@ -470,6 +494,7 @@ export default function TweetCard({
                                 onChange={(event) =>
                                     setTagInput(event.target.value)
                                 }
+                                list={tagSuggestionListId}
                                 onKeyDown={(event) => {
                                     if (event.key === 'Enter') {
                                         event.preventDefault();
@@ -489,6 +514,13 @@ export default function TweetCard({
                                 {__('Add')}
                             </Button>
                         </div>
+                        {filteredAvailableTags.length > 0 && (
+                            <datalist id={tagSuggestionListId}>
+                                {filteredAvailableTags.map((tag) => (
+                                    <option key={tag} value={tag} />
+                                ))}
+                            </datalist>
+                        )}
                     </div>
                 </CardContent>
             </Card>

@@ -93,6 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tweets.bulk-force-delete');
     Route::post('tweets', [TweetController::class, 'store'])->name('tweets.store');
     Route::get('tweets/fetch-jobs', [TweetController::class, 'fetchJobs'])->name('tweets.fetch-jobs');
+    Route::get('tweets/log-stream', [TweetController::class, 'streamLogs'])->name('tweets.log-stream');
     Route::post('tweets/fetch-jobs/{jobId}/retry', [TweetController::class, 'retryFetchJob'])->name('tweets.fetch-jobs.retry');
     Route::post('tweets/{tweet}/shoutbox', [TweetController::class, 'moveToShoutbox'])->name('tweets.shoutbox.store');
     Route::post('tweets/shoutbox/bulk', [TweetController::class, 'bulkMoveToShoutbox'])->name('tweets.shoutbox.bulk');

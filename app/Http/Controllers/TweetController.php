@@ -463,6 +463,78 @@ class TweetController extends Controller
     }
 
     /**
+     * Stream tweet queue logs as SSE (tail -f style).
+     */
+    public function streamLogs(): StreamedResponse
+    {
+        $logPath = storage_path('logs/tweet-queue.log');
+
+        return response()->stream(function () use ($logPath): void {
+            @set_time_limit(0);
+            @ini_set('output_buffering', 'off');
+            @ini_set('zlib.output_compression', '0');
+
+            $maxInitialLines = 80;
+            $startedAt = time();
+            $maxDurationSeconds = 120;
+            $heartbeatEverySeconds = 15;
+            $lastHeartbeatAt = 0;
+
+            $lastInode = is_file($logPath) ? @fileinode($logPath) : null;
+            $lastPosition = is_file($logPath) ? (int) @filesize($logPath) : 0;
+
+            $this->emitSse('status', ['message' => 'connected']);
+
+            if (! is_file($logPath)) {
+                $this->emitSse('status', ['message' => 'log file not found']);
+            } else {
+                $initialLines = $this->readLastLogLines($logPath, $maxInitialLines);
+                $this->emitSse('snapshot', ['lines' => $initialLines]);
+            }
+
+            while (! connection_aborted() && (time() - $startedAt) < $maxDurationSeconds) {
+                clearstatcache(true, $logPath);
+
+                if (is_file($logPath)) {
+                    $inode = @fileinode($logPath);
+                    $size = (int) @filesize($logPath);
+                    $rotated = $lastInode !== null && $inode !== false && $inode !== $lastInode;
+                    $truncated = $size < $lastPosition;
+
+                    if ($rotated || $truncated) {
+                        $lastInode = $inode === false ? null : $inode;
+                        $lastPosition = $size;
+                        $this->emitSse('reset', [
+                            'lines' => $this->readLastLogLines($logPath, $maxInitialLines),
+                        ]);
+                    } elseif ($size > $lastPosition) {
+                        $content = $this->readLogChunk($logPath, $lastPosition, $size - $lastPosition);
+                        $lastPosition = $size;
+                        $lastInode = $inode === false ? null : $inode;
+                        $lines = $this->normalizeLogLines($content);
+
+                        if ($lines !== []) {
+                            $this->emitSse('append', ['lines' => $lines]);
+                        }
+                    }
+                }
+
+                if ((time() - $lastHeartbeatAt) >= $heartbeatEverySeconds) {
+                    $this->emitSse('heartbeat', ['ts' => now()->toISOString()]);
+                    $lastHeartbeatAt = time();
+                }
+
+                usleep(500000);
+            }
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
+
+    /**
      * Export all tweets (including archived) as JSON.
      */
     public function export(Request $request): StreamedResponse|RedirectResponse
@@ -914,6 +986,75 @@ class TweetController extends Controller
         }
 
         return $formatted;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function readLastLogLines(string $logPath, int $maxLines): array
+    {
+        $lines = @file($logPath, FILE_IGNORE_NEW_LINES);
+
+        if (! is_array($lines) || $lines === []) {
+            return [];
+        }
+
+        return array_values(array_slice($lines, -$maxLines));
+    }
+
+    private function readLogChunk(string $logPath, int $offset, int $length): string
+    {
+        $handle = @fopen($logPath, 'rb');
+        if (! is_resource($handle)) {
+            return '';
+        }
+
+        try {
+            if (fseek($handle, $offset) !== 0) {
+                return '';
+            }
+
+            $content = fread($handle, max(0, $length));
+
+            return is_string($content) ? $content : '';
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function normalizeLogLines(string $content): array
+    {
+        if ($content === '') {
+            return [];
+        }
+
+        $lines = preg_split('/\r\n|\r|\n/', $content);
+        if (! is_array($lines)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $lines,
+            fn ($line) => is_string($line) && trim($line) !== ''
+        ));
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function emitSse(string $event, array $payload): void
+    {
+        echo "event: {$event}\n";
+        echo 'data: '.json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n\n";
+
+        if (function_exists('ob_flush')) {
+            @ob_flush();
+        }
+
+        flush();
     }
 
     private function saveMentionedLinks(Shout $shout, ?string $content): void

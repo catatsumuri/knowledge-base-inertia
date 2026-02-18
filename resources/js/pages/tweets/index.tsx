@@ -300,6 +300,9 @@ export default function TweetsIndex({
                                         <TweetCard
                                             key={tweet.id}
                                             tweet={tweet}
+                                            availableTags={tagGroups.map(
+                                                (group) => group.tag,
+                                            )}
                                             selectionMode={selectionMode}
                                             selected={selectedTweetIds.includes(
                                                 tweet.id,
