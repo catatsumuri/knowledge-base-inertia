@@ -11,6 +11,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class FetchTweetJob implements ShouldQueue
@@ -25,6 +26,8 @@ class FetchTweetJob implements ShouldQueue
     public int $maxExceptions = 3;
 
     public int $timeout = 120;
+
+    private const GLOBAL_RATE_LIMIT_RESET_CACHE_KEY = 'x_api_rate_limit_reset_at';
 
     public function __construct(
         public int $tweetFetchJobId,
@@ -65,6 +68,22 @@ class FetchTweetJob implements ShouldQueue
         // ステータスを処理中に更新
         $tweetFetchJob->update(['status' => 'processing']);
 
+        // 既に全体のレート制限待機中なら、API呼び出しをせずに待機へ戻す
+        $globalResetAt = $this->getGlobalRateLimitResetAt();
+        if ($globalResetAt !== null && $globalResetAt->isFuture()) {
+            $delaySeconds = $this->calculateDelaySeconds($globalResetAt);
+
+            Log::channel('tweet_queue')->debug('FetchTweetJob: delayed by global rate limit gate', [
+                'tweet_id' => $this->tweetId,
+                'reset_at' => $globalResetAt->toISOString(),
+                'delay_seconds' => $delaySeconds,
+            ]);
+
+            $this->requeueAsPending($tweetFetchJob, $globalResetAt, $delaySeconds);
+
+            return;
+        }
+
         $rawTweet = $xApiService->fetchTweetRaw($this->tweetId);
 
         // レート制限チェック
@@ -82,13 +101,19 @@ class FetchTweetJob implements ShouldQueue
 
             // リセット時刻が未来の場合はその時刻まで、過去の場合は現在時刻から15分後
             if ($resetAt->isFuture()) {
-                // 念のため max(0, ...) で負の値を防ぐ
-                $delaySeconds = max(0, $resetAt->diffInSeconds($now)) + 5;
+                $delaySeconds = $this->calculateDelaySeconds($resetAt);
             } else {
                 // リセット時刻が過去の場合は、現在時刻から15分後に設定
                 $resetAt = $now->copy()->addMinutes(15);
-                $delaySeconds = 15 * 60 + 5;
+                $delaySeconds = $this->calculateDelaySeconds($resetAt);
             }
+
+            // 一度429が出たら全ジョブで待機時刻を共有し、無駄なAPI接続を止める
+            Cache::put(
+                self::GLOBAL_RATE_LIMIT_RESET_CACHE_KEY,
+                $resetAt->toISOString(),
+                $resetAt->copy()->addMinute()
+            );
 
             Log::channel('tweet_queue')->debug('FetchTweetJob: delayed due to rate limit', [
                 'tweet_id' => $this->tweetId,
@@ -96,16 +121,7 @@ class FetchTweetJob implements ShouldQueue
                 'delay_seconds' => $delaySeconds,
             ]);
 
-            $tweetFetchJob->update([
-                'status' => 'pending',
-                'rate_limit_reset_at' => $resetAt,
-            ]);
-
-            // 現在のジョブを削除して、遅延付きで新しいジョブをディスパッチ
-            // これによりリトライカウントがリセットされる
-            $this->delete();
-            self::dispatch($this->tweetFetchJobId, $this->tweetId)
-                ->delay($delaySeconds);
+            $this->requeueAsPending($tweetFetchJob, $resetAt, $delaySeconds);
 
             return;
         }
@@ -163,6 +179,7 @@ class FetchTweetJob implements ShouldQueue
             now()->toISOString(),
             now()->addMinutes(15)
         );
+        Cache::forget(self::GLOBAL_RATE_LIMIT_RESET_CACHE_KEY);
     }
 
     /**
@@ -282,5 +299,39 @@ class FetchTweetJob implements ShouldQueue
                 'error_message' => $exception->getMessage(),
             ]);
         }
+    }
+
+    private function calculateDelaySeconds(Carbon $resetAt): int
+    {
+        $baseDelay = max(5, $resetAt->timestamp - now()->timestamp + 5);
+        $stagger = $this->tweetFetchJobId % 7;
+
+        return $baseDelay + $stagger;
+    }
+
+    private function getGlobalRateLimitResetAt(): ?Carbon
+    {
+        $raw = Cache::get(self::GLOBAL_RATE_LIMIT_RESET_CACHE_KEY);
+        if (! is_string($raw) || $raw === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($raw);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function requeueAsPending(TweetFetchJobModel $tweetFetchJob, Carbon $resetAt, int $delaySeconds): void
+    {
+        $tweetFetchJob->update([
+            'status' => 'pending',
+            'rate_limit_reset_at' => $resetAt,
+        ]);
+
+        // delete + dispatch で attempt を増やさず待機に戻す
+        $this->delete();
+        self::dispatch($this->tweetFetchJobId, $this->tweetId)->delay($delaySeconds);
     }
 }

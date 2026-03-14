@@ -18,5 +18,6 @@ run_step "Import Claude best practices (JA)" php artisan markdown:claudecode-bes
 run_step "Import Mintlify documents" php artisan markdown:mintlify
 run_step "Import Inertia v2 (JA)" php artisan markdown:inertia-v2-ja
 run_step "Import Kiro CLI documents" php artisan markdown:kiro-cli
+run_step "Import agent-browser (JA)" php artisan markdown:agent-browser-ja
 
 log "Done."
