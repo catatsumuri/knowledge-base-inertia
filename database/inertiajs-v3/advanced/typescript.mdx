@@ -2,6 +2,10 @@
 title: TypeScript
 ---
 
+import V3BetaWarning from "/snippets/v3-beta-warning.mdx";
+
+<V3BetaWarning />
+
 Inertia provides first-class TypeScript support. You may configure global types using declaration merging, and pass generics to hooks and router methods for type-safe props, forms, and state management.
 
 ## Using pnpm
@@ -48,7 +52,7 @@ The `import` statement (or `export {}`) is required to make this file a module. 
 
 ### Shared Page Props
 
-The `sharedPageProps` option defines the type of data that is [shared](/v2/data-props/shared-data) with every page in your application. With this configuration, `page.props.auth` and `page.props.appName` will be properly typed everywhere.
+The `sharedPageProps` option defines the type of data that is [shared](/v3/data-props/shared-data) with every page in your application. With this configuration, `page.props.auth` and `page.props.appName` will be properly typed everywhere.
 
 ```ts
 sharedPageProps: {
@@ -59,7 +63,7 @@ sharedPageProps: {
 
 ### Flash Data
 
-The `flashDataType` option defines the type of [flash data](/v2/data-props/flash-data) in your application.
+The `flashDataType` option defines the type of [flash data](/v3/data-props/flash-data) in your application.
 
 ```ts
 flashDataType: {
@@ -69,14 +73,18 @@ flashDataType: {
 
 ### Error Values
 
-By default, validation error values are typed as `string`. You may configure TypeScript to expect arrays instead for [multiple errors per field](/v2/the-basics/validation#multiple-errors-per-field).
+By default, validation error values are typed as `string`. You may configure TypeScript to expect arrays instead for [multiple errors per field](/v3/the-basics/validation#multiple-errors-per-field).
 
 ```ts
 errorValueType: string[]
 ```
 
 <Note>
-The next version of [Laravel Wayfinder](https://github.com/laravel/wayfinder/tree/next) may automatically generate these types for you by analyzing your Laravel application. It generates TypeScript types for shared props, page props, form requests, and Eloquent models. This version is currently in beta.
+  The next version of [Laravel
+  Wayfinder](https://github.com/laravel/wayfinder/tree/next) may automatically
+  generate these types for you by analyzing your Laravel application. It
+  generates TypeScript types for shared props, page props, form requests, and
+  Eloquent models. This version is currently in beta.
 </Note>
 
 ## Page Components
@@ -91,10 +99,8 @@ import type { DefineComponent } from "vue";
 
 createInertiaApp({
   resolve: (name) => {
-    const pages = import.meta.glob<DefineComponent>("./Pages/**/*.vue", {
-      eager: true,
-    });
-    return pages[`./Pages/${name}.vue`];
+    const pages = import.meta.glob<DefineComponent>("./Pages/**/*.vue");
+    return pages[`./Pages/${name}.vue`]();
   },
   // ...
 });
@@ -105,10 +111,8 @@ import { createInertiaApp, type ResolvedComponent } from "@inertiajs/react";
 
 createInertiaApp({
   resolve: (name) => {
-    const pages = import.meta.glob<ResolvedComponent>("./Pages/**/*.tsx", {
-      eager: true,
-    });
-    return pages[`./Pages/${name}.tsx`];
+    const pages = import.meta.glob<ResolvedComponent>("./Pages/**/*.tsx");
+    return pages[`./Pages/${name}.tsx`]();
   },
   // ...
 });
@@ -119,10 +123,8 @@ import { createInertiaApp, type ResolvedComponent } from "@inertiajs/svelte";
 
 createInertiaApp({
   resolve: (name) => {
-    const pages = import.meta.glob<ResolvedComponent>("./Pages/**/*.svelte", {
-      eager: true,
-    });
-    return pages[`./Pages/${name}.svelte`];
+    const pages = import.meta.glob<ResolvedComponent>("./Pages/**/*.svelte");
+    return pages[`./Pages/${name}.svelte`]();
   },
   // ...
 });
@@ -178,7 +180,7 @@ export default function Posts() {
 
 ## Form Helper
 
-The [form helper](/v2/the-basics/forms#form-helper) accepts a generic type parameter for type-safe form data and error handling. This provides autocomplete for form fields and errors, and prevents typos in field names.
+The [form helper](/v3/the-basics/forms#form-helper) accepts a generic type parameter for type-safe form data and error handling. This provides autocomplete for form fields and errors, and prevents typos in field names.
 
 <CodeGroup>
 
@@ -250,6 +252,111 @@ const form = useForm<{
 });
 ```
 
+## Form Component
+
+The `<Form>` component accepts a generic type parameter for type-safe slot props. In React, you may pass the generic directly. In Vue and Svelte, you may use the `createForm` helper to create a typed form component.
+
+<CodeGroup>
+
+```tsx React icon="react"
+import { Form } from "@inertiajs/react";
+
+interface UserForm {
+  name: string;
+  email: string;
+}
+
+export default function CreateUser() {
+  return (
+    <Form<UserForm> action="/users" method="post">
+      {({ errors }) => (
+        <>
+          <input type="text" name="name" />
+          {errors.name && <div>{errors.name}</div>}
+          <button type="submit">Create User</button>
+        </>
+      )}
+    </Form>
+  );
+}
+```
+
+```vue Vue icon="vuejs"
+<script setup lang="ts">
+import { createForm } from "@inertiajs/vue3";
+
+interface UserForm {
+  name: string;
+  email: string;
+}
+
+const TypedForm = createForm<UserForm>();
+</script>
+
+<template>
+  <TypedForm action="/users" method="post" #default="{ errors }">
+    <input type="text" name="name" />
+    <div v-if="errors.name">{{ errors.name }}</div>
+    <button type="submit">Create User</button>
+  </TypedForm>
+</template>
+```
+
+```svelte Svelte icon="s"
+<script lang="ts">
+    import { createForm } from '@inertiajs/svelte'
+
+    interface UserForm {
+        name: string
+        email: string
+    }
+
+    const TypedForm = createForm<UserForm>()
+</script>
+
+<TypedForm action="/users" method="post">
+    {#snippet children({ errors })}
+        <input type="text" name="name" />
+        {#if errors.name}<div>{errors.name}</div>{/if}
+        <button type="submit">Create User</button>
+    {/snippet}
+</TypedForm>
+```
+
+</CodeGroup>
+
+The generic provides autocomplete and type checking for the `errors` object, `setError`, `clearErrors`, and other slot props that reference form fields.
+
+### useFormContext
+
+The `useFormContext()` function also accepts a generic type parameter, providing type-safe access to the form context from child components.
+
+<CodeGroup>
+
+```tsx React icon="react"
+import { useFormContext } from "@inertiajs/react";
+
+const form = useFormContext<UserForm>();
+```
+
+```vue Vue icon="vuejs"
+<script setup lang="ts">
+import { useFormContext } from "@inertiajs/vue3";
+
+const form = useFormContext<UserForm>();
+</script>
+```
+
+```svelte Svelte icon="s"
+<script lang="ts">
+    import { useFormContext } from '@inertiajs/svelte'
+
+    const form = useFormContext<UserForm>()
+</script>
+```
+
+</CodeGroup>
+
 ## Remembering State
 
 The `useRemember` hook accepts a generic type parameter for type-safe local state persistence, providing autocomplete and ensuring values match the expected types.
@@ -304,7 +411,7 @@ export default function Users() {
 
 ## Restoring State
 
-The `router.restore()` method accepts a generic for typing state restored from [history](/v2/data-props/remembering-state#manually-saving-state).
+The `router.restore()` method accepts a generic for typing state restored from [history](/v3/data-props/remembering-state#manually-saving-state).
 
 ```ts
 import { router } from "@inertiajs/react";
@@ -352,7 +459,7 @@ router.flash<{ paymentError: string }>({ paymentError: "Card declined" });
 
 ## Client-Side Visits
 
-The `router.push()` and `router.replace()` methods accept a generic for typing [client-side visit](/v2/the-basics/manual-visits#client-side-visits) props.
+The `router.push()` and `router.replace()` methods accept a generic for typing [client-side visit](/v3/the-basics/manual-visits#client-side-visits) props.
 
 ```ts
 import { router } from "@inertiajs/react";

@@ -19,5 +19,6 @@ run_step "Import Mintlify documents" php artisan markdown:mintlify
 run_step "Import Inertia v2 (JA)" php artisan markdown:inertia-v2-ja
 run_step "Import Kiro CLI documents" php artisan markdown:kiro-cli
 run_step "Import agent-browser (JA)" php artisan markdown:agent-browser-ja
+run_step "Import Laravel 13 AI SDK" php artisan markdown:laravel13-ai-sdk
 
 log "Done."

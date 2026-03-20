@@ -2,6 +2,10 @@
 title: Testing
 ---
 
+import V3BetaWarning from "/snippets/v3-beta-warning.mdx";
+
+<V3BetaWarning />
+
 There are many different ways to test an Inertia application. This page provides a quick overview of the tools available.
 
 ## End-to-end Tests
@@ -167,7 +171,7 @@ $response->assertInertia(fn (Assert $page) => $page
 
 ### Testing Partial Reloads
 
-You may use the `reloadOnly` and `reloadExcept` methods to test how your application responds to [partial reloads](/v2/data-props/partial-reloads). These methods perform a follow-up request and allow you to make assertions against the response.
+You may use the `reloadOnly` and `reloadExcept` methods to test how your application responds to [partial reloads](/v3/data-props/partial-reloads). These methods perform a follow-up request and allow you to make assertions against the response.
 
 ```php
 $response->assertInertia(fn (Assert $page) => $page
@@ -184,7 +188,7 @@ Instead of passing a single prop as a string, you may also pass an array of prop
 
 ### Testing Deferred Props
 
-You may use the `loadDeferredProps` method to test how your application responds to [deferred props](/v2/data-props/deferred-props). This method performs a follow-up request to load the deferred properties and allows you to make assertions against the response.
+You may use the `loadDeferredProps` method to test how your application responds to [deferred props](/v3/data-props/deferred-props). This method performs a follow-up request to load the deferred properties and allows you to make assertions against the response.
 
 ```php
 $response->assertInertia(fn (Assert $page) => $page
@@ -227,7 +231,7 @@ $response->assertInertia(fn (Assert $page) => $page
 
 ### Testing Flash Data
 
-You may use the `hasFlash` and `missingFlash` methods to test [flash data](/v2/data-props/flash-data) in your Inertia responses.
+You may use the `hasFlash` and `missingFlash` methods to test [flash data](/v3/data-props/flash-data) in your Inertia responses.
 
 ```php
 $response->assertInertia(fn (Assert $page) => $page
