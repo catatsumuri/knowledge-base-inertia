@@ -20,5 +20,6 @@ run_step "Import Inertia v2 (JA)" php artisan markdown:inertia-v2-ja
 run_step "Import Kiro CLI documents" php artisan markdown:kiro-cli
 run_step "Import agent-browser (JA)" php artisan markdown:agent-browser-ja
 run_step "Import Laravel 13 AI SDK" php artisan markdown:laravel13-ai-sdk
+run_step "Import Laravel 13 Upgrade Guide" php artisan markdown:laravel13-upgrade
 
 log "Done."

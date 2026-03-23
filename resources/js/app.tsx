@@ -1,6 +1,6 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -23,6 +23,18 @@ createInertiaApp({
                 <App {...props} />
             </StrictMode>,
         );
+
+        // SSR初回ロード時、InertiaがスクロールをリセットするのでURLのハッシュ位置に復元する
+        const hash = window.location.hash;
+        if (hash) {
+            const removeListener = router.on('navigate', () => {
+                removeListener();
+                const id = decodeURIComponent(hash.slice(1));
+                requestAnimationFrame(() => {
+                    document.getElementById(id)?.scrollIntoView();
+                });
+            });
+        }
     },
     progress: {
         color: '#4B5563',
